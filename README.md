@@ -1,7 +1,9 @@
 
-# VIOLÃO AI
+# ChordAI - Backend
 
 Este projeto treina um dataset de audios de acordes musicais com o metodo CNN 1D e disponibiliza uma API Flask para visualizar uma interface onde o usuário podera ver o reconhecimento do acorde tocado.
+
+App Flutter: [github.com/imxder/ChordAI](https://github.com/imxder/ChordAI)
 
 ---
 
@@ -16,8 +18,8 @@ Este projeto treina um dataset de audios de acordes musicais com o metodo CNN 1D
 ### Passo 1: Clone o repositório
 
 ```bash
-git clone https://github.com/imxder/VIOLAO_AI.git
-cd VIOLAO_AI
+git clone https://github.com/imxder/ChordAI-backend.git
+cd ChordAI-backend
 ```
 
 ### Passo 2: Crie e ative o ambiente virtual
@@ -110,7 +112,7 @@ python serve.py
 Para iniciar automaticamente ao fazer login no Windows, crie uma tarefa no Agendador de Tarefas (PowerShell):
 
 ```powershell
-$dir = "C:\caminho\para\VIOLAO_AI"
+$dir = "C:\caminho\para\ChordAI-backend"
 $action = New-ScheduledTaskAction -Execute "$dir\.venv\Scripts\pythonw.exe" -Argument "`"$dir\serve.py`"" -WorkingDirectory $dir
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
