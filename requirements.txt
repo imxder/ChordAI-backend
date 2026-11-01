@@ -13,3 +13,4 @@ gdown
 pytest
 pytest-mock
 gunicorn
+waitress
