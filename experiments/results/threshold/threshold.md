@@ -1,4 +1,4 @@
-# Limiar de confiança — ChordAI (Parte 5)
+# Limiar de confiança — ChordAI (`feat_chroma_scalerfeat_gapbn_none`)
 
 - **Validação** (usada para ESCOLHER o limiar): 944 janelas de acorde (de 985; 41 com RMS < 0.003, para as quais o app já devolve "silence") + 133 negativas (low_volume: 45, noise: 44, percussion: 44).
 - **Teste** (só REPORTADO, não participa da escolha): 1485 janelas de acorde (de 1545; 60 com RMS < 0.003, para as quais o app já devolve "silence") + 223 negativas (low_volume: 75, noise: 74, percussion: 74).
@@ -14,6 +14,8 @@
 | Teste (reportado) | 98.8 ± 0.5 | 97.9 ± 0.3 | 96.8 ± 0.5 | 1.6 ± 0.3 |
 
 No teste degradado, com o mesmo limiar: cobertura 97.4%, acurácia nos aceitos 97.1%.
+
+**Limiar de cada seed** (escolhido na validação da própria seed, mesmo critério; é assim que o modelo de produção é calibrado): seed 42: 0.50, seed 43: 0.30, seed 44: 0.55. No teste, cada seed no seu limiar: cobertura 98.9 ± 0.5, acurácia nos aceitos 97.9 ± 0.3, falso aceite 1.5 ± 0.5.
 
 ![curva](threshold.png)
 

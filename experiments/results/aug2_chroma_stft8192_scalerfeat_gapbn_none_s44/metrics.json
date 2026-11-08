@@ -1,0 +1,84 @@
+{
+  "experiment": "aug2_chroma_stft8192_scalerfeat_gapbn_none_s44",
+  "accuracy": 0.955316742081448,
+  "macro_f1": 0.9551283693334014,
+  "f1_per_class": {
+    "Am": 0.9440389294403893,
+    "Bb": 0.9285714285714286,
+    "Bdim": 0.9431818181818182,
+    "C": 0.9604221635883905,
+    "Dm": 0.9455445544554455,
+    "Em": 0.961439588688946,
+    "F": 0.9762532981530343,
+    "G": 0.9637305699481865,
+    "_none": 0.972972972972973
+  },
+  "n_params": 47049,
+  "inference_ms_per_window": 113.26993850052531,
+  "inference_ms_per_window_median": 112.53545000363374,
+  "n_test_windows": 1768,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "accuracy_chords": 0.9533980582524272,
+  "chords_predicted_as_none": 0.003236245954692557,
+  "none_recall": 0.968609865470852,
+  "none_recall_by_kind": {
+    "low_volume": 0.9733333333333334,
+    "noise": 0.9459459459459459,
+    "percussion": 0.9864864864864865
+  },
+  "n_test_chord_windows": 1545,
+  "n_test_none_windows": 223,
+  "none_counts": {
+    "train": {
+      "low_volume": 252,
+      "noise": 252,
+      "percussion": 252
+    },
+    "val": {
+      "low_volume": 45,
+      "noise": 44,
+      "percussion": 44
+    },
+    "test": {
+      "low_volume": 75,
+      "noise": 74,
+      "percussion": 74
+    }
+  },
+  "group": "aug2_chroma_stft8192_scalerfeat_gapbn_none",
+  "seed": 44,
+  "features": "chroma_stft8192",
+  "feature_key": "chroma_stft8192",
+  "input_shape": [
+    65,
+    12
+  ],
+  "scaler": "per_feature",
+  "n_aug": 2,
+  "augmentation": "2 versao(oes)/janela: ruido branco/rosa SNR 10-30 dB, ganho -12..+6 dB, passa-banda ~150 Hz-7 kHz, deslocamento ate 0,15 s",
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 16833,
+  "n_val_windows": 1118,
+  "arch": "gap_bn",
+  "model": "CNN 1D (Conv64-BN-Conv128-BN-GAP-Dense128)",
+  "epochs_trained": 66,
+  "best_val_loss": 0.15003575384616852,
+  "train_seconds": 318.1,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.9436893203883495,
+  "macro_f1_degraded": 0.8460167868583527
+}

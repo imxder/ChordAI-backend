@@ -1,0 +1,64 @@
+{
+  "model_version": "c1-chroma_stft8192-aug2-gapbn-none-s44",
+  "seed": 44,
+  "source_experiment": "experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s44",
+  "sample_rate": 22050,
+  "channels": 1,
+  "input_samples": 33075,
+  "window_seconds": 1.5,
+  "input": {
+    "name": "audio",
+    "dtype": "float32",
+    "shape": [
+      1,
+      33075
+    ],
+    "range": [
+      -1.0,
+      1.0
+    ],
+    "from_pcm16": "amostra_int16 / 32768.0"
+  },
+  "output": {
+    "name": "probabilities",
+    "dtype": "float32",
+    "shape": [
+      1,
+      9
+    ],
+    "labels_file": "labels.json"
+  },
+  "none_label": "_none",
+  "confidence_threshold": 0.5,
+  "silence_rms_threshold": 0.003,
+  "files": {
+    "float32": "chord_model.tflite",
+    "int8_dynamic": "chord_model_int8.tflite"
+  },
+  "feature_inside_model": {
+    "type": "chroma_stft8192",
+    "sample_rate": 22050,
+    "n_fft": 8192,
+    "win_length": 8192,
+    "hop_length": 512,
+    "window": "hann",
+    "center": true,
+    "pad_mode": "constant",
+    "power": 2.0,
+    "tuning": 0.0,
+    "n_chroma": 12,
+    "norm": "inf",
+    "norm_threshold": 1.1754943508222875e-38,
+    "ctroct": 5.0,
+    "octwidth": 2.0,
+    "fb_norm": 2,
+    "base_c": true,
+    "n_frames": 65
+  },
+  "validation_metrics_at_threshold": {
+    "coverage": 0.9851694915254238,
+    "accuracy": 0.9849462365591398,
+    "useful": 0.9703389830508474,
+    "false_accept": 0.0
+  }
+}

@@ -73,6 +73,89 @@
       "std": 0.006653463290422995
     }
   },
+  "feature": "chroma",
+  "limiar_por_seed": [
+    {
+      "seed": 42,
+      "limiar": 0.5,
+      "validacao": {
+        "coverage": 0.9883474576271186,
+        "accuracy": 0.9807073954983923,
+        "useful": 0.9692796610169492,
+        "false_accept": 0.007518796992481203
+      },
+      "teste": {
+        "coverage": 0.98989898989899,
+        "accuracy": 0.9823129251700681,
+        "useful": 0.9723905723905724,
+        "false_accept": 0.017937219730941704,
+        "coverage_degraded": 0.9784511784511785,
+        "accuracy_degraded": 0.9731589814177564
+      }
+    },
+    {
+      "seed": 43,
+      "limiar": 0.3,
+      "validacao": {
+        "coverage": 0.9925847457627118,
+        "accuracy": 0.9818569903948773,
+        "useful": 0.9745762711864406,
+        "false_accept": 0.03759398496240601
+      },
+      "teste": {
+        "coverage": 0.9932659932659933,
+        "accuracy": 0.9769491525423729,
+        "useful": 0.9703703703703703,
+        "false_accept": 0.017937219730941704,
+        "coverage_degraded": 0.9750841750841751,
+        "accuracy_degraded": 0.9696132596685083
+      }
+    },
+    {
+      "seed": 44,
+      "limiar": 0.55,
+      "validacao": {
+        "coverage": 0.9872881355932204,
+        "accuracy": 0.9828326180257511,
+        "useful": 0.9703389830508474,
+        "false_accept": 0.007518796992481203
+      },
+      "teste": {
+        "coverage": 0.9831649831649831,
+        "accuracy": 0.9780821917808219,
+        "useful": 0.9616161616161616,
+        "false_accept": 0.008968609865470852,
+        "coverage_degraded": 0.9723905723905724,
+        "accuracy_degraded": 0.9695290858725761
+      }
+    }
+  ],
+  "teste_limiar_por_seed": {
+    "coverage": {
+      "mean": 0.988776655443322,
+      "std": 0.00514318259815474
+    },
+    "accuracy": {
+      "mean": 0.9791147564977543,
+      "std": 0.0028270402581840304
+    },
+    "useful": {
+      "mean": 0.9681257014590349,
+      "std": 0.005727205756306649
+    },
+    "false_accept": {
+      "mean": 0.014947683109118086,
+      "std": 0.00517802932008633
+    },
+    "coverage_degraded": {
+      "mean": 0.9753086419753085,
+      "std": 0.003036531820082775
+    },
+    "accuracy_degraded": {
+      "mean": 0.9707671089862803,
+      "std": 0.002071849802307573
+    }
+  },
   "conjuntos": {
     "val": {
       "janelas_acorde": 944,

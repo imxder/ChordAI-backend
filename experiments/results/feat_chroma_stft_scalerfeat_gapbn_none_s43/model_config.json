@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "feature": "chroma_stft",
+  "scaler": "feature",
+  "arch": "gap_bn",
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "none_label": "_none",
+  "confidence_threshold": null,
+  "sample_rate": 22050,
+  "window_seconds": 1.5,
+  "hop_length": 512,
+  "n_frames": 65,
+  "n_features": 12,
+  "n_mfcc": null,
+  "files": {
+    "model": "model.h5",
+    "encoder": "encoder.joblib",
+    "scaler": "scaler.joblib"
+  },
+  "group": "feat_chroma_stft_scalerfeat_gapbn_none",
+  "seed": 43,
+  "trained_by": "experiments/exp_features.py"
+}

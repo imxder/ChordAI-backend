@@ -55,11 +55,42 @@ Accuracy dos acordes = nas mesmas 1545 janelas de acorde dos outros experimentos
 
 | Experimento | Seeds | Accuracy acordes (%) | Acordes → _none (%) | Recall _none (%) | Recall low_volume | Recall noise | Recall percussion | Acc. degradado (%) |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
+| aug2_chroma_stft8192_scalerfeat_detune_gapbn_none | 3 | 94.00 ± 0.39 | 0.43 ± 0.04 | 96.71 ± 0.93 | 96.89 ± 1.54 | 95.05 ± 2.06 | 98.20 ± 2.06 | 93.25 ± 0.36 |
+| aug2_chroma_stft8192_scalerfeat_gapbn_none | 3 | 95.04 ± 0.64 | 0.43 ± 0.10 | 97.91 ± 1.13 | 97.33 ± 0.00 | 97.30 ± 2.70 | 99.10 ± 0.78 | 94.28 ± 0.15 |
+| feat_chroma_cqt_t0_scalerfeat_gapbn_none | 3 | 94.58 ± 0.81 | 0.97 ± 0.13 | 98.06 ± 0.26 | 94.67 ± 0.00 | 99.55 ± 0.78 | 100.00 ± 0.00 | 92.32 ± 0.78 |
 | feat_chroma_scalerfeat_gapbn_none | 3 | 95.32 ± 0.26 | 0.91 ± 0.11 | 98.21 ± 0.00 | 95.11 ± 0.77 | 99.55 ± 0.78 | 100.00 ± 0.00 | 93.14 ± 0.45 |
+| feat_chroma_stft4096_scalerfeat_gapbn_none | 3 | 93.53 ± 0.74 | 0.47 ± 0.04 | 99.40 ± 0.26 | 100.00 ± 0.00 | 98.20 ± 0.78 | 100.00 ± 0.00 | 89.41 ± 1.03 |
+| feat_chroma_stft8192_scalerfeat_gapbn_none | 3 | 94.09 ± 0.23 | 0.54 ± 0.04 | 99.10 ± 0.45 | 99.56 ± 0.77 | 98.20 ± 1.56 | 99.55 ± 0.78 | 90.36 ± 0.40 |
+| feat_chroma_stft_scalerfeat_gapbn_none | 3 | 92.71 ± 1.44 | 0.47 ± 0.04 | 98.95 ± 0.26 | 100.00 ± 0.00 | 96.85 ± 0.78 | 100.00 ± 0.00 | 88.31 ± 1.10 |
 
 Efeito da classe _none (`feat_chroma_scalerfeat_gapbn_none` − `feat_chroma_scalerfeat_gapbn`, pareado por seed): Δ accuracy acordes = -0.11 ± 0.10 p.p.; Δ acc. degradado = -1.55 ± 0.39 p.p.
 
 Negativos por split: train: low_volume 252, noise 252, percussion 252; val: low_volume 45, noise 44, percussion 44; test: low_volume 75, noise 74, percussion 74
+
+## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)
+
+Mesma configuração do modelo em produção (scaler por feature, GAP+BN, classe `_none`, validação separada, sem augmentation), mudando só a feature (C1/C2: + augmentation da Parte 3, com e sem detune). Teste, seeds 42, 43, 44. Accuracy, macro-F1 e acc. degradado sem limiar (argmax); falso aceite (negativos do teste aceitos como acorde) e acurácia nos aceitos com o **limiar de cada seed**, escolhido na validação da própria seed (como o de produção). Todas as variantes saem com 65 frames.
+
+| Experimento | Accuracy acordes (%) | Macro-F1 (%) | Acc. degradado (%) | Falso aceite (%) | Acurácia nos aceitos (%) | Limiares (s42, s43, s44) |
+|---|---:|---:|---:|---:|---:|---|
+| Produção: chroma_cqt (tuning automático) | 95.32 ± 0.26 | 95.67 ± 0.24 | 93.14 ± 0.45 | 1.49 ± 0.52 | 97.91 ± 0.28 | 0.50, 0.30, 0.55 |
+| chroma_stft, n_fft 2048 | 92.71 ± 1.44 | 93.42 ± 1.27 | 88.31 ± 1.10 | 0.90 ± 0.45 | 95.88 ± 1.04 | 0.55, 0.55, 0.45 |
+| A: chroma_cqt, tuning=0.0 | 94.58 ± 0.81 | 95.01 ± 0.75 | 92.32 ± 0.78 | 1.64 ± 0.26 | 97.41 ± 0.70 | 0.50, 0.30, 0.50 |
+| B: chroma_stft, n_fft 4096 | 93.53 ± 0.74 | 94.22 ± 0.63 | 89.41 ± 1.03 | 0.60 ± 0.26 | 96.42 ± 0.10 | 0.40, 0.50, 0.45 |
+| C: chroma_stft, n_fft 8192 | 94.09 ± 0.23 | 94.67 ± 0.19 | 90.36 ± 0.40 | 0.75 ± 0.26 | 96.95 ± 0.65 | 0.45, 0.60, 0.60 |
+| C1: C + aug2 | 95.04 ± 0.64 | 95.37 ± 0.63 | 94.28 ± 0.15 | 1.49 ± 0.93 | 97.36 ± 0.57 | 0.50, 0.50, 0.50 |
+| C2: C + aug2 + detune ±40 cents | 94.00 ± 0.39 | 94.31 ± 0.24 | 93.25 ± 0.36 | 2.09 ± 1.57 | 97.43 ± 0.55 | 0.75, 0.70, 0.50 |
+
+Δ pareado por seed contra a produção (p.p., variante − produção). ✓ = no máximo 1 p.p. pior que a produção (para falso aceite, pior = maior).
+
+| Experimento | Δ Accuracy acordes | Δ Macro-F1 | Δ Acc. degradado | Δ Falso aceite | Δ Acurácia nos aceitos | Até ~1 p.p. em tudo? |
+|---|---:|---:|---:|---:|---:|:---:|
+| chroma_stft, n_fft 2048 | -2.61 ± 1.38 | -2.25 ± 1.22 | -4.83 ± 0.65 | -0.60 ± 0.68 ✓ | -2.03 ± 0.77 | não |
+| A: chroma_cqt, tuning=0.0 | -0.73 ± 0.71 ✓ | -0.66 ± 0.67 ✓ | -0.82 ± 0.39 ✓ | +0.15 ± 0.26 ✓ | -0.50 ± 0.55 ✓ | sim |
+| B: chroma_stft, n_fft 4096 | -1.79 ± 0.71 | -1.45 ± 0.63 | -3.73 ± 0.65 | -0.90 ± 0.45 ✓ | -1.49 ± 0.33 | não |
+| C: chroma_stft, n_fft 8192 | -1.23 ± 0.06 | -1.00 ± 0.05 | -2.78 ± 0.06 | -0.75 ± 0.26 ✓ | -0.96 ± 0.93 ✓ | não |
+| C1: C + aug2 | -0.28 ± 0.88 ✓ | -0.30 ± 0.82 ✓ | +1.14 ± 0.60 ✓ | -0.00 ± 1.35 ✓ | -0.55 ± 0.85 ✓ | sim |
+| C2: C + aug2 + detune ±40 cents | -1.32 ± 0.65 | -1.36 ± 0.48 | +0.11 ± 0.80 ✓ | +0.60 ± 2.02 ✓ | -0.49 ± 0.70 ✓ | não |
 
 ## Parte 6 — modelo em produção (`trained_model/`)
 

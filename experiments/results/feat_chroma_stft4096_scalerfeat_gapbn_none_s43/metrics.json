@@ -1,0 +1,84 @@
+{
+  "experiment": "feat_chroma_stft4096_scalerfeat_gapbn_none_s43",
+  "accuracy": 0.9355203619909502,
+  "macro_f1": 0.9349935354488146,
+  "f1_per_class": {
+    "Am": 0.9064039408866995,
+    "Bb": 0.9045226130653267,
+    "Bdim": 0.9178470254957507,
+    "C": 0.9487870619946092,
+    "Dm": 0.9054726368159204,
+    "Em": 0.9282051282051282,
+    "F": 0.9576719576719577,
+    "G": 0.9637305699481865,
+    "_none": 0.9823008849557522
+  },
+  "n_params": 47049,
+  "inference_ms_per_window": 116.17027799977222,
+  "inference_ms_per_window_median": 112.6580499985721,
+  "n_test_windows": 1768,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "accuracy_chords": 0.9268608414239482,
+  "chords_predicted_as_none": 0.004530744336569579,
+  "none_recall": 0.9955156950672646,
+  "none_recall_by_kind": {
+    "low_volume": 1.0,
+    "noise": 0.9864864864864865,
+    "percussion": 1.0
+  },
+  "n_test_chord_windows": 1545,
+  "n_test_none_windows": 223,
+  "none_counts": {
+    "train": {
+      "low_volume": 252,
+      "noise": 252,
+      "percussion": 252
+    },
+    "val": {
+      "low_volume": 45,
+      "noise": 44,
+      "percussion": 44
+    },
+    "test": {
+      "low_volume": 75,
+      "noise": 74,
+      "percussion": 74
+    }
+  },
+  "group": "feat_chroma_stft4096_scalerfeat_gapbn_none",
+  "seed": 43,
+  "features": "chroma_stft4096",
+  "feature_key": "chroma_stft4096",
+  "input_shape": [
+    65,
+    12
+  ],
+  "scaler": "per_feature",
+  "n_aug": 0,
+  "augmentation": null,
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 6115,
+  "n_val_windows": 1118,
+  "arch": "gap_bn",
+  "model": "CNN 1D (Conv64-BN-Conv128-BN-GAP-Dense128)",
+  "epochs_trained": 63,
+  "best_val_loss": 0.1434217393398285,
+  "train_seconds": 140.8,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.8854368932038835,
+  "macro_f1_degraded": 0.8067195146182992
+}

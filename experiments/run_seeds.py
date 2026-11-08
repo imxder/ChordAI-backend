@@ -28,6 +28,15 @@ CONFIGS = [
     ('chroma', 'per_feature', 0, False, 'cnn2d'),
     # Parte 5: classe _none no melhor modelo da Parte 4 (variante A)
     ('chroma', 'per_feature', 0, False, 'gap_bn', True),
+    # Parte 7a: chroma_stft (reproduzivel em tf.signal) na configuracao de producao
+    ('chroma_stft', 'per_feature', 0, False, 'gap_bn', True),
+    # Parte 7a: A = chroma_cqt com tuning=0.0; B/C = chroma_stft com n_fft 4096 / 8192
+    ('chroma_cqt_t0', 'per_feature', 0, False, 'gap_bn', True),
+    ('chroma_stft4096', 'per_feature', 0, False, 'gap_bn', True),
+    ('chroma_stft8192', 'per_feature', 0, False, 'gap_bn', True),
+    # Parte 7a: C1 = C + aug2; C2 = C + aug2 + detune +-40 cents
+    ('chroma_stft8192', 'per_feature', 2, False, 'gap_bn', True),
+    ('chroma_stft8192', 'per_feature', 2, True, 'gap_bn', True),
 ]
 
 
