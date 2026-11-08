@@ -1,22 +1,50 @@
 # Limiar de confiança — ChordAI (Parte 5)
 
-Teste: 1485 janelas de acorde que passam pelo filtro de silêncio (de 1545; 60 têm RMS < 0.003 e o app já devolve "silence") + 223 janelas negativas (low_volume: 75, noise: 74, percussion: 74). Média ± desvio sobre as seeds 42, 43, 44. Valores em %.
+- **Validação** (usada para ESCOLHER o limiar): 944 janelas de acorde (de 985; 41 com RMS < 0.003, para as quais o app já devolve "silence") + 133 negativas (low_volume: 45, noise: 44, percussion: 44).
+- **Teste** (só REPORTADO, não participa da escolha): 1485 janelas de acorde (de 1545; 60 com RMS < 0.003, para as quais o app já devolve "silence") + 223 negativas (low_volume: 75, noise: 74, percussion: 74).
+- Média ± desvio sobre as seeds 42, 43, 44. Valores em %.
 
 "Útil" = janelas de acorde aceitas **e** certas (cobertura × acurácia). "Falso aceite" = negativas aceitas como algum acorde. Colunas "degr." = mesmo teste de acordes com ruído rosa a 15 dB + passa-banda 200 Hz–5 kHz.
 
-**Sugestão:** maior cobertura com falso aceite <= 5% e acuracia >= 98% (modelo feat_chroma_scalerfeat_gapbn_none, teste limpo, media das seeds) → limiar **0.5**.
+**Limiar escolhido na validação: 0.45** — critério: maior cobertura com falso aceite <= 5% e acuracia nos aceitos >= 98% (modelo feat_chroma_scalerfeat_gapbn_none, media das seeds [42, 43, 44]).
+
+| No limiar escolhido | Cobertura | Acurácia nos aceitos | Útil | Falso aceite |
+|---|---:|---:|---:|---:|
+| Validação (escolha) | 99.2 ± 0.2 | 98.0 ± 0.4 | 97.2 ± 0.2 | 2.0 ± 1.6 |
+| Teste (reportado) | 98.8 ± 0.5 | 97.9 ± 0.3 | 96.8 ± 0.5 | 1.6 ± 0.3 |
+
+No teste degradado, com o mesmo limiar: cobertura 97.4%, acurácia nos aceitos 97.1%.
 
 ![curva](threshold.png)
 
-## Com classe _none (`feat_chroma_scalerfeat_gapbn_none`)
+## Com classe _none (`feat_chroma_scalerfeat_gapbn_none`) — validação (escolha)
+
+| Limiar | Cobertura | Acurácia nos aceitos | Útil | Falso aceite |
+|---:|---:|---:|---:|---:|
+| 0.30 | 99.5 ± 0.3 | 97.8 ± 0.4 | 97.3 ± 0.1 | 2.0 ± 1.6 |
+| 0.35 | 99.4 ± 0.3 | 97.9 ± 0.4 | 97.3 ± 0.2 | 2.0 ± 1.6 |
+| 0.40 | 99.3 ± 0.3 | 97.9 ± 0.4 | 97.2 ± 0.2 | 2.0 ± 1.6 |
+| 0.45 **←** | 99.2 ± 0.2 | 98.0 ± 0.4 | 97.2 ± 0.2 | 2.0 ± 1.6 |
+| 0.50 | 98.9 ± 0.3 | 98.1 ± 0.3 | 97.0 ± 0.1 | 1.8 ± 1.7 |
+| 0.55 | 98.6 ± 0.3 | 98.3 ± 0.3 | 96.9 ± 0.1 | 1.5 ± 1.3 |
+| 0.60 | 98.4 ± 0.7 | 98.5 ± 0.5 | 96.9 ± 0.2 | 1.5 ± 1.3 |
+| 0.65 | 97.6 ± 0.7 | 98.8 ± 0.4 | 96.5 ± 0.3 | 1.0 ± 0.4 |
+| 0.70 | 97.0 ± 0.8 | 99.2 ± 0.3 | 96.3 ± 0.5 | 0.8 ± 0.0 |
+| 0.75 | 96.7 ± 0.9 | 99.3 ± 0.4 | 96.0 ± 0.5 | 0.3 ± 0.4 |
+| 0.80 | 96.2 ± 1.0 | 99.5 ± 0.3 | 95.8 ± 0.7 | 0.3 ± 0.4 |
+| 0.85 | 95.9 ± 1.0 | 99.6 ± 0.3 | 95.5 ± 0.7 | 0.3 ± 0.4 |
+| 0.90 | 95.1 ± 0.7 | 99.7 ± 0.2 | 94.8 ± 0.5 | 0.3 ± 0.4 |
+| 0.95 | 93.9 ± 0.7 | 99.8 ± 0.1 | 93.7 ± 0.7 | 0.0 ± 0.0 |
+
+## Com classe _none (`feat_chroma_scalerfeat_gapbn_none`) — teste (reportado)
 
 | Limiar | Cobertura | Acurácia nos aceitos | Útil | Falso aceite | Cobertura (degr.) | Acurácia (degr.) |
 |---:|---:|---:|---:|---:|---:|---:|
 | 0.30 | 99.4 ± 0.1 | 97.6 ± 0.2 | 97.1 ± 0.3 | 1.8 ± 0.0 | 98.0 ± 0.4 | 96.7 ± 0.4 |
 | 0.35 | 99.3 ± 0.2 | 97.7 ± 0.3 | 97.1 ± 0.3 | 1.8 ± 0.0 | 98.0 ± 0.4 | 96.7 ± 0.5 |
 | 0.40 | 99.1 ± 0.2 | 97.8 ± 0.3 | 97.0 ± 0.4 | 1.6 ± 0.3 | 97.9 ± 0.5 | 96.8 ± 0.4 |
-| 0.45 | 98.8 ± 0.5 | 97.9 ± 0.3 | 96.8 ± 0.5 | 1.6 ± 0.3 | 97.4 ± 0.7 | 97.1 ± 0.4 |
-| 0.50 **←** | 98.6 ± 0.4 | 98.1 ± 0.3 | 96.7 ± 0.5 | 1.6 ± 0.3 | 97.2 ± 0.9 | 97.2 ± 0.5 |
+| 0.45 **←** | 98.8 ± 0.5 | 97.9 ± 0.3 | 96.8 ± 0.5 | 1.6 ± 0.3 | 97.4 ± 0.7 | 97.1 ± 0.4 |
+| 0.50 | 98.6 ± 0.4 | 98.1 ± 0.3 | 96.7 ± 0.5 | 1.6 ± 0.3 | 97.2 ± 0.9 | 97.2 ± 0.5 |
 | 0.55 | 98.2 ± 0.5 | 98.2 ± 0.3 | 96.4 ± 0.5 | 1.3 ± 0.4 | 96.7 ± 1.0 | 97.5 ± 0.5 |
 | 0.60 | 97.8 ± 0.7 | 98.4 ± 0.3 | 96.2 ± 0.5 | 1.0 ± 0.3 | 96.2 ± 1.0 | 97.6 ± 0.5 |
 | 0.65 | 97.3 ± 0.9 | 98.5 ± 0.3 | 95.8 ± 0.6 | 1.0 ± 0.3 | 95.7 ± 1.2 | 97.9 ± 0.6 |
@@ -27,7 +55,7 @@ Teste: 1485 janelas de acorde que passam pelo filtro de silêncio (de 1545; 60 t
 | 0.90 | 93.4 ± 1.6 | 99.3 ± 0.1 | 92.7 ± 1.5 | 0.1 ± 0.3 | 91.0 ± 2.2 | 98.7 ± 0.3 |
 | 0.95 | 91.7 ± 1.8 | 99.4 ± 0.1 | 91.1 ± 1.9 | 0.1 ± 0.3 | 88.8 ± 2.4 | 99.0 ± 0.4 |
 
-## Sem classe _none (`feat_chroma_scalerfeat_gapbn`, Parte 4)
+## Sem classe _none (`feat_chroma_scalerfeat_gapbn`, Parte 4) — teste
 
 | Limiar | Cobertura | Acurácia nos aceitos | Útil | Falso aceite | Cobertura (degr.) | Acurácia (degr.) |
 |---:|---:|---:|---:|---:|---:|---:|

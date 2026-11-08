@@ -1,39 +1,77 @@
+ATENCAO: NAO APLICAR ANTES DA PARTE 6.
+
+Este diff so deve ser aplicado na Parte 6, junto com a troca do modelo em
+producao (trained_model/ -> chroma + GAP/BN com classe _none). O limiar
+CONFIDENCE_THRESHOLD = 0.45 foi calibrado (na validacao, experiments/threshold.py)
+para o modelo NOVO; aplicado sobre o modelo MFCC atual ele nao tem significado.
+
+O que muda (Parte 5):
+- recognize_chord(): status "unknown" (chord=None) quando a classe prevista e
+  "_none" ou a confianca fica abaixo de CONFIDENCE_THRESHOLD.
+- predict_note(): devolve "Acorde Desconhecido" nos mesmos casos.
+Testes: tests/unit/test_unknown_chord.py (pulados ate o diff ser aplicado).
+
+Aplicar:   git apply experiments/results/parte5_recognize_chord.diff
+Conferir:  git apply --check experiments/results/parte5_recognize_chord.diff
+
 diff --git a/train_model.py b/train_model.py
-index d36519c..e43bc0a 100644
 --- a/train_model.py
 +++ b/train_model.py
-@@ -238,6 +238,14 @@ def load_trained_model():
+@@ -238,6 +238,20 @@ def load_trained_model():
  
  
  SILENCE_THRESHOLD = 0.003
 +# Parte 5: abaixo deste limiar de confianca (prob. maxima do softmax) o app
-+# responde "unknown" em vez de arriscar um acorde. 0.50 foi o sugerido por
-+# experiments/threshold.py para o modelo chroma + GAP/BN com classe _none
-+# (cobertura 98,6%, acuracia nos aceitos 98,1%, falso aceite 1,6%). Cada modelo
-+# precisa do seu proprio limiar: recalibre ao trocar o modelo.
-+CONFIDENCE_THRESHOLD = 0.50
++# responde "desconhecido" em vez de arriscar um acorde. 0.45 foi escolhido na
++# VALIDACAO por experiments/threshold.py para o modelo chroma + GAP/BN com classe
++# _none (no teste: cobertura 98,8%, acuracia nos aceitos 97,9%,
++# falso aceite 1,6%). Cada modelo precisa do seu proprio limiar:
++# recalibre ao trocar o modelo.
++CONFIDENCE_THRESHOLD = 0.45
 +# rotulo da classe "nenhum acorde"; modelos sem essa classe simplesmente nunca a preveem
 +NONE_LABEL = '_none'
++
++
++def _is_unknown(chord, confidence, confidence_threshold):
++    """True quando nao ha acorde confiavel: classe invalida, "_none" ou confianca baixa."""
++    return chord is None or chord == NONE_LABEL or confidence < confidence_threshold
  
  
  def _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
-@@ -280,12 +288,16 @@ def predict_note(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RA
-     return chord if chord is not None else "Acorde Desconhecido"
+@@ -271,21 +285,30 @@ def _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RA
+     return predicted_chord, confidence, 'ok'
  
  
--def recognize_chord(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
--    """Usado pela API HTTP: retorna um dict serializavel em JSON para o cliente Flutter."""
+-def predict_note(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
+-    chord, _, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc, max_pad_len)
++def predict_note(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN,
++                 confidence_threshold=CONFIDENCE_THRESHOLD):
++    """Usado pela interface web (app.py). Devolve "Acorde Desconhecido" quando o
++    modelo preve "_none" ou a confianca fica abaixo de confidence_threshold."""
++    chord, confidence, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc, max_pad_len)
+     if status == 'silence':
+         return "Silêncio"
+     if status == 'too_short':
+         return "N/A - Áudio curto"
+-    return chord if chord is not None else "Acorde Desconhecido"
++    if _is_unknown(chord, confidence, confidence_threshold):
++        return "Acorde Desconhecido"
++    return chord
++
+ 
 +def recognize_chord(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN,
 +                    confidence_threshold=CONFIDENCE_THRESHOLD):
 +    """Usado pela API HTTP: retorna um dict serializavel em JSON para o cliente Flutter.
-+
+ 
+-def recognize_chord(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
+-    """Usado pela API HTTP: retorna um dict serializavel em JSON para o cliente Flutter."""
 +    status 'unknown' (chord=None) quando o modelo preve a classe "_none" ou
 +    quando a confianca fica abaixo de confidence_threshold."""
      chord, confidence, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc, max_pad_len)
      if status in ('silence', 'too_short'):
          return {'status': status, 'chord': None, 'confidence': 0.0}
 -    if chord is None:
-+    if chord is None or chord == NONE_LABEL or confidence < confidence_threshold:
++    if _is_unknown(chord, confidence, confidence_threshold):
          return {'status': 'unknown', 'chord': None, 'confidence': round(confidence, 4)}
      return {'status': 'ok', 'chord': str(chord), 'confidence': round(confidence, 4)}
  
