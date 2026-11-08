@@ -261,6 +261,32 @@ def extract_chroma_stft(audio, sr=SAMPLE_RATE, n_fft=CHROMA_STFT_N_FFT):
     return _fix_frames(chroma_stft_raw(audio, sr, n_fft=n_fft, win_length=n_fft))
 
 
+# n_fft (= win_length) de cada variante de chroma_stft; o resto vem das constantes CHROMA_STFT_*
+CHROMA_STFT_N_FFT_BY_FEATURE = {'chroma_stft': CHROMA_STFT_N_FFT, 'chroma_stft4096': 4096, 'chroma_stft8192': 8192}
+
+
+def chroma_stft_params(feature):
+    """Todos os parametros da chroma_stft de uma feature, para reimplementar fora do librosa
+    (export/build_tflite.py). win_length = n_fft em todas as variantes."""
+    n_fft = CHROMA_STFT_N_FFT_BY_FEATURE[feature]
+    return {
+        'sample_rate': SAMPLE_RATE, 'n_fft': n_fft, 'win_length': n_fft, 'hop_length': CHROMA_STFT_HOP_LENGTH,
+        'window': CHROMA_STFT_WINDOW, 'center': CHROMA_STFT_CENTER, 'pad_mode': CHROMA_STFT_PAD_MODE,
+        'power': CHROMA_STFT_POWER, 'tuning': CHROMA_STFT_TUNING, 'n_chroma': CHROMA_STFT_N_CHROMA,
+        'norm': CHROMA_STFT_NORM, 'norm_threshold': CHROMA_STFT_NORM_THRESHOLD, 'ctroct': CHROMA_STFT_CTROCT,
+        'octwidth': CHROMA_STFT_OCTWIDTH, 'fb_norm': CHROMA_STFT_FB_NORM, 'base_c': CHROMA_STFT_BASE_C,
+        'n_frames': MAX_PAD_LEN,
+    }
+
+
+def chroma_stft_window(feature):
+    """Janela da STFT exatamente como o librosa.stft monta (get_window com fftbins=True =
+    periodica, centralizada em n_fft se win_length < n_fft)."""
+    prm = chroma_stft_params(feature)
+    win = librosa.filters.get_window(prm['window'], prm['win_length'], fftbins=True)
+    return librosa.util.pad_center(win, size=prm['n_fft']).astype(np.float32)
+
+
 def extract_chroma_stft4096(audio, sr=SAMPLE_RATE):
     """Parte 7a-B: n_fft = win_length = 4096 (~5,4 Hz por bin), hop 512, tuning=0.0."""
     return extract_chroma_stft(audio, sr, n_fft=4096)
