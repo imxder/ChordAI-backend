@@ -1,0 +1,37 @@
+{
+  "experiment": "baseline_mfcc",
+  "accuracy": 0.899165061014772,
+  "macro_f1": 0.8994359120550246,
+  "f1_per_class": {
+    "Am": 0.916030534351145,
+    "Bb": 0.8609625668449198,
+    "Bdim": 0.9175257731958762,
+    "C": 0.9032258064516129,
+    "Dm": 0.9171270718232044,
+    "Em": 0.8697788697788698,
+    "F": 0.9263157894736842,
+    "G": 0.8845208845208845
+  },
+  "n_params": 268104,
+  "inference_ms_per_window": 111.51931449983749,
+  "inference_ms_per_window_median": 109.63894999986223,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "seed": 42,
+  "features": "40 MFCC, janela 1.5s @ 22050 Hz",
+  "model": "CNN 1D (Conv64-Conv128-Dense128)",
+  "epochs_trained": 43,
+  "train_seconds": 73.7,
+  "n_train_windows": 6332,
+  "accuracy_degraded": 0.7225433526011561,
+  "macro_f1_degraded": 0.7281627098237548
+}

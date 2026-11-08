@@ -1,0 +1,42 @@
+{
+  "experiment": "feat_cqt",
+  "accuracy": 0.9646756583172769,
+  "macro_f1": 0.9646430630515355,
+  "f1_per_class": {
+    "Am": 0.947103274559194,
+    "Bb": 0.9312169312169312,
+    "Bdim": 0.961439588688946,
+    "C": 0.9773299748110831,
+    "Dm": 0.972972972972973,
+    "Em": 0.9734939759036144,
+    "F": 0.9866666666666667,
+    "G": 0.9669211195928753
+  },
+  "n_params": 282184,
+  "inference_ms_per_window": 111.18457699983992,
+  "inference_ms_per_window_median": 109.98199999812641,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "seed": 42,
+  "features": "cqt",
+  "input_shape": [
+    65,
+    84
+  ],
+  "scaler": "baseline",
+  "model": "CNN 1D (Conv64-Conv128-Dense128)",
+  "epochs_trained": 38,
+  "train_seconds": 69.6,
+  "n_train_windows": 6332,
+  "accuracy_degraded": 0.9434810533076429,
+  "macro_f1_degraded": 0.9437637109652035
+}

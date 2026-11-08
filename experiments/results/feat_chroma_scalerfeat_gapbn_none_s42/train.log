@@ -1,0 +1,162 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794118384.439272   39008 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794118386.979475   39008 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+=== feat_chroma_scalerfeat_gapbn_none_s42 ===
+  arquivos: treino=1007 val=178 teste=297 | janelas: treino=5359+0 aum. val=985 teste=1545
+  negativos (_none): {'train': {np.str_('low_volume'): 252, np.str_('noise'): 252, np.str_('percussion'): 252}, 'val': {np.str_('low_volume'): 45, np.str_('noise'): 44, np.str_('percussion'): 44}, 'test': {np.str_('low_volume'): 75, np.str_('noise'): 74, np.str_('percussion'): 74}}
+I0000 00:00:1794118392.785287   39008 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+Epoch 1/200
+E0000 00:00:1794118393.013023   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_15}}
+192/192 - 5s - 26ms/step - accuracy: 0.8522 - loss: 0.4994 - val_accuracy: 0.9150 - val_loss: 0.3047 - learning_rate: 0.0010
+Epoch 2/200
+192/192 - 2s - 11ms/step - accuracy: 0.9156 - loss: 0.2787 - val_accuracy: 0.9401 - val_loss: 0.2119 - learning_rate: 0.0010
+Epoch 3/200
+192/192 - 2s - 11ms/step - accuracy: 0.9266 - loss: 0.2293 - val_accuracy: 0.9204 - val_loss: 0.2520 - learning_rate: 0.0010
+Epoch 4/200
+192/192 - 2s - 11ms/step - accuracy: 0.9361 - loss: 0.2049 - val_accuracy: 0.9275 - val_loss: 0.2267 - learning_rate: 0.0010
+Epoch 5/200
+192/192 - 2s - 11ms/step - accuracy: 0.9379 - loss: 0.1942 - val_accuracy: 0.9356 - val_loss: 0.2065 - learning_rate: 0.0010
+Epoch 6/200
+192/192 - 2s - 11ms/step - accuracy: 0.9415 - loss: 0.1759 - val_accuracy: 0.9401 - val_loss: 0.1991 - learning_rate: 0.0010
+Epoch 7/200
+192/192 - 2s - 10ms/step - accuracy: 0.9447 - loss: 0.1676 - val_accuracy: 0.9267 - val_loss: 0.2267 - learning_rate: 0.0010
+Epoch 8/200
+192/192 - 2s - 11ms/step - accuracy: 0.9462 - loss: 0.1603 - val_accuracy: 0.9374 - val_loss: 0.1985 - learning_rate: 0.0010
+Epoch 9/200
+192/192 - 2s - 10ms/step - accuracy: 0.9509 - loss: 0.1496 - val_accuracy: 0.9302 - val_loss: 0.2312 - learning_rate: 0.0010
+Epoch 10/200
+192/192 - 2s - 10ms/step - accuracy: 0.9514 - loss: 0.1446 - val_accuracy: 0.9365 - val_loss: 0.2000 - learning_rate: 0.0010
+Epoch 11/200
+192/192 - 2s - 10ms/step - accuracy: 0.9545 - loss: 0.1368 - val_accuracy: 0.9499 - val_loss: 0.1815 - learning_rate: 0.0010
+Epoch 12/200
+192/192 - 2s - 10ms/step - accuracy: 0.9531 - loss: 0.1424 - val_accuracy: 0.9508 - val_loss: 0.1621 - learning_rate: 0.0010
+Epoch 13/200
+192/192 - 2s - 11ms/step - accuracy: 0.9542 - loss: 0.1329 - val_accuracy: 0.9401 - val_loss: 0.1992 - learning_rate: 0.0010
+Epoch 14/200
+192/192 - 2s - 11ms/step - accuracy: 0.9573 - loss: 0.1283 - val_accuracy: 0.9481 - val_loss: 0.1815 - learning_rate: 0.0010
+Epoch 15/200
+192/192 - 2s - 11ms/step - accuracy: 0.9583 - loss: 0.1203 - val_accuracy: 0.9481 - val_loss: 0.1837 - learning_rate: 0.0010
+Epoch 16/200
+192/192 - 2s - 11ms/step - accuracy: 0.9594 - loss: 0.1190 - val_accuracy: 0.9481 - val_loss: 0.1859 - learning_rate: 0.0010
+Epoch 17/200
+192/192 - 2s - 11ms/step - accuracy: 0.9599 - loss: 0.1142 - val_accuracy: 0.9445 - val_loss: 0.1817 - learning_rate: 0.0010
+Epoch 18/200
+192/192 - 2s - 11ms/step - accuracy: 0.9652 - loss: 0.1090 - val_accuracy: 0.9463 - val_loss: 0.1880 - learning_rate: 0.0010
+Epoch 19/200
+192/192 - 2s - 11ms/step - accuracy: 0.9637 - loss: 0.1118 - val_accuracy: 0.9544 - val_loss: 0.1852 - learning_rate: 0.0010
+Epoch 20/200
+192/192 - 2s - 11ms/step - accuracy: 0.9639 - loss: 0.1046 - val_accuracy: 0.9499 - val_loss: 0.1939 - learning_rate: 0.0010
+Epoch 21/200
+192/192 - 2s - 11ms/step - accuracy: 0.9612 - loss: 0.1071 - val_accuracy: 0.9571 - val_loss: 0.1596 - learning_rate: 0.0010
+Epoch 22/200
+192/192 - 2s - 11ms/step - accuracy: 0.9694 - loss: 0.0951 - val_accuracy: 0.9463 - val_loss: 0.1670 - learning_rate: 0.0010
+Epoch 23/200
+192/192 - 2s - 11ms/step - accuracy: 0.9650 - loss: 0.1033 - val_accuracy: 0.9392 - val_loss: 0.2215 - learning_rate: 0.0010
+Epoch 24/200
+192/192 - 2s - 11ms/step - accuracy: 0.9660 - loss: 0.0974 - val_accuracy: 0.9526 - val_loss: 0.1863 - learning_rate: 0.0010
+Epoch 25/200
+192/192 - 2s - 10ms/step - accuracy: 0.9670 - loss: 0.0940 - val_accuracy: 0.9454 - val_loss: 0.2002 - learning_rate: 0.0010
+Epoch 26/200
+192/192 - 2s - 10ms/step - accuracy: 0.9655 - loss: 0.0952 - val_accuracy: 0.9553 - val_loss: 0.1714 - learning_rate: 0.0010
+Epoch 27/200
+192/192 - 2s - 10ms/step - accuracy: 0.9683 - loss: 0.0942 - val_accuracy: 0.9517 - val_loss: 0.1781 - learning_rate: 0.0010
+Epoch 28/200
+192/192 - 2s - 10ms/step - accuracy: 0.9673 - loss: 0.0929 - val_accuracy: 0.9526 - val_loss: 0.1772 - learning_rate: 0.0010
+Epoch 29/200
+192/192 - 2s - 11ms/step - accuracy: 0.9689 - loss: 0.0882 - val_accuracy: 0.9544 - val_loss: 0.1959 - learning_rate: 0.0010
+Epoch 30/200
+192/192 - 2s - 11ms/step - accuracy: 0.9697 - loss: 0.0844 - val_accuracy: 0.9526 - val_loss: 0.1932 - learning_rate: 0.0010
+Epoch 31/200
+192/192 - 2s - 10ms/step - accuracy: 0.9691 - loss: 0.0852 - val_accuracy: 0.9526 - val_loss: 0.1786 - learning_rate: 0.0010
+Epoch 32/200
+192/192 - 2s - 11ms/step - accuracy: 0.9745 - loss: 0.0694 - val_accuracy: 0.9597 - val_loss: 0.1581 - learning_rate: 2.0000e-04
+Epoch 33/200
+192/192 - 2s - 10ms/step - accuracy: 0.9791 - loss: 0.0624 - val_accuracy: 0.9589 - val_loss: 0.1657 - learning_rate: 2.0000e-04
+Epoch 34/200
+192/192 - 2s - 11ms/step - accuracy: 0.9796 - loss: 0.0614 - val_accuracy: 0.9580 - val_loss: 0.1667 - learning_rate: 2.0000e-04
+Epoch 35/200
+192/192 - 2s - 11ms/step - accuracy: 0.9768 - loss: 0.0643 - val_accuracy: 0.9562 - val_loss: 0.1730 - learning_rate: 2.0000e-04
+Epoch 36/200
+192/192 - 2s - 12ms/step - accuracy: 0.9787 - loss: 0.0598 - val_accuracy: 0.9597 - val_loss: 0.1632 - learning_rate: 2.0000e-04
+Epoch 37/200
+192/192 - 2s - 11ms/step - accuracy: 0.9781 - loss: 0.0607 - val_accuracy: 0.9562 - val_loss: 0.1762 - learning_rate: 2.0000e-04
+Epoch 38/200
+192/192 - 2s - 11ms/step - accuracy: 0.9792 - loss: 0.0589 - val_accuracy: 0.9589 - val_loss: 0.1691 - learning_rate: 2.0000e-04
+Epoch 39/200
+192/192 - 2s - 11ms/step - accuracy: 0.9784 - loss: 0.0585 - val_accuracy: 0.9562 - val_loss: 0.1832 - learning_rate: 2.0000e-04
+Epoch 40/200
+192/192 - 2s - 11ms/step - accuracy: 0.9783 - loss: 0.0574 - val_accuracy: 0.9553 - val_loss: 0.1830 - learning_rate: 2.0000e-04
+Epoch 41/200
+192/192 - 2s - 10ms/step - accuracy: 0.9789 - loss: 0.0590 - val_accuracy: 0.9580 - val_loss: 0.1872 - learning_rate: 2.0000e-04
+Epoch 42/200
+192/192 - 2s - 11ms/step - accuracy: 0.9789 - loss: 0.0557 - val_accuracy: 0.9562 - val_loss: 0.1850 - learning_rate: 2.0000e-04
+Epoch 43/200
+192/192 - 2s - 11ms/step - accuracy: 0.9815 - loss: 0.0519 - val_accuracy: 0.9597 - val_loss: 0.1831 - learning_rate: 4.0000e-05
+Epoch 44/200
+192/192 - 2s - 10ms/step - accuracy: 0.9799 - loss: 0.0531 - val_accuracy: 0.9589 - val_loss: 0.1827 - learning_rate: 4.0000e-05
+Epoch 45/200
+192/192 - 2s - 10ms/step - accuracy: 0.9823 - loss: 0.0524 - val_accuracy: 0.9571 - val_loss: 0.1830 - learning_rate: 4.0000e-05
+Epoch 46/200
+192/192 - 2s - 10ms/step - accuracy: 0.9814 - loss: 0.0521 - val_accuracy: 0.9571 - val_loss: 0.1856 - learning_rate: 4.0000e-05
+Epoch 47/200
+192/192 - 2s - 11ms/step - accuracy: 0.9794 - loss: 0.0549 - val_accuracy: 0.9597 - val_loss: 0.1859 - learning_rate: 4.0000e-05
+Epoch 48/200
+192/192 - 2s - 10ms/step - accuracy: 0.9796 - loss: 0.0547 - val_accuracy: 0.9562 - val_loss: 0.1851 - learning_rate: 4.0000e-05
+Epoch 49/200
+192/192 - 2s - 11ms/step - accuracy: 0.9815 - loss: 0.0516 - val_accuracy: 0.9589 - val_loss: 0.1837 - learning_rate: 4.0000e-05
+Epoch 50/200
+192/192 - 2s - 11ms/step - accuracy: 0.9815 - loss: 0.0501 - val_accuracy: 0.9589 - val_loss: 0.1823 - learning_rate: 4.0000e-05
+Epoch 51/200
+192/192 - 2s - 11ms/step - accuracy: 0.9814 - loss: 0.0532 - val_accuracy: 0.9589 - val_loss: 0.1884 - learning_rate: 4.0000e-05
+Epoch 52/200
+192/192 - 2s - 11ms/step - accuracy: 0.9810 - loss: 0.0497 - val_accuracy: 0.9589 - val_loss: 0.1863 - learning_rate: 4.0000e-05
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+E0000 00:00:1794118502.525246   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118507.628026   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118512.684585   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118517.744778   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118522.752484   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118528.632718   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118533.639170   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118538.751029   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118543.788310   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794118548.863919   39008 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+
+[feat_chroma_scalerfeat_gapbn_none_s42] accuracy=0.9593  macro-F1=0.9592  params=47049  114.02 ms/janela
+              precision    recall  f1-score   support
+
+          Am     0.9750    0.9653    0.9701       202
+          Bb     0.9890    0.9372    0.9624       191
+        Bdim     0.9551    0.9290    0.9418       183
+           C     0.9113    0.9585    0.9343       193
+          Dm     0.9227    0.9745    0.9479       196
+          Em     0.9643    0.9742    0.9692       194
+           F     0.9892    0.9735    0.9813       189
+           G     0.9946    0.9340    0.9634       197
+       _none     0.9440    0.9821    0.9626       223
+
+    accuracy                         0.9593      1768
+   macro avg     0.9606    0.9587    0.9592      1768
+weighted avg     0.9603    0.9593    0.9594      1768
+
+
+[degraded] accuracy=0.9366  macro-F1=0.8459  params=47049  113.97 ms/janela
+              precision    recall  f1-score   support
+
+          Am     0.9600    0.9505    0.9552       202
+          Bb     0.9944    0.9215    0.9565       191
+        Bdim     0.9756    0.8743    0.9222       183
+           C     0.9945    0.9378    0.9653       193
+          Dm     0.9220    0.9643    0.9426       196
+          Em     0.9741    0.9691    0.9716       194
+           F     0.9362    0.9312    0.9337       189
+           G     0.9946    0.9391    0.9661       197
+       _none     0.0000    0.0000    0.0000         0
+
+    accuracy                         0.9366      1545
+   macro avg     0.8613    0.8320    0.8459      1545
+weighted avg     0.9688    0.9366    0.9519      1545
+

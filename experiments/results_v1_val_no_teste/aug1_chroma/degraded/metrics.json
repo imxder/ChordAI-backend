@@ -1,0 +1,30 @@
+{
+  "experiment": "degraded",
+  "accuracy": 0.9633911368015414,
+  "macro_f1": 0.9631333175588037,
+  "f1_per_class": {
+    "Am": 0.9717223650385605,
+    "Bb": 0.9095744680851063,
+    "Bdim": 0.9685863874345549,
+    "C": 0.9573934837092731,
+    "Dm": 0.9604221635883905,
+    "Em": 0.9737470167064439,
+    "F": 0.9814323607427056,
+    "G": 0.9821882951653944
+  },
+  "n_params": 259144,
+  "inference_ms_per_window": 113.08695700014141,
+  "inference_ms_per_window_median": 110.66459999892686,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "condition": "teste degradado: ruido rosa 15 dB + passa-banda 200-5000 Hz"
+}
