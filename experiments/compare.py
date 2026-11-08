@@ -176,6 +176,64 @@ def none_section(none_groups, groups):
     return lines
 
 
+STFT_VS_CQT = ('feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_stft_scalerfeat_gapbn_none')
+
+
+def _threshold_suggestion(dirname):
+    path = os.path.join(RESULTS_DIR, dirname, 'suggestion.json')
+    return json.load(open(path, encoding='utf-8')) if os.path.exists(path) else None
+
+
+def stft_section(all_groups):
+    """Parte 7a: chroma_stft x chroma_cqt na configuracao de producao (scaler por feature,
+    GAP+BN, _none), pareado por seed. 'Dentro do desvio' = |Δ medio| <= maior dos dois
+    desvios padrao entre seeds."""
+    cqt, stft = STFT_VS_CQT
+    if cqt not in all_groups or stft not in all_groups:
+        return []
+    a = {r['seed']: r for r in all_groups[cqt]}
+    b = {r['seed']: r for r in all_groups[stft]}
+    seeds = sorted(set(a) & set(b))
+    rows = [(f'Accuracy acordes (sem limiar)', [a[s]['accuracy_chords'] for s in seeds], [b[s]['accuracy_chords'] for s in seeds]),
+            ('Macro-F1 (9 classes, com _none)', [a[s]['macro_f1'] for s in seeds], [b[s]['macro_f1'] for s in seeds]),
+            ('Acc. degradado (sem limiar)', [a[s]['accuracy_degraded'] for s in seeds], [b[s]['accuracy_degraded'] for s in seeds]),
+            ('Recall _none (sem limiar)', [a[s]['none_recall'] for s in seeds], [b[s]['none_recall'] for s in seeds]),
+            ('Falso aceite do _none (sem limiar)', [1 - a[s]['none_recall'] for s in seeds], [1 - b[s]['none_recall'] for s in seeds])]
+    sa, sb = _threshold_suggestion('threshold'), _threshold_suggestion('threshold_chroma_stft')
+    if sa and sb and 'limiar_por_seed' in sa and 'limiar_por_seed' in sb:
+        pa = {p['seed']: p for p in sa['limiar_por_seed']}
+        pb = {p['seed']: p for p in sb['limiar_por_seed']}
+        for key, label in (('false_accept', 'Falso aceite do _none (limiar de cada seed)'),
+                           ('coverage', 'Cobertura (limiar de cada seed)'),
+                           ('accuracy', 'Acurácia nos aceitos (limiar de cada seed)'),
+                           ('accuracy_degraded', 'Acurácia nos aceitos, degradado (limiar de cada seed)')):
+            rows.append((label, [pa[s]['teste'][key] for s in seeds], [pb[s]['teste'][key] for s in seeds]))
+    lines = ['## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)', '',
+             f'`{cqt}` (chroma_cqt, em produção) × `{stft}` (chroma_stft, todos os parâmetros explícitos, '
+             '`tuning=0.0`). Mesmo split, mesma validação, seeds ' + ', '.join(map(str, seeds)) + '. '
+             'Δ = stft − cqt, pareado por seed (p.p.). "Dentro do desvio" = |Δ médio| ≤ maior dos dois desvios '
+             'padrão entre seeds. Limiar de cada seed = escolhido na validação da própria seed (como o de produção).',
+             '', '| Métrica (teste, %) | chroma_cqt | chroma_stft | Δ stft − cqt (p.p.) | Dentro do desvio? |',
+             '|---|---:|---:|---:|:---:|']
+    for label, va, vb in rows:
+        va, vb = np.array(va) * 100, np.array(vb) * 100
+        d = vb - va
+        sd_a, sd_b = va.std(ddof=1), vb.std(ddof=1)
+        inside = abs(d.mean()) <= max(sd_a, sd_b)
+        lines.append(f'| {label} | {va.mean():.2f} ± {sd_a:.2f} | {vb.mean():.2f} ± {sd_b:.2f} | '
+                     f'{d.mean():+.2f} ± {d.std(ddof=1):.2f} | {"sim" if inside else "**não**"} |')
+    if sa and sb:
+        lines += ['', f"Limiar único (média das 3 seeds, `threshold.py`): chroma_cqt {sa['limiar']}, "
+                      f"chroma_stft {sb['limiar']}. Limiar por seed: chroma_cqt "
+                      + ', '.join(f"{p['limiar']:.2f}" for p in sa.get('limiar_por_seed', []))
+                      + '; chroma_stft ' + ', '.join(f"{p['limiar']:.2f}" for p in sb.get('limiar_por_seed', []))
+                      + '.']
+    lat_a, lat_b = _lat(all_groups[cqt], 'predict_ms'), _lat(all_groups[stft], 'predict_ms')
+    if lat_a and lat_b:
+        lines += ['', f'Latência do modelo (`model.predict`): {lat_a:.1f} ms (cqt) × {lat_b:.1f} ms (stft).']
+    return lines + ['']
+
+
 def production_section():
     """Parte 6: o modelo em trained_model/ e o teste de equivalencia producao x experimento."""
     eq_path = os.path.join(RESULTS_DIR, 'parte6', 'equivalence.json')
@@ -256,6 +314,7 @@ def main():
         '',
         *confusion_section(groups, order),
         *none_section(none_groups, groups),
+        *stft_section(all_groups),
         *production_section(),
         '---',
         '',

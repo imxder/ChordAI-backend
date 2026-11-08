@@ -10,6 +10,7 @@ from pipeline import (  # noqa: F401
     EXTRACTORS,
     HOP_LENGTH,
     extract_chroma,
+    extract_chroma_stft,
     extract_cqt,
     extract_mfcc,
     extract_mfcc_chroma,
@@ -19,6 +20,7 @@ from pipeline import (  # noqa: F401
 CACHE_NAMES = {
     'mfcc': 'mfcc40',
     'chroma': 'chroma12',
+    'chroma_stft': 'chroma_stft12',
     'cqt': 'cqt84',
     'mfcc+chroma': 'mfcc40_chroma12',
 }

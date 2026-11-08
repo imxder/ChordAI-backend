@@ -1,0 +1,84 @@
+{
+  "experiment": "feat_chroma_stft_scalerfeat_gapbn_none_s44",
+  "accuracy": 0.9400452488687783,
+  "macro_f1": 0.9392196013985851,
+  "f1_per_class": {
+    "Am": 0.9310344827586207,
+    "Bb": 0.915,
+    "Bdim": 0.9075144508670521,
+    "C": 0.948509485094851,
+    "Dm": 0.9122807017543859,
+    "Em": 0.9587628865979382,
+    "F": 0.9479166666666666,
+    "G": 0.9540816326530612,
+    "_none": 0.9778761061946902
+  },
+  "n_params": 47049,
+  "inference_ms_per_window": 118.39149150029698,
+  "inference_ms_per_window_median": 115.17974999878788,
+  "n_test_windows": 1768,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "accuracy_chords": 0.9326860841423948,
+  "chords_predicted_as_none": 0.005177993527508091,
+  "none_recall": 0.9910313901345291,
+  "none_recall_by_kind": {
+    "low_volume": 1.0,
+    "noise": 0.972972972972973,
+    "percussion": 1.0
+  },
+  "n_test_chord_windows": 1545,
+  "n_test_none_windows": 223,
+  "none_counts": {
+    "train": {
+      "low_volume": 252,
+      "noise": 252,
+      "percussion": 252
+    },
+    "val": {
+      "low_volume": 45,
+      "noise": 44,
+      "percussion": 44
+    },
+    "test": {
+      "low_volume": 75,
+      "noise": 74,
+      "percussion": 74
+    }
+  },
+  "group": "feat_chroma_stft_scalerfeat_gapbn_none",
+  "seed": 44,
+  "features": "chroma_stft",
+  "feature_key": "chroma_stft",
+  "input_shape": [
+    65,
+    12
+  ],
+  "scaler": "per_feature",
+  "n_aug": 0,
+  "augmentation": null,
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 6115,
+  "n_val_windows": 1118,
+  "arch": "gap_bn",
+  "model": "CNN 1D (Conv64-BN-Conv128-BN-GAP-Dense128)",
+  "epochs_trained": 107,
+  "best_val_loss": 0.143164724111557,
+  "train_seconds": 219.0,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.8763754045307444,
+  "macro_f1_degraded": 0.8012189923179593
+}

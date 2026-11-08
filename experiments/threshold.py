@@ -21,11 +21,16 @@ No teste tambem: cobertura/acuracia no teste degradado (ruido rosa 15 dB + passa
 Compara o modelo com classe _none com o mesmo modelo SEM ela (Parte 4), para
 ver se so o limiar ja bastaria. Media ± desvio sobre as seeds.
 
-Saida em experiments/results/threshold/: threshold_curve.csv, threshold.png,
-threshold.md e suggestion.json.
+Alem do limiar unico (media das seeds), calcula o limiar de CADA seed na
+validacao com o mesmo criterio (pipeline.choose_threshold) -- e assim que o
+modelo de producao e calibrado (Parte 6) -- e reporta esses limiares no teste.
 
-Uso:  python -m experiments.threshold
+Saida em experiments/results/threshold/ (chroma_cqt) ou threshold_<feature>/:
+threshold_curve.csv, threshold.png, threshold.md e suggestion.json.
+
+Uso:  python -m experiments.threshold [--feature chroma|chroma_stft]
 """
+import argparse
 import hashlib
 import json
 import os
@@ -40,12 +45,16 @@ import pipeline as pl
 from experiments.data import N_JOBS, build, load_degraded_test, split_train_val
 from experiments.negatives import NONE_LABEL, build_negatives
 
-GROUP_NONE = 'feat_chroma_scalerfeat_gapbn_none'
-GROUP_PLAIN = 'feat_chroma_scalerfeat_gapbn'
+# feature -> (modelo com _none, mesmo modelo sem _none ou None, pasta de saida)
+FEATURE_GROUPS = {
+    'chroma': ('feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_scalerfeat_gapbn', 'threshold'),
+    'chroma_stft': ('feat_chroma_stft_scalerfeat_gapbn_none', None, 'threshold_chroma_stft'),
+}
 SEEDS = [42, 43, 44]
 FEATURE = 'chroma'
-THRESHOLDS = np.round(np.arange(0.30, 0.951, 0.05), 2)
-OUT_DIR = os.path.join(common.RESULTS_DIR, 'threshold')
+GROUP_NONE, GROUP_PLAIN, _out = FEATURE_GROUPS[FEATURE]
+THRESHOLDS = pl.THRESHOLD_GRID
+OUT_DIR = os.path.join(common.RESULTS_DIR, _out)
 # criterio de escolha (modelo com _none, VALIDACAO, media das seeds)
 MAX_FALSE_ACCEPT = 0.05
 MIN_ACCURACY = 0.98
@@ -102,7 +111,7 @@ def curve_for(model_fn, classes, s):
     out = []
     for i in range(len(THRESHOLDS)):
         (a, c), (an, _) = chords[i], neg[i]
-        row = {'coverage': a.mean(), 'accuracy': c.sum() / max(1, a.sum()), 'useful': c.mean(),
+        row = {'threshold': float(THRESHOLDS[i]), 'coverage': a.mean(), 'accuracy': c.sum() / max(1, a.sum()), 'useful': c.mean(),
                'false_accept': an.mean()}
         if deg is not None:
             ad, cd = deg[i]
@@ -142,6 +151,25 @@ def choose(per_seed_val):
     return max(ok, key=lambda i: ms(per_seed_val, i, 'coverage')[0]) if ok else None
 
 
+def per_seed_thresholds(results):
+    """Limiar de cada seed escolhido na validacao (criterio de pipeline.choose_threshold) e
+    as metricas dessa seed nesse limiar, na validacao e no teste."""
+    out = []
+    for i_seed, seed in enumerate(SEEDS):
+        val_rows = results['val'][i_seed]
+        t = pl.choose_threshold(val_rows, MAX_FALSE_ACCEPT, MIN_ACCURACY)
+        i = int(np.argmin(np.abs(THRESHOLDS - t)))
+        clean = lambda row: {k: float(v) for k, v in row.items() if k != 'threshold'}
+        out.append({'seed': seed, 'limiar': float(t), 'validacao': clean(val_rows[i]),
+                    'teste': clean(results['test'][i_seed][i])})
+    return out
+
+
+def per_seed_summary(per_seed):
+    return {k: {'mean': float(np.mean([p['teste'][k] for p in per_seed])),
+                'std': float(np.std([p['teste'][k] for p in per_seed], ddof=1))} for k in KEYS_TEST}
+
+
 def table(per_seed, keys, best):
     names = {'coverage': 'Cobertura', 'accuracy': 'Acurácia nos aceitos', 'useful': 'Útil',
              'false_accept': 'Falso aceite', 'coverage_degraded': 'Cobertura (degr.)',
@@ -161,8 +189,9 @@ def plot(results, best):
     panels = [('coverage', 'Cobertura dos acordes (%)'), ('accuracy', 'Acurácia nos aceitos (%)'),
               ('false_accept', 'Falso aceite dos negativos (%)')]
     styles = {(GROUP_NONE, 'val'): ('-o', 'com _none — validação'),
-              (GROUP_NONE, 'test'): ('-s', 'com _none — teste'),
-              (GROUP_PLAIN, 'test'): ('--^', 'sem _none (Parte 4) — teste')}
+              (GROUP_NONE, 'test'): ('-s', 'com _none — teste')}
+    if GROUP_PLAIN:
+        styles[(GROUP_PLAIN, 'test')] = ('--^', 'sem _none (Parte 4) — teste')
     for ax, (key, title) in zip(axes, panels):
         for (g, split), (style, label) in styles.items():
             m = np.array([ms(results[g][split], i, key) for i in range(len(THRESHOLDS))])
@@ -180,6 +209,12 @@ def plot(results, best):
 
 
 def main():
+    global FEATURE, GROUP_NONE, GROUP_PLAIN, OUT_DIR
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--feature', default='chroma', choices=sorted(FEATURE_GROUPS))
+    FEATURE = parser.parse_args().feature
+    GROUP_NONE, GROUP_PLAIN, out = FEATURE_GROUPS[FEATURE]
+    OUT_DIR = os.path.join(common.RESULTS_DIR, out)
     os.makedirs(OUT_DIR, exist_ok=True)
     train_files, test_files, _ = common.load_split()
     _, val_files = split_train_val(train_files)
@@ -188,8 +223,9 @@ def main():
         print(f'{split}: {len(s["X"])} janelas de acorde (de {s["n_total"]}; {s["n_silence"]} silencio) '
               f'+ {len(s["X_neg"])} negativas {s["neg_kinds"]}')
 
-    results = {g: evaluate_group(g, sets) for g in (GROUP_NONE, GROUP_PLAIN)}
+    results = {g: evaluate_group(g, sets) for g in (GROUP_NONE, GROUP_PLAIN) if g}
     best = choose(results[GROUP_NONE]['val'])
+    seed_thresholds = per_seed_thresholds(results[GROUP_NONE])
     t_best = float(THRESHOLDS[best]) if best is not None else None
 
     with open(os.path.join(OUT_DIR, 'threshold_curve.csv'), 'w', encoding='utf-8') as f:
@@ -213,7 +249,10 @@ def main():
         'modelo': GROUP_NONE,
         'validacao': at(GROUP_NONE, 'val', KEYS_VAL) if best is not None else None,
         'teste': at(GROUP_NONE, 'test', KEYS_TEST) if best is not None else None,
-        'teste_sem_none_mesmo_limiar': at(GROUP_PLAIN, 'test', KEYS_TEST) if best is not None else None,
+        'teste_sem_none_mesmo_limiar': at(GROUP_PLAIN, 'test', KEYS_TEST) if best is not None and GROUP_PLAIN else None,
+        'feature': FEATURE,
+        'limiar_por_seed': seed_thresholds,
+        'teste_limiar_por_seed': per_seed_summary(seed_thresholds),
         'conjuntos': {split: {'janelas_acorde': int(len(s['X'])), 'janelas_silencio_descartadas': s['n_silence'],
                               'negativos': s['neg_kinds']} for split, s in sets.items()},
     }
@@ -228,7 +267,8 @@ def main():
                 f'({", ".join(f"{k}: {v}" for k, v in s["neg_kinds"].items())})')
 
     v, te = suggestion['validacao'], suggestion['teste']
-    md = ['# Limiar de confiança — ChordAI (Parte 5)', '',
+    ps = suggestion['teste_limiar_por_seed']
+    md = [f'# Limiar de confiança — ChordAI (`{GROUP_NONE}`)', '',
           f'- **Validação** (usada para ESCOLHER o limiar): {desc("val")}.',
           f'- **Teste** (só REPORTADO, não participa da escolha): {desc("test")}.',
           f'- Média ± desvio sobre as seeds {", ".join(map(str, SEEDS))}. Valores em %.', '',
@@ -245,13 +285,20 @@ def main():
           '', f'No teste degradado, com o mesmo limiar: cobertura '
               f'{te["coverage_degraded"]["mean"] * 100:.1f}%, acurácia nos aceitos '
               f'{te["accuracy_degraded"]["mean"] * 100:.1f}%.', '',
+          '**Limiar de cada seed** (escolhido na validação da própria seed, mesmo critério; é assim que o '
+          'modelo de produção é calibrado): ' + ', '.join(f"seed {p['seed']}: {p['limiar']:.2f}" for p in seed_thresholds)
+          + '. No teste, cada seed no seu limiar: cobertura '
+          + '%.1f ± %.1f, acurácia nos aceitos %.1f ± %.1f, falso aceite %.1f ± %.1f.' % (
+              ps['coverage']['mean'] * 100, ps['coverage']['std'] * 100, ps['accuracy']['mean'] * 100,
+              ps['accuracy']['std'] * 100, ps['false_accept']['mean'] * 100, ps['false_accept']['std'] * 100), '',
           '![curva](threshold.png)', '',
           f'## Com classe _none (`{GROUP_NONE}`) — validação (escolha)', '',
           *table(results[GROUP_NONE]['val'], KEYS_VAL, best), '',
           f'## Com classe _none (`{GROUP_NONE}`) — teste (reportado)', '',
-          *table(results[GROUP_NONE]['test'], KEYS_TEST, best), '',
-          f'## Sem classe _none (`{GROUP_PLAIN}`, Parte 4) — teste', '',
-          *table(results[GROUP_PLAIN]['test'], KEYS_TEST, None), '']
+          *table(results[GROUP_NONE]['test'], KEYS_TEST, best), '']
+    if GROUP_PLAIN:
+        md += [f'## Sem classe _none (`{GROUP_PLAIN}`, Parte 4) — teste', '',
+               *table(results[GROUP_PLAIN]['test'], KEYS_TEST, None), '']
     with open(os.path.join(OUT_DIR, 'threshold.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(md))
     print(json.dumps({'limiar': t_best, 'validacao': v, 'teste': te}, indent=2, ensure_ascii=False))

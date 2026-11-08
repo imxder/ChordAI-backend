@@ -28,6 +28,8 @@ CONFIGS = [
     ('chroma', 'per_feature', 0, False, 'cnn2d'),
     # Parte 5: classe _none no melhor modelo da Parte 4 (variante A)
     ('chroma', 'per_feature', 0, False, 'gap_bn', True),
+    # Parte 7a: chroma_stft (reproduzivel em tf.signal) na configuracao de producao
+    ('chroma_stft', 'per_feature', 0, False, 'gap_bn', True),
 ]
 
 

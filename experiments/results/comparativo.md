@@ -56,10 +56,29 @@ Accuracy dos acordes = nas mesmas 1545 janelas de acorde dos outros experimentos
 | Experimento | Seeds | Accuracy acordes (%) | Acordes → _none (%) | Recall _none (%) | Recall low_volume | Recall noise | Recall percussion | Acc. degradado (%) |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | feat_chroma_scalerfeat_gapbn_none | 3 | 95.32 ± 0.26 | 0.91 ± 0.11 | 98.21 ± 0.00 | 95.11 ± 0.77 | 99.55 ± 0.78 | 100.00 ± 0.00 | 93.14 ± 0.45 |
+| feat_chroma_stft_scalerfeat_gapbn_none | 3 | 92.71 ± 1.44 | 0.47 ± 0.04 | 98.95 ± 0.26 | 100.00 ± 0.00 | 96.85 ± 0.78 | 100.00 ± 0.00 | 88.31 ± 1.10 |
 
 Efeito da classe _none (`feat_chroma_scalerfeat_gapbn_none` − `feat_chroma_scalerfeat_gapbn`, pareado por seed): Δ accuracy acordes = -0.11 ± 0.10 p.p.; Δ acc. degradado = -1.55 ± 0.39 p.p.
 
 Negativos por split: train: low_volume 252, noise 252, percussion 252; val: low_volume 45, noise 44, percussion 44; test: low_volume 75, noise 74, percussion 74
+
+## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)
+
+`feat_chroma_scalerfeat_gapbn_none` (chroma_cqt, em produção) × `feat_chroma_stft_scalerfeat_gapbn_none` (chroma_stft, todos os parâmetros explícitos, `tuning=0.0`). Mesmo split, mesma validação, seeds 42, 43, 44. Δ = stft − cqt, pareado por seed (p.p.). "Dentro do desvio" = |Δ médio| ≤ maior dos dois desvios padrão entre seeds. Limiar de cada seed = escolhido na validação da própria seed (como o de produção).
+
+| Métrica (teste, %) | chroma_cqt | chroma_stft | Δ stft − cqt (p.p.) | Dentro do desvio? |
+|---|---:|---:|---:|:---:|
+| Accuracy acordes (sem limiar) | 95.32 ± 0.26 | 92.71 ± 1.44 | -2.61 ± 1.38 | **não** |
+| Macro-F1 (9 classes, com _none) | 95.67 ± 0.24 | 93.42 ± 1.27 | -2.25 ± 1.22 | **não** |
+| Acc. degradado (sem limiar) | 93.14 ± 0.45 | 88.31 ± 1.10 | -4.83 ± 0.65 | **não** |
+| Recall _none (sem limiar) | 98.21 ± 0.00 | 98.95 ± 0.26 | +0.75 ± 0.26 | **não** |
+| Falso aceite do _none (sem limiar) | 1.79 ± 0.00 | 1.05 ± 0.26 | -0.75 ± 0.26 | **não** |
+| Falso aceite do _none (limiar de cada seed) | 1.49 ± 0.52 | 0.90 ± 0.45 | -0.60 ± 0.68 | **não** |
+| Cobertura (limiar de cada seed) | 98.88 ± 0.51 | 97.55 ± 1.12 | -1.32 ± 1.62 | **não** |
+| Acurácia nos aceitos (limiar de cada seed) | 97.91 ± 0.28 | 95.88 ± 1.04 | -2.03 ± 0.77 | **não** |
+| Acurácia nos aceitos, degradado (limiar de cada seed) | 97.08 ± 0.21 | 94.42 ± 1.12 | -2.65 ± 0.92 | **não** |
+
+Limiar único (média das 3 seeds, `threshold.py`): chroma_cqt 0.45, chroma_stft 0.5. Limiar por seed: chroma_cqt 0.50, 0.30, 0.55; chroma_stft 0.55, 0.55, 0.45.
 
 ## Parte 6 — modelo em produção (`trained_model/`)
 

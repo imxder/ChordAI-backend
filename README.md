@@ -9,7 +9,12 @@ App Flutter: [github.com/imxder/ChordAI](https://github.com/imxder/ChordAI)
 
 ## Requisitos
 
-- Python 3.11 ou superior
+- Python 3.11 ou superior. Os resultados foram gerados com o Python 3.12.10.
+- Versões usadas nos experimentos e no modelo em produção (lista completa em `requirements.lock.txt`):
+  - **librosa 1.0.0**
+  - **TensorFlow 2.21.0** (Keras 3.15.1)
+  - NumPy 2.5.4, SciPy 1.18.1, scikit-learn 1.9.1
+- O `requirements.lock.txt` fixa essas versões. Ele importa porque a Parte 7b replica detalhes internos do librosa (a janela e o padding da STFT e o banco de filtros chroma), que mudam entre versões.
 
 ---
 
@@ -42,6 +47,12 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
+```
+
+Para reproduzir os resultados com as mesmas versões exatas, instale o lock:
+
+```bash
+pip install -r requirements.lock.txt
 ```
 
 ## 2. Baixe o DATASET.
