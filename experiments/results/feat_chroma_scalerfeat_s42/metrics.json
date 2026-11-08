@@ -49,5 +49,18 @@
   "train_seconds": 43.5,
   "window_seconds": 1.5,
   "accuracy_degraded": 0.9559870550161812,
-  "macro_f1_degraded": 0.9557755026311501
+  "macro_f1_degraded": 0.9557755026311501,
+  "latency": {
+    "predict_ms": 109.58439349997207,
+    "predict_ms_median": 108.16809999960242,
+    "compiled_ms": 2.233235999919998,
+    "compiled_ms_median": 2.1525500014831778,
+    "tflite_ms": 0.08144049988914048,
+    "tflite_ms_median": 0.0779999973019585,
+    "tflite_threads": 1,
+    "tflite_agreement_with_keras": 1.0,
+    "h5_kb": 3077.9453125,
+    "tflite_kb": 1018.9296875,
+    "n_samples": 200
+  }
 }

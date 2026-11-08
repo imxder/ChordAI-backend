@@ -19,7 +19,22 @@ if ROOT_DIR not in sys.path:
 
 import tensorflow as tf  # noqa: E402
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau  # noqa: E402
-from keras.layers import Conv1D, Dense, Dropout, Flatten, MaxPooling1D  # noqa: E402
+from keras.layers import (  # noqa: E402
+    Activation,
+    BatchNormalization,
+    Conv1D,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    GlobalAveragePooling1D,
+    GlobalAveragePooling2D,
+    Input,
+    MaxPooling1D,
+    MaxPooling2D,
+    Permute,
+    Reshape,
+)
 from keras.models import Sequential  # noqa: E402
 from keras.utils import to_categorical  # noqa: E402
 from sklearn.metrics import (  # noqa: E402
@@ -107,6 +122,69 @@ def build_baseline_cnn(input_shape, n_classes):
     ])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
+
+
+def build_gap_bn_cnn(input_shape, n_classes):
+    """Variante A (Parte 4): a CNN 1D do baseline com BatchNormalization depois de
+    cada Conv1D (Conv sem ativacao -> BN -> ReLU) e GlobalAveragePooling1D no
+    lugar do Flatten, para a saida nao depender da posicao do acorde na janela."""
+    model = Sequential([
+        Input(shape=input_shape),
+        Conv1D(filters=64, kernel_size=5),
+        BatchNormalization(),
+        Activation('relu'),
+        MaxPooling1D(pool_size=2),
+        Dropout(0.3),
+        Conv1D(filters=128, kernel_size=3),
+        BatchNormalization(),
+        Activation('relu'),
+        MaxPooling1D(pool_size=2),
+        Dropout(0.3),
+        GlobalAveragePooling1D(),
+        Dense(128, activation='relu'),
+        Dropout(0.4),
+        Dense(n_classes, activation='softmax'),
+    ])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+def build_cnn2d(input_shape, n_classes):
+    """Variante B (Parte 4): CNN 2D pequena tratando a feature como imagem
+    [n_bins x n_frames x 1]. Recebe o mesmo tensor (n_frames, n_bins) das CNNs
+    1D e faz a transposicao dentro do modelo, entao scaler/evaluate/app nao mudam.
+    padding='same' para o eixo de 12 bins nao encolher (12 -> 6 -> 3)."""
+    n_frames, n_bins = input_shape
+
+    def conv_bn(filters):
+        return [Conv2D(filters, (3, 3), padding='same'), BatchNormalization(), Activation('relu')]
+
+    model = Sequential([
+        Input(shape=input_shape),
+        Permute((2, 1)),                      # (n_frames, n_bins) -> (n_bins, n_frames)
+        Reshape((n_bins, n_frames, 1)),
+        *conv_bn(32),
+        MaxPooling2D((2, 2)),
+        *conv_bn(64),
+        MaxPooling2D((2, 2)),
+        *conv_bn(128),
+        GlobalAveragePooling2D(),
+        Dropout(0.3),
+        Dense(n_classes, activation='softmax'),
+    ])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+ARCHITECTURES = {
+    'baseline': build_baseline_cnn,
+    'gap_bn': build_gap_bn_cnn,
+    'cnn2d': build_cnn2d,
+}
+
+
+def build_model(arch, input_shape, n_classes):
+    return ARCHITECTURES[arch](tuple(input_shape), n_classes)
 
 
 def baseline_callbacks():

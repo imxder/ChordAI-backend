@@ -27,6 +27,9 @@ EFFECTS = [
     ('Augmentation + detune (aug2, chroma)', 'feat_chroma', 'aug2_chroma_detune'),
     ('Detune (sobre aug2)', 'aug2_chroma', 'aug2_chroma_detune'),
     ('Total: baseline → melhor chroma sem aug', 'feat_mfcc', 'feat_chroma_scalerfeat'),
+    ('GAP+BN (A − feat_chroma_scalerfeat)', 'feat_chroma_scalerfeat', 'feat_chroma_scalerfeat_gapbn'),
+    ('CNN 2D (B − feat_chroma_scalerfeat)', 'feat_chroma_scalerfeat', 'feat_chroma_scalerfeat_cnn2d'),
+    ('CNN 2D − GAP+BN (B − A)', 'feat_chroma_scalerfeat_gapbn', 'feat_chroma_scalerfeat_cnn2d'),
 ]
 
 
@@ -54,15 +57,24 @@ def fmt(st, signed=False):
     return (f'{mean:+.2f}' if signed else f'{mean:.2f}') + f' ± {std:.2f}'
 
 
+def _lat(rs, key):
+    vals = [r['latency'][key] for r in rs if 'latency' in r]
+    return np.mean(vals) if vals else None
+
+
 def main_table(groups):
     order = sorted(groups, key=lambda g: -stats(groups[g], 'accuracy')[0])
-    lines = ['| Experimento | Seeds | ' + ' | '.join(f'{t} (%)' for _, t in METRICS) + ' | Parâmetros | ms/janela |',
-             '|---|---:|' + '---:|' * (len(METRICS) + 2)]
+    lines = ['| Experimento | Seeds | ' + ' | '.join(f'{t} (%)' for _, t in METRICS)
+             + ' | Parâmetros | TFLite (KB) | ms predict | ms compilado | ms TFLite |',
+             '|---|---:|' + '---:|' * (len(METRICS) + 5)]
     for g in order:
         rs = groups[g]
-        ms = np.mean([r['inference_ms_per_window'] for r in rs])
+        predict = _lat(rs, 'predict_ms') or np.mean([r['inference_ms_per_window'] for r in rs])
+        extra = [_lat(rs, 'tflite_kb'), _lat(rs, 'compiled_ms'), _lat(rs, 'tflite_ms')]
+        extra = ['—' if v is None else f'{v:.{p}f}' for v, p in zip(extra, (0, 2, 2))]
         lines.append(f'| {g} | {len(rs)} | ' + ' | '.join(fmt(stats(rs, k)) for k, _ in METRICS)
-                     + f" | {rs[0]['n_params']:,}".replace(',', '.') + f' | {ms:.1f} |')
+                     + f" | {rs[0]['n_params']:,}".replace(',', '.')
+                     + f' | {extra[0]} | {predict:.1f} | {extra[1]} | {extra[2]} |')
     return lines, order
 
 
@@ -146,10 +158,15 @@ def main():
         '1545 janelas de 1,5 s), usado **só** na avaliação final. A validação dos callbacks '
         '(EarlyStopping/ReduceLROnPlateau) usa 15% dos arquivos de treino (estratificado, '
         '`random_state=42`). "Acc. degradado" = mesmo teste com ruído rosa a 15 dB + '
-        'passa-banda 200 Hz–5 kHz. ms/janela = média de `model.predict` (batch 1), sem extração '
-        'de features. Nomes: `_scalerfeat` = StandardScaler por feature (o do baseline normaliza '
+        'passa-banda 200 Hz–5 kHz. Latência por janela (batch 1, só o modelo, sem extração de '
+        'features, CPU do PC, medida por `bench_latency.py` com todos os modelos nas mesmas '
+        'condições): "ms predict" = `model.predict` (como `app.py` faz hoje, dominado pelo '
+        'overhead do Keras); "ms compilado" = `tf.function(model)`; "ms TFLite" = interpretador '
+        'TFLite com 1 thread (formato que iria para o celular). TFLite (KB) = modelo float32 sem '
+        'quantização. Nomes: `_scalerfeat` = StandardScaler por feature (o do baseline normaliza '
         'por frame); `aug2` = 2 versões aumentadas por janela de treino; `_detune` = +pitch shift '
-        'de ±40 cents.',
+        'de ±40 cents; `_gapbn` = CNN 1D com BatchNorm + GlobalAveragePooling1D (variante A); '
+        '`_cnn2d` = CNN 2D pequena (variante B).',
         '',
         *table,
         '',

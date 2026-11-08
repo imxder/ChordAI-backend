@@ -14,15 +14,18 @@ from experiments import common
 from experiments.exp_features import group_name
 
 SEEDS = [42, 43, 44]
-# (feature, scaler, n_aug, detune)
+# (feature, scaler, n_aug, detune, arch)
 CONFIGS = [
-    ('mfcc', 'baseline', 0, False),
-    ('mfcc', 'per_feature', 0, False),
-    ('chroma', 'baseline', 0, False),
-    ('chroma', 'per_feature', 0, False),
-    ('cqt', 'per_feature', 0, False),
-    ('chroma', 'baseline', 2, False),
-    ('chroma', 'baseline', 2, True),
+    ('mfcc', 'baseline', 0, False, 'baseline'),
+    ('mfcc', 'per_feature', 0, False, 'baseline'),
+    ('chroma', 'baseline', 0, False, 'baseline'),
+    ('chroma', 'per_feature', 0, False, 'baseline'),
+    ('cqt', 'per_feature', 0, False, 'baseline'),
+    ('chroma', 'baseline', 2, False, 'baseline'),
+    ('chroma', 'baseline', 2, True, 'baseline'),
+    # Parte 4: arquitetura
+    ('chroma', 'per_feature', 0, False, 'gap_bn'),
+    ('chroma', 'per_feature', 0, False, 'cnn2d'),
 ]
 
 
@@ -40,16 +43,18 @@ def main():
                        cwd=common.ROOT_DIR) != 0:
         sys.exit('split diferente do registrado em results/split_hash.txt')
 
-    for feature, scaler, n_aug, detune in CONFIGS:
-        if args.only and group_name(feature, scaler, n_aug, detune) not in args.only:
+    for feature, scaler, n_aug, detune, arch in CONFIGS:
+        group = group_name(feature, scaler, n_aug, detune, arch)
+        if args.only and group not in args.only:
             continue
         for seed in SEEDS:
-            name = f'{group_name(feature, scaler, n_aug, detune)}_s{seed}'
+            name = f'{group}_s{seed}'
             if os.path.exists(os.path.join(common.RESULTS_DIR, name, 'metrics.json')):
                 print(f'[pula] {name}', flush=True)
                 continue
             cmd = [sys.executable, '-W', 'ignore', '-m', 'experiments.exp_features',
-                   '--feature', feature, '--scaler', scaler, '--n-aug', str(n_aug), '--seed', str(seed)]
+                   '--feature', feature, '--scaler', scaler, '--n-aug', str(n_aug),
+                   '--arch', arch, '--seed', str(seed)]
             if detune:
                 cmd.append('--detune')
             log = os.path.join(common.RESULTS_DIR, f'{name}.log')

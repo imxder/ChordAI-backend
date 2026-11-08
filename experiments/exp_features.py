@@ -3,12 +3,16 @@ scaler e (opcionalmente) o data augmentation.
 
 Uso:
   python -m experiments.exp_features --feature {mfcc,chroma,cqt,mfcc+chroma}
-      [--scaler {baseline,per_feature}] [--n-aug {0,1,2}] [--detune] [--seed 42]
+      [--scaler {baseline,per_feature}] [--n-aug {0,1,2}] [--detune]
+      [--arch {baseline,gap_bn,cnn2d}] [--seed 42]
 
 --scaler baseline     StandardScaler identico ao de train_model.py (normaliza por frame)
 --scaler per_feature  StandardScaler por linha de feature (coeficiente/bin)
 --n-aug N             N versoes aumentadas por janela de treino (ver augment.py)
 --detune              inclui pitch shift de -40..+40 cents mantendo o rotulo
+--arch                baseline = CNN 1D com Flatten (train_model.py);
+                      gap_bn = CNN 1D com BatchNorm + GlobalAveragePooling1D;
+                      cnn2d = CNN 2D pequena (ver common.py)
 
 Validacao: 15% dos arquivos de treino (ver data.py), usada nos callbacks.
 O teste so e usado no evaluate() final. Resultado em
@@ -25,18 +29,20 @@ from experiments.eval_degraded import evaluate_degraded
 from experiments.features import EXTRACTORS
 
 
-def group_name(feature, scaler='baseline', n_aug=0, detune=False):
+def group_name(feature, scaler='baseline', n_aug=0, detune=False, arch='baseline'):
     name = ('feat_' if not n_aug else f'aug{n_aug}_') + feature.replace('+', '_')
     if scaler == 'per_feature':
         name += '_scalerfeat'
     if detune:
         name += '_detune'
+    if arch != 'baseline':
+        name += '_' + arch.replace('_', '')
     return name
 
 
-def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_SEED):
+def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_SEED, arch='baseline'):
     assert not detune or n_aug, '--detune exige --n-aug >= 1'
-    group = group_name(feature, scaler, n_aug, detune)
+    group = group_name(feature, scaler, n_aug, detune, arch)
     name = f'{group}_s{seed}'
     out_dir = os.path.join(common.RESULTS_DIR, name)
     print(f'=== {name} ===', flush=True)
@@ -48,7 +54,7 @@ def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_S
     X_val_f = common.apply_scaler(scaler_obj, d['X_val'], scaler)
     X_test_f = common.apply_scaler(scaler_obj, d['X_test'], scaler)
 
-    model = common.build_baseline_cnn(X_train_f.shape[1:], len(d['labels']))
+    model = common.build_model(arch, X_train_f.shape[1:], len(d['labels']))
     t0 = time.time()
     history = model.fit(
         X_train_f, y_train, epochs=200, batch_size=32,
@@ -74,7 +80,10 @@ def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_S
         'n_val_files': d['n_val_files'],
         'n_train_windows': int(len(X_train_f)),
         'n_val_windows': int(len(X_val_f)),
-        'model': 'CNN 1D (Conv64-Conv128-Dense128)',
+        'arch': arch,
+        'model': {'baseline': 'CNN 1D (Conv64-Conv128-Flatten-Dense128)',
+                  'gap_bn': 'CNN 1D (Conv64-BN-Conv128-BN-GAP-Dense128)',
+                  'cnn2d': 'CNN 2D (Conv32-BN-Conv64-BN-Conv128-BN-GAP)'}[arch],
         'epochs_trained': len(history.history['loss']),
         'best_val_loss': float(min(history.history['val_loss'])),
         'train_seconds': round(train_seconds, 1),
@@ -90,9 +99,10 @@ def main():
     parser.add_argument('--scaler', default='baseline', choices=['baseline', 'per_feature'])
     parser.add_argument('--n-aug', type=int, default=0, choices=[0, 1, 2])
     parser.add_argument('--detune', action='store_true')
+    parser.add_argument('--arch', default='baseline', choices=sorted(common.ARCHITECTURES))
     parser.add_argument('--seed', type=int, default=common.DEFAULT_SEED)
     args = parser.parse_args()
-    run(args.feature, args.scaler, args.n_aug, args.detune, args.seed)
+    run(args.feature, args.scaler, args.n_aug, args.detune, args.seed, args.arch)
 
 
 if __name__ == '__main__':
