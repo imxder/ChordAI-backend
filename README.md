@@ -188,6 +188,12 @@ python -m experiments.compare                             # gera experiments/res
 python -m pytest                                          # testes
 ```
 
+Os pesos (`.h5`) dos modelos de experimento não ficam no Git (`experiments/**/*.h5` está no `.gitignore`).
+- **O que fica versionado em `experiments/results/`:** `metrics.json`, matrizes de confusão, relatórios, `train.log`, `comparativo.md` e `equivalence.json`.
+- **Os modelos que importam** ficam em `trained_model/` e `candidates/`.
+- **Para regerar os modelos dos experimentos:** rode `python -m experiments.run_seeds`. O treino é determinístico por seed, então reproduz os mesmos pesos e métricas. Também dá para regerar só alguns grupos, com `--only feat_mfcc feat_chroma ...`.
+- Scripts que carregam o `model.h5` de um experimento precisam dessa regeneração antes: `bench_latency.py`, `threshold.py`, `equivalence_check.py`, `promote_candidate.py`, `eval_degraded.py`, `eval_saved_model.py` e `eval_realtime_exp.py`.
+
 ## 4. Rodar a API Flask
 
 Este servidor é o backend do app de reconhecimento de acordes. O app grava trechos de áudio de ~1,5s e envia para a API, que retorna o acorde reconhecido.

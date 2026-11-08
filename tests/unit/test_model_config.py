@@ -59,3 +59,17 @@ def test_load_new_candidate():
     assert cfg['with_none'] and cfg['none_label'] == '_none' and '_none' in encoder.classes_
     assert 0 < cfg['confidence_threshold'] < 1
     assert model.input_shape[1:] == (pipeline.MAX_PAD_LEN, 12)
+
+
+def test_load_trained_model_without_model_raises(tmp_path):
+    """Pasta sem modelo: erro claro, sem treinar automaticamente."""
+    import train_model
+    called = []
+    original = train_model.train_model
+    train_model.train_model = lambda *a, **k: called.append(1)
+    try:
+        with pytest.raises(FileNotFoundError, match='Rode python train_model.py'):
+            train_model.load_trained_model(str(tmp_path))
+    finally:
+        train_model.train_model = original
+    assert not called

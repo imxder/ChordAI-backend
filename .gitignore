@@ -9,3 +9,6 @@ server.log
 .venv_py310_old/
 trained_model_local_backup/
 experiments/cache/
+
+# modelos dos experimentos (regerar com python -m experiments.run_seeds)
+experiments/**/*.h5

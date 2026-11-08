@@ -129,13 +129,10 @@ def train_model(out_dir=MODEL_DIR, feature=None, scaler=None, arch=None, with_no
 def load_trained_model(model_dir=MODEL_DIR):
     """Carrega (model, encoder, scaler) de model_dir. O model_config.json fica em
     encoder.model_config_ e e usado por _predict_raw() / recognize_chord() /
-    predict_note(). Sem modelo salvo, treina um novo com a configuracao do topo."""
+    predict_note(). Sem modelo salvo, lanca FileNotFoundError: o treino so acontece
+    explicitamente, via `python train_model.py`."""
     if not pipeline.model_bundle_exists(model_dir):
-        print(f"Arquivos do modelo/encoder/scaler para acordes não encontrados em '{model_dir}/'.")
-        print("Treinando um novo modelo de acordes...")
-        model, encoder, scaler = train_model(out_dir=model_dir)
-        if model is None:
-            return None, None, None
+        raise FileNotFoundError(f"Modelo não encontrado em {model_dir}. Rode python train_model.py")
     print(f"Carregando modelo de acordes de: {model_dir}")
     try:
         model, encoder, scaler, config = pipeline.load_model_bundle(model_dir)
