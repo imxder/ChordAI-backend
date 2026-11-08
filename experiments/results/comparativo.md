@@ -49,6 +49,18 @@ Os 8 pares mais confundidos pelo `feat_mfcc`. Valores menores = melhor.
 | Bb × Dm | 9.7 | 4.0 | 3.3 | 4.0 | 5.3 | 4.7 |
 | C × G | 9.3 | 2.3 | 1.0 | 3.0 | 1.7 | 3.0 |
 
+## Parte 5 — classe "_none" (nenhum acorde)
+
+Accuracy dos acordes = nas mesmas 1545 janelas de acorde dos outros experimentos (prever "_none" conta como erro). Recall _none = % das janelas negativas do teste classificadas como "_none". Sem limiar de confiança (ver `threshold/threshold.md`).
+
+| Experimento | Seeds | Accuracy acordes (%) | Acordes → _none (%) | Recall _none (%) | Recall low_volume | Recall noise | Recall percussion | Acc. degradado (%) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| feat_chroma_scalerfeat_gapbn_none | 3 | 95.32 ± 0.26 | 0.91 ± 0.11 | 98.21 ± 0.00 | 95.11 ± 0.77 | 99.55 ± 0.78 | 100.00 ± 0.00 | 93.14 ± 0.45 |
+
+Efeito da classe _none (`feat_chroma_scalerfeat_gapbn_none` − `feat_chroma_scalerfeat_gapbn`, pareado por seed): Δ accuracy acordes = -0.11 ± 0.10 p.p.; Δ acc. degradado = -1.55 ± 0.39 p.p.
+
+Negativos por split: train: low_volume 252, noise 252, percussion 252; val: low_volume 45, noise 44, percussion 44; test: low_volume 75, noise 74, percussion 74
+
 ---
 
 <sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; conferir com `python -m experiments.split_hash --check`). O modelo `candidates/candidate_91_81` (o mesmo de `trained_model/`) não aparece na tabela: foi treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e `experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem do NTFS, que compartilha só 59 dos 297 arquivos de teste com o atual).</sub>

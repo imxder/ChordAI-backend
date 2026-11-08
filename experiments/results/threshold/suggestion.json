@@ -1,0 +1,18 @@
+{
+  "criterio": "maior cobertura com falso aceite <= 5% e acuracia >= 98% (modelo feat_chroma_scalerfeat_gapbn_none, teste limpo, media das seeds)",
+  "limiar": 0.5,
+  "coverage": 0.9856341189674522,
+  "accuracy": 0.9808711322027075,
+  "useful": 0.9667789001122334,
+  "false_accept": 0.016442451420029897,
+  "coverage_degraded": 0.9721661054994388,
+  "accuracy_degraded": 0.9720820031107901,
+  "n_chord_windows_gated": 1485,
+  "n_chord_windows_silence": 60,
+  "n_negative_windows": 223,
+  "negative_kinds": {
+    "low_volume": 75,
+    "noise": 74,
+    "percussion": 74
+  }
+}

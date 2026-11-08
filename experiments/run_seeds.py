@@ -14,7 +14,7 @@ from experiments import common
 from experiments.exp_features import group_name
 
 SEEDS = [42, 43, 44]
-# (feature, scaler, n_aug, detune, arch)
+# (feature, scaler, n_aug, detune, arch[, with_none])
 CONFIGS = [
     ('mfcc', 'baseline', 0, False, 'baseline'),
     ('mfcc', 'per_feature', 0, False, 'baseline'),
@@ -26,6 +26,8 @@ CONFIGS = [
     # Parte 4: arquitetura
     ('chroma', 'per_feature', 0, False, 'gap_bn'),
     ('chroma', 'per_feature', 0, False, 'cnn2d'),
+    # Parte 5: classe _none no melhor modelo da Parte 4 (variante A)
+    ('chroma', 'per_feature', 0, False, 'gap_bn', True),
 ]
 
 
@@ -43,8 +45,9 @@ def main():
                        cwd=common.ROOT_DIR) != 0:
         sys.exit('split diferente do registrado em results/split_hash.txt')
 
-    for feature, scaler, n_aug, detune, arch in CONFIGS:
-        group = group_name(feature, scaler, n_aug, detune, arch)
+    for feature, scaler, n_aug, detune, arch, *rest in CONFIGS:
+        with_none = bool(rest and rest[0])
+        group = group_name(feature, scaler, n_aug, detune, arch, with_none)
         if args.only and group not in args.only:
             continue
         for seed in SEEDS:
@@ -54,7 +57,7 @@ def main():
                 continue
             cmd = [sys.executable, '-W', 'ignore', '-m', 'experiments.exp_features',
                    '--feature', feature, '--scaler', scaler, '--n-aug', str(n_aug),
-                   '--arch', arch, '--seed', str(seed)]
+                   '--arch', arch, '--seed', str(seed)] + (['--with-none'] if with_none else [])
             if detune:
                 cmd.append('--detune')
             log = os.path.join(common.RESULTS_DIR, f'{name}.log')

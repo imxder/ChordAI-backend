@@ -102,9 +102,11 @@ def build(file_label_pairs, feature, mode='clean', n_versions=1, seed=common.DEF
     return X, y, k, fidx
 
 
-def load_dataset(feature, n_aug=0, detune=False, seed=common.DEFAULT_SEED):
+def load_dataset(feature, n_aug=0, detune=False, seed=common.DEFAULT_SEED, with_none=False):
     """Retorna dict com X_train, y_train, X_val, y_val, X_test, y_test, labels
-    (features no formato [n, n_features, n_frames], antes do scaler)."""
+    (features no formato [n, n_features, n_frames], antes do scaler).
+    with_none=True acrescenta a classe '_none' (negativos de negatives.py) em
+    treino, validacao e teste; as janelas de acorde ficam exatamente as mesmas."""
     train_files, test_files, labels = common.load_split()
     train_sub, val_files = split_train_val(train_files)
 
@@ -125,8 +127,24 @@ def load_dataset(feature, n_aug=0, detune=False, seed=common.DEFAULT_SEED):
     print(f'  arquivos: treino={len(train_sub)} val={len(val_files)} teste={len(test_files)} | '
           f'janelas: treino={n_clean}+{len(X_tr) - n_clean} aum. val={len(X_va)} teste={len(X_te)}',
           flush=True)
-    return dict(X_train=X_tr, y_train=y_tr, X_val=X_va, y_val=y_va, X_test=X_te, y_test=y_te,
-                labels=labels, n_train_files=len(train_sub), n_val_files=len(val_files))
+    out = dict(X_train=X_tr, y_train=y_tr, X_val=X_va, y_val=y_va, X_test=X_te, y_test=y_te,
+               labels=labels, n_train_files=len(train_sub), n_val_files=len(val_files))
+    if with_none:
+        from experiments.negatives import NONE_LABEL, build_negatives
+        counts = {}
+        for split, files, xk, yk in (('train', train_sub, 'X_train', 'y_train'),
+                                     ('val', val_files, 'X_val', 'y_val'),
+                                     ('test', test_files, 'X_test', 'y_test')):
+            X_n, kinds, _ = build_negatives(split, files, feature)
+            out[xk] = np.concatenate([out[xk], X_n])
+            out[yk] = np.concatenate([out[yk], np.full(len(X_n), NONE_LABEL)])
+            counts[split] = {k: int((kinds == k).sum()) for k in sorted(set(kinds))}
+            if split == 'test':
+                out['test_none_kinds'] = kinds
+        out['labels'] = list(labels) + [NONE_LABEL]
+        out['none_counts'] = counts
+        print(f'  negativos (_none): {counts}', flush=True)
+    return out
 
 
 def load_degraded_test(feature):

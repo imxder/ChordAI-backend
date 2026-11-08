@@ -22,6 +22,8 @@ import argparse
 import os
 import time
 
+import numpy as np
+
 from experiments import augment, common
 from experiments.common import tm
 from experiments.data import VAL_SIZE, load_dataset
@@ -29,7 +31,7 @@ from experiments.eval_degraded import evaluate_degraded
 from experiments.features import EXTRACTORS
 
 
-def group_name(feature, scaler='baseline', n_aug=0, detune=False, arch='baseline'):
+def group_name(feature, scaler='baseline', n_aug=0, detune=False, arch='baseline', with_none=False):
     name = ('feat_' if not n_aug else f'aug{n_aug}_') + feature.replace('+', '_')
     if scaler == 'per_feature':
         name += '_scalerfeat'
@@ -37,18 +39,41 @@ def group_name(feature, scaler='baseline', n_aug=0, detune=False, arch='baseline
         name += '_detune'
     if arch != 'baseline':
         name += '_' + arch.replace('_', '')
+    if with_none:
+        name += '_none'
     return name
 
 
-def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_SEED, arch='baseline'):
+def none_metrics(model, X_test_f, y_test_raw, none_kinds, encoder, out_dir):
+    """Metricas extras de um modelo com classe _none, separando as janelas de
+    acorde (as MESMAS 1545 dos outros experimentos) das negativas."""
+    from experiments.negatives import NONE_LABEL
+    pred = encoder.inverse_transform(np.argmax(model.predict(X_test_f, verbose=0), axis=1))
+    y = np.asarray(y_test_raw)
+    is_none = y == NONE_LABEL
+    chords_pred, chords_true = pred[~is_none], y[~is_none]
+    neg_pred = pred[is_none]
+    return {
+        'accuracy_chords': float(np.mean(chords_pred == chords_true)),
+        'chords_predicted_as_none': float(np.mean(chords_pred == NONE_LABEL)),
+        'none_recall': float(np.mean(neg_pred == NONE_LABEL)),
+        'none_recall_by_kind': {k: float(np.mean(neg_pred[none_kinds == k] == NONE_LABEL))
+                                for k in sorted(set(none_kinds))},
+        'n_test_chord_windows': int((~is_none).sum()),
+        'n_test_none_windows': int(is_none.sum()),
+    }
+
+
+def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_SEED, arch='baseline',
+        with_none=False):
     assert not detune or n_aug, '--detune exige --n-aug >= 1'
-    group = group_name(feature, scaler, n_aug, detune, arch)
+    group = group_name(feature, scaler, n_aug, detune, arch, with_none)
     name = f'{group}_s{seed}'
     out_dir = os.path.join(common.RESULTS_DIR, name)
     print(f'=== {name} ===', flush=True)
     common.set_seeds(seed)
 
-    d = load_dataset(feature, n_aug=n_aug, detune=detune, seed=seed)
+    d = load_dataset(feature, n_aug=n_aug, detune=detune, seed=seed, with_none=with_none)
     encoder, y_train, y_val, y_test = common.encode_labels(d['labels'], d['y_train'], d['y_val'], d['y_test'])
     X_train_f, scaler_obj = common.fit_scaler(d['X_train'], scaler)
     X_val_f = common.apply_scaler(scaler_obj, d['X_val'], scaler)
@@ -64,7 +89,13 @@ def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_S
     train_seconds = time.time() - t0
 
     common.save_artifacts(model, encoder, scaler_obj, out_dir)
+    extra_none = {}
+    if with_none:
+        extra_none = none_metrics(model, X_test_f, d['y_test'], d['test_none_kinds'], encoder, out_dir)
+        extra_none['none_counts'] = d['none_counts']
     common.evaluate(model, X_test_f, y_test, encoder, out_dir, extra={
+        'with_none': with_none,
+        **extra_none,
         'group': group,
         'seed': seed,
         'features': feature,
@@ -100,9 +131,10 @@ def main():
     parser.add_argument('--n-aug', type=int, default=0, choices=[0, 1, 2])
     parser.add_argument('--detune', action='store_true')
     parser.add_argument('--arch', default='baseline', choices=sorted(common.ARCHITECTURES))
+    parser.add_argument('--with-none', action='store_true', help='acrescenta a classe _none (Parte 5)')
     parser.add_argument('--seed', type=int, default=common.DEFAULT_SEED)
     args = parser.parse_args()
-    run(args.feature, args.scaler, args.n_aug, args.detune, args.seed, args.arch)
+    run(args.feature, args.scaler, args.n_aug, args.detune, args.seed, args.arch, args.with_none)
 
 
 if __name__ == '__main__':

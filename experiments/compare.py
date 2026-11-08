@@ -139,12 +139,50 @@ def confusion_section(groups, order, top=8):
     return lines + ['']
 
 
+def none_section(none_groups, groups):
+    """Parte 5: modelos com classe _none, comparados nas MESMAS janelas de acorde."""
+    if not none_groups:
+        return []
+    lines = ['## Parte 5 — classe "_none" (nenhum acorde)', '',
+             'Accuracy dos acordes = nas mesmas 1545 janelas de acorde dos outros experimentos (prever '
+             '"_none" conta como erro). Recall _none = % das janelas negativas do teste classificadas como '
+             '"_none". Sem limiar de confiança (ver `threshold/threshold.md`).', '',
+             '| Experimento | Seeds | Accuracy acordes (%) | Acordes → _none (%) | Recall _none (%) | '
+             'Recall low_volume | Recall noise | Recall percussion | Acc. degradado (%) |',
+             '|---|---:|---:|---:|---:|---:|---:|---:|---:|']
+    for g, rs in none_groups.items():
+        kinds = sorted(rs[0]['none_recall_by_kind'])
+        by_kind = [fmt((np.mean([r['none_recall_by_kind'][k] for r in rs]) * 100,
+                        np.std([r['none_recall_by_kind'][k] for r in rs], ddof=1) * 100)) for k in kinds]
+        lines.append(f'| {g} | {len(rs)} | {fmt(stats(rs, "accuracy_chords"))} | '
+                     f'{fmt(stats(rs, "chords_predicted_as_none"))} | {fmt(stats(rs, "none_recall"))} | '
+                     + ' | '.join(by_kind) + f' | {fmt(stats(rs, "accuracy_degraded"))} |')
+    # efeito pareado: com _none - sem _none (mesma arquitetura)
+    for g, rs in none_groups.items():
+        base = g[:-len('_none')]
+        if base in groups:
+            a = {r['seed']: r for r in groups[base]}
+            b = {r['seed']: r for r in rs}
+            seeds = sorted(set(a) & set(b))
+            d_acc = [(b[s]['accuracy_chords'] - a[s]['accuracy']) * 100 for s in seeds]
+            d_deg = [(b[s]['accuracy_degraded'] - a[s]['accuracy_degraded']) * 100 for s in seeds]
+            lines += ['', f'Efeito da classe _none (`{g}` − `{base}`, pareado por seed): '
+                          f'Δ accuracy acordes = {fmt((np.mean(d_acc), np.std(d_acc, ddof=1)), True)} p.p.; '
+                          f'Δ acc. degradado = {fmt((np.mean(d_deg), np.std(d_deg, ddof=1)), True)} p.p.']
+    n = none_groups[next(iter(none_groups))][0]['none_counts']
+    lines += ['', 'Negativos por split: ' + '; '.join(f'{sp}: ' + ', '.join(f'{k} {v}' for k, v in c.items())
+                                                      for sp, c in n.items()), '']
+    return lines
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding='utf-8')  # console do Windows (cp1252) nao tem '−'/'±'
     except Exception:
         pass
-    groups = load_groups()
+    all_groups = load_groups()
+    none_groups = {g: rs for g, rs in all_groups.items() if rs[0].get('with_none')}
+    groups = {g: rs for g, rs in all_groups.items() if g not in none_groups}
     if not groups:
         print(f'Nenhum metrics.json com "group" em {RESULTS_DIR}')
         return
@@ -179,6 +217,7 @@ def main():
         *per_class_table(groups, order),
         '',
         *confusion_section(groups, order),
+        *none_section(none_groups, groups),
         '---',
         '',
         '<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o '
