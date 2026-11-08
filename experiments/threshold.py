@@ -49,6 +49,9 @@ from experiments.negatives import NONE_LABEL, build_negatives
 FEATURE_GROUPS = {
     'chroma': ('feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_scalerfeat_gapbn', 'threshold'),
     'chroma_stft': ('feat_chroma_stft_scalerfeat_gapbn_none', None, 'threshold_chroma_stft'),
+    'chroma_cqt_t0': ('feat_chroma_cqt_t0_scalerfeat_gapbn_none', None, 'threshold_chroma_cqt_t0'),
+    'chroma_stft4096': ('feat_chroma_stft4096_scalerfeat_gapbn_none', None, 'threshold_chroma_stft4096'),
+    'chroma_stft8192': ('feat_chroma_stft8192_scalerfeat_gapbn_none', None, 'threshold_chroma_stft8192'),
 }
 SEEDS = [42, 43, 44]
 FEATURE = 'chroma'

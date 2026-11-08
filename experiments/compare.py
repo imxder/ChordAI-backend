@@ -176,7 +176,25 @@ def none_section(none_groups, groups):
     return lines
 
 
-STFT_VS_CQT = ('feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_stft_scalerfeat_gapbn_none')
+PROD_GROUP = 'feat_chroma_scalerfeat_gapbn_none'
+# (rotulo, grupo, pasta do threshold.py) -- a primeira linha e a referencia (producao)
+P7A_VARIANTS = [
+    ('Produção: chroma_cqt (tuning automático)', PROD_GROUP, 'threshold'),
+    ('chroma_stft, n_fft 2048', 'feat_chroma_stft_scalerfeat_gapbn_none', 'threshold_chroma_stft'),
+    ('A: chroma_cqt, tuning=0.0', 'feat_chroma_cqt_t0_scalerfeat_gapbn_none', 'threshold_chroma_cqt_t0'),
+    ('B: chroma_stft, n_fft 4096', 'feat_chroma_stft4096_scalerfeat_gapbn_none', 'threshold_chroma_stft4096'),
+    ('C: chroma_stft, n_fft 8192', 'feat_chroma_stft8192_scalerfeat_gapbn_none', 'threshold_chroma_stft8192'),
+]
+# (rotulo, origem, chave, maior_e_melhor); origem 'm' = metrics.json (sem limiar),
+# 't' = teste no limiar de cada seed (escolhido na validacao da propria seed)
+P7A_METRICS = [
+    ('Accuracy acordes', 'm', 'accuracy_chords', True),
+    ('Macro-F1', 'm', 'macro_f1', True),
+    ('Acc. degradado', 'm', 'accuracy_degraded', True),
+    ('Falso aceite', 't', 'false_accept', False),
+    ('Acurácia nos aceitos', 't', 'accuracy', True),
+]
+P7A_TOL_PP = 1.0  # "ate ~1 ponto da producao"
 
 
 def _threshold_suggestion(dirname):
@@ -184,53 +202,68 @@ def _threshold_suggestion(dirname):
     return json.load(open(path, encoding='utf-8')) if os.path.exists(path) else None
 
 
+def _p7a_values(group, runs, thr_dir):
+    """{seed: {chave: valor}} com as metricas sem limiar e as do limiar de cada seed."""
+    sug = _threshold_suggestion(thr_dir)
+    per_seed = {p['seed']: p for p in (sug or {}).get('limiar_por_seed', [])}
+    out = {}
+    for r in runs:
+        v = {key: r[key] for _, src, key, _ in P7A_METRICS if src == 'm'}
+        if r['seed'] in per_seed:
+            v.update({key: per_seed[r['seed']]['teste'][key] for _, src, key, _ in P7A_METRICS if src == 't'})
+            v['limiar'] = per_seed[r['seed']]['limiar']
+        out[r['seed']] = v
+    return out
+
+
 def stft_section(all_groups):
-    """Parte 7a: chroma_stft x chroma_cqt na configuracao de producao (scaler por feature,
-    GAP+BN, _none), pareado por seed. 'Dentro do desvio' = |Δ medio| <= maior dos dois
-    desvios padrao entre seeds."""
-    cqt, stft = STFT_VS_CQT
-    if cqt not in all_groups or stft not in all_groups:
+    """Parte 7a: variantes de chroma na configuracao de producao (scaler por feature, GAP+BN,
+    _none, sem augmentation), Δ pareado por seed contra a producao."""
+    variants = [(label, g, d) for label, g, d in P7A_VARIANTS if g in all_groups]
+    if len(variants) < 2 or variants[0][1] != PROD_GROUP:
         return []
-    a = {r['seed']: r for r in all_groups[cqt]}
-    b = {r['seed']: r for r in all_groups[stft]}
-    seeds = sorted(set(a) & set(b))
-    rows = [(f'Accuracy acordes (sem limiar)', [a[s]['accuracy_chords'] for s in seeds], [b[s]['accuracy_chords'] for s in seeds]),
-            ('Macro-F1 (9 classes, com _none)', [a[s]['macro_f1'] for s in seeds], [b[s]['macro_f1'] for s in seeds]),
-            ('Acc. degradado (sem limiar)', [a[s]['accuracy_degraded'] for s in seeds], [b[s]['accuracy_degraded'] for s in seeds]),
-            ('Recall _none (sem limiar)', [a[s]['none_recall'] for s in seeds], [b[s]['none_recall'] for s in seeds]),
-            ('Falso aceite do _none (sem limiar)', [1 - a[s]['none_recall'] for s in seeds], [1 - b[s]['none_recall'] for s in seeds])]
-    sa, sb = _threshold_suggestion('threshold'), _threshold_suggestion('threshold_chroma_stft')
-    if sa and sb and 'limiar_por_seed' in sa and 'limiar_por_seed' in sb:
-        pa = {p['seed']: p for p in sa['limiar_por_seed']}
-        pb = {p['seed']: p for p in sb['limiar_por_seed']}
-        for key, label in (('false_accept', 'Falso aceite do _none (limiar de cada seed)'),
-                           ('coverage', 'Cobertura (limiar de cada seed)'),
-                           ('accuracy', 'Acurácia nos aceitos (limiar de cada seed)'),
-                           ('accuracy_degraded', 'Acurácia nos aceitos, degradado (limiar de cada seed)')):
-            rows.append((label, [pa[s]['teste'][key] for s in seeds], [pb[s]['teste'][key] for s in seeds]))
+    vals = {g: _p7a_values(g, all_groups[g], d) for _, g, d in variants}
+    prod = vals[PROD_GROUP]
+
+    def cell(g, key):
+        xs = np.array([v[key] for v in vals[g].values() if key in v]) * 100
+        return '—' if not len(xs) else f'{xs.mean():.2f} ± {xs.std(ddof=1):.2f}'
+
+    def delta(g, key):
+        seeds = [s for s in vals[g] if key in vals[g][s] and s in prod and key in prod[s]]
+        d = np.array([vals[g][s][key] - prod[s][key] for s in seeds]) * 100
+        return d if len(d) else None
+
+    head = ' | '.join(f'{name} (%)' for name, *_ in P7A_METRICS)
     lines = ['## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)', '',
-             f'`{cqt}` (chroma_cqt, em produção) × `{stft}` (chroma_stft, todos os parâmetros explícitos, '
-             '`tuning=0.0`). Mesmo split, mesma validação, seeds ' + ', '.join(map(str, seeds)) + '. '
-             'Δ = stft − cqt, pareado por seed (p.p.). "Dentro do desvio" = |Δ médio| ≤ maior dos dois desvios '
-             'padrão entre seeds. Limiar de cada seed = escolhido na validação da própria seed (como o de produção).',
-             '', '| Métrica (teste, %) | chroma_cqt | chroma_stft | Δ stft − cqt (p.p.) | Dentro do desvio? |',
-             '|---|---:|---:|---:|:---:|']
-    for label, va, vb in rows:
-        va, vb = np.array(va) * 100, np.array(vb) * 100
-        d = vb - va
-        sd_a, sd_b = va.std(ddof=1), vb.std(ddof=1)
-        inside = abs(d.mean()) <= max(sd_a, sd_b)
-        lines.append(f'| {label} | {va.mean():.2f} ± {sd_a:.2f} | {vb.mean():.2f} ± {sd_b:.2f} | '
-                     f'{d.mean():+.2f} ± {d.std(ddof=1):.2f} | {"sim" if inside else "**não**"} |')
-    if sa and sb:
-        lines += ['', f"Limiar único (média das 3 seeds, `threshold.py`): chroma_cqt {sa['limiar']}, "
-                      f"chroma_stft {sb['limiar']}. Limiar por seed: chroma_cqt "
-                      + ', '.join(f"{p['limiar']:.2f}" for p in sa.get('limiar_por_seed', []))
-                      + '; chroma_stft ' + ', '.join(f"{p['limiar']:.2f}" for p in sb.get('limiar_por_seed', []))
-                      + '.']
-    lat_a, lat_b = _lat(all_groups[cqt], 'predict_ms'), _lat(all_groups[stft], 'predict_ms')
-    if lat_a and lat_b:
-        lines += ['', f'Latência do modelo (`model.predict`): {lat_a:.1f} ms (cqt) × {lat_b:.1f} ms (stft).']
+             'Mesma configuração do modelo em produção (scaler por feature, GAP+BN, classe `_none`, validação '
+             'separada, sem augmentation), mudando só a feature. Teste, seeds 42, 43, 44. Accuracy, macro-F1 e '
+             'acc. degradado sem limiar (argmax); falso aceite (negativos do teste aceitos como acorde) e acurácia '
+             'nos aceitos com o **limiar de cada seed**, escolhido na validação da própria seed (como o de '
+             'produção). Todas as variantes saem com 65 frames.', '',
+             f'| Experimento | {head} | Limiares (s42, s43, s44) |',
+             '|---|' + '---:|' * len(P7A_METRICS) + '---|']
+    for label, g, _ in variants:
+        lims = ', '.join(f"{vals[g][s]['limiar']:.2f}" for s in sorted(vals[g]) if 'limiar' in vals[g][s]) or '—'
+        lines.append(f'| {label} | ' + ' | '.join(cell(g, key) for _, _, key, _ in P7A_METRICS) + f' | {lims} |')
+
+    lines += ['', f'Δ pareado por seed contra a produção (p.p., variante − produção). ✓ = no máximo '
+                  f'{P7A_TOL_PP:.0f} p.p. pior que a produção (para falso aceite, pior = maior).', '',
+              f'| Experimento | ' + ' | '.join(f'Δ {name}' for name, *_ in P7A_METRICS) + ' | Até ~1 p.p. em tudo? |',
+              '|---|' + '---:|' * len(P7A_METRICS) + ':---:|']
+    for label, g, _ in variants[1:]:
+        cells, ok_all = [], True
+        for _, _, key, higher in P7A_METRICS:
+            d = delta(g, key)
+            if d is None:
+                cells.append('—')
+                ok_all = False
+                continue
+            worse = -d.mean() if higher else d.mean()
+            ok = worse <= P7A_TOL_PP
+            ok_all &= ok
+            cells.append(f'{d.mean():+.2f} ± {d.std(ddof=1):.2f}' + (' ✓' if ok else ''))
+        lines.append(f'| {label} | ' + ' | '.join(cells) + f' | {"sim" if ok_all else "não"} |')
     return lines + ['']
 
 

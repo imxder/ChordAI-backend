@@ -53,3 +53,16 @@ def test_constants_are_explicit():
     assert pl.CHROMA_STFT_PAD_MODE == 'constant'
     assert (pl.CHROMA_STFT_N_FFT, pl.CHROMA_STFT_HOP_LENGTH, pl.CHROMA_STFT_WIN_LENGTH) == (2048, 512, 2048)
     assert pl.CHROMA_STFT_POWER == 2.0 and pl.CHROMA_STFT_NORM == np.inf
+
+
+@pytest.mark.parametrize('n_fft', [4096, 8192])
+def test_large_n_fft_matches_librosa_and_has_65_frames(n_fft):
+    """Parte 7a-B/C: n_fft = win_length maior, mesmo hop -> continua 65 frames sem corte."""
+    y = _audio(2)
+    raw = pl.chroma_stft_raw(y, n_fft=n_fft)
+    assert raw.shape == (12, 65)
+    ref = librosa.feature.chroma_stft(
+        y=y, sr=pl.SAMPLE_RATE, n_fft=n_fft, hop_length=512, win_length=n_fft, window='hann',
+        center=True, pad_mode='constant', tuning=0.0, n_chroma=12, norm=np.inf)
+    np.testing.assert_allclose(raw, ref, rtol=1e-5, atol=1e-6)
+    assert pl.EXTRACTORS[f'chroma_stft{n_fft}'](y).shape == (12, 65)

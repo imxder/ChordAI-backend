@@ -1,0 +1,154 @@
+{
+  "limiar": 0.45,
+  "escolhido_em": "validacao",
+  "criterio": "maior cobertura com falso aceite <= 5% e acuracia nos aceitos >= 98% (modelo feat_chroma_stft4096_scalerfeat_gapbn_none, media das seeds [42, 43, 44])",
+  "modelo": "feat_chroma_stft4096_scalerfeat_gapbn_none",
+  "validacao": {
+    "coverage": {
+      "mean": 0.9844632768361582,
+      "std": 0.002205154660451416
+    },
+    "accuracy": {
+      "mean": 0.9802739490566951,
+      "std": 0.001619310284616583
+    },
+    "useful": {
+      "mean": 0.9650423728813559,
+      "std": 0.0018347995842890844
+    },
+    "false_accept": {
+      "mean": 0.005012531328320802,
+      "std": 0.004340979467591171
+    }
+  },
+  "teste": {
+    "coverage": {
+      "mean": 0.9865319865319866,
+      "std": 0.004713804713804766
+    },
+    "accuracy": {
+      "mean": 0.9619886091102614,
+      "std": 0.004721088265897615
+    },
+    "useful": {
+      "mean": 0.9490460157126824,
+      "std": 0.008967445277413368
+    },
+    "false_accept": {
+      "mean": 0.005979073243647235,
+      "std": 0.0025890146600431652
+    },
+    "coverage_degraded": {
+      "mean": 0.9557800224466889,
+      "std": 0.005054244780784604
+    },
+    "accuracy_degraded": {
+      "mean": 0.9516150679775041,
+      "std": 0.006442760369265671
+    }
+  },
+  "teste_sem_none_mesmo_limiar": null,
+  "feature": "chroma_stft4096",
+  "limiar_por_seed": [
+    {
+      "seed": 42,
+      "limiar": 0.4,
+      "validacao": {
+        "coverage": 0.9841101694915254,
+        "accuracy": 0.9806243272335845,
+        "useful": 0.965042372881356,
+        "false_accept": 0.0
+      },
+      "teste": {
+        "coverage": 0.9912457912457913,
+        "accuracy": 0.9639945652173914,
+        "useful": 0.9555555555555556,
+        "false_accept": 0.008968609865470852,
+        "coverage_degraded": 0.9656565656565657,
+        "accuracy_degraded": 0.9546722454672245
+      }
+    },
+    {
+      "seed": 43,
+      "limiar": 0.5,
+      "validacao": {
+        "coverage": 0.972457627118644,
+        "accuracy": 0.9880174291938998,
+        "useful": 0.9608050847457628,
+        "false_accept": 0.007518796992481203
+      },
+      "teste": {
+        "coverage": 0.9703703703703703,
+        "accuracy": 0.9653018736988203,
+        "useful": 0.9367003367003367,
+        "false_accept": 0.004484304932735426,
+        "coverage_degraded": 0.9474747474747475,
+        "accuracy_degraded": 0.9523809523809523
+      }
+    },
+    {
+      "seed": 44,
+      "limiar": 0.45,
+      "validacao": {
+        "coverage": 0.986228813559322,
+        "accuracy": 0.9806659505907627,
+        "useful": 0.9671610169491526,
+        "false_accept": 0.007518796992481203
+      },
+      "teste": {
+        "coverage": 0.98989898989899,
+        "accuracy": 0.963265306122449,
+        "useful": 0.9535353535353536,
+        "false_accept": 0.004484304932735426,
+        "coverage_degraded": 0.9508417508417508,
+        "accuracy_degraded": 0.9539660056657224
+      }
+    }
+  ],
+  "teste_limiar_por_seed": {
+    "coverage": {
+      "mean": 0.9838383838383838,
+      "std": 0.011683065032254232
+    },
+    "accuracy": {
+      "mean": 0.9641872483462203,
+      "std": 0.0010318657685877294
+    },
+    "useful": {
+      "mean": 0.9485970819304153,
+      "std": 0.010352280635331296
+    },
+    "false_accept": {
+      "mean": 0.005979073243647235,
+      "std": 0.002589014660043165
+    },
+    "coverage_degraded": {
+      "mean": 0.9546576879910212,
+      "std": 0.009672934422633112
+    },
+    "accuracy_degraded": {
+      "mean": 0.9536730678379665,
+      "std": 0.0011733990923796908
+    }
+  },
+  "conjuntos": {
+    "val": {
+      "janelas_acorde": 944,
+      "janelas_silencio_descartadas": 41,
+      "negativos": {
+        "low_volume": 45,
+        "noise": 44,
+        "percussion": 44
+      }
+    },
+    "test": {
+      "janelas_acorde": 1485,
+      "janelas_silencio_descartadas": 60,
+      "negativos": {
+        "low_volume": 75,
+        "noise": 74,
+        "percussion": 74
+      }
+    }
+  }
+}

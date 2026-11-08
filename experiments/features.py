@@ -21,6 +21,9 @@ CACHE_NAMES = {
     'mfcc': 'mfcc40',
     'chroma': 'chroma12',
     'chroma_stft': 'chroma_stft12',
+    'chroma_cqt_t0': 'chroma_cqt_t0_12',
+    'chroma_stft4096': 'chroma_stft4096_12',
+    'chroma_stft8192': 'chroma_stft8192_12',
     'cqt': 'cqt84',
     'mfcc+chroma': 'mfcc40_chroma12',
 }

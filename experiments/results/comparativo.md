@@ -55,7 +55,10 @@ Accuracy dos acordes = nas mesmas 1545 janelas de acorde dos outros experimentos
 
 | Experimento | Seeds | Accuracy acordes (%) | Acordes → _none (%) | Recall _none (%) | Recall low_volume | Recall noise | Recall percussion | Acc. degradado (%) |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
+| feat_chroma_cqt_t0_scalerfeat_gapbn_none | 3 | 94.58 ± 0.81 | 0.97 ± 0.13 | 98.06 ± 0.26 | 94.67 ± 0.00 | 99.55 ± 0.78 | 100.00 ± 0.00 | 92.32 ± 0.78 |
 | feat_chroma_scalerfeat_gapbn_none | 3 | 95.32 ± 0.26 | 0.91 ± 0.11 | 98.21 ± 0.00 | 95.11 ± 0.77 | 99.55 ± 0.78 | 100.00 ± 0.00 | 93.14 ± 0.45 |
+| feat_chroma_stft4096_scalerfeat_gapbn_none | 3 | 93.53 ± 0.74 | 0.47 ± 0.04 | 99.40 ± 0.26 | 100.00 ± 0.00 | 98.20 ± 0.78 | 100.00 ± 0.00 | 89.41 ± 1.03 |
+| feat_chroma_stft8192_scalerfeat_gapbn_none | 3 | 94.09 ± 0.23 | 0.54 ± 0.04 | 99.10 ± 0.45 | 99.56 ± 0.77 | 98.20 ± 1.56 | 99.55 ± 0.78 | 90.36 ± 0.40 |
 | feat_chroma_stft_scalerfeat_gapbn_none | 3 | 92.71 ± 1.44 | 0.47 ± 0.04 | 98.95 ± 0.26 | 100.00 ± 0.00 | 96.85 ± 0.78 | 100.00 ± 0.00 | 88.31 ± 1.10 |
 
 Efeito da classe _none (`feat_chroma_scalerfeat_gapbn_none` − `feat_chroma_scalerfeat_gapbn`, pareado por seed): Δ accuracy acordes = -0.11 ± 0.10 p.p.; Δ acc. degradado = -1.55 ± 0.39 p.p.
@@ -64,21 +67,24 @@ Negativos por split: train: low_volume 252, noise 252, percussion 252; val: low_
 
 ## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)
 
-`feat_chroma_scalerfeat_gapbn_none` (chroma_cqt, em produção) × `feat_chroma_stft_scalerfeat_gapbn_none` (chroma_stft, todos os parâmetros explícitos, `tuning=0.0`). Mesmo split, mesma validação, seeds 42, 43, 44. Δ = stft − cqt, pareado por seed (p.p.). "Dentro do desvio" = |Δ médio| ≤ maior dos dois desvios padrão entre seeds. Limiar de cada seed = escolhido na validação da própria seed (como o de produção).
+Mesma configuração do modelo em produção (scaler por feature, GAP+BN, classe `_none`, validação separada, sem augmentation), mudando só a feature. Teste, seeds 42, 43, 44. Accuracy, macro-F1 e acc. degradado sem limiar (argmax); falso aceite (negativos do teste aceitos como acorde) e acurácia nos aceitos com o **limiar de cada seed**, escolhido na validação da própria seed (como o de produção). Todas as variantes saem com 65 frames.
 
-| Métrica (teste, %) | chroma_cqt | chroma_stft | Δ stft − cqt (p.p.) | Dentro do desvio? |
-|---|---:|---:|---:|:---:|
-| Accuracy acordes (sem limiar) | 95.32 ± 0.26 | 92.71 ± 1.44 | -2.61 ± 1.38 | **não** |
-| Macro-F1 (9 classes, com _none) | 95.67 ± 0.24 | 93.42 ± 1.27 | -2.25 ± 1.22 | **não** |
-| Acc. degradado (sem limiar) | 93.14 ± 0.45 | 88.31 ± 1.10 | -4.83 ± 0.65 | **não** |
-| Recall _none (sem limiar) | 98.21 ± 0.00 | 98.95 ± 0.26 | +0.75 ± 0.26 | **não** |
-| Falso aceite do _none (sem limiar) | 1.79 ± 0.00 | 1.05 ± 0.26 | -0.75 ± 0.26 | **não** |
-| Falso aceite do _none (limiar de cada seed) | 1.49 ± 0.52 | 0.90 ± 0.45 | -0.60 ± 0.68 | **não** |
-| Cobertura (limiar de cada seed) | 98.88 ± 0.51 | 97.55 ± 1.12 | -1.32 ± 1.62 | **não** |
-| Acurácia nos aceitos (limiar de cada seed) | 97.91 ± 0.28 | 95.88 ± 1.04 | -2.03 ± 0.77 | **não** |
-| Acurácia nos aceitos, degradado (limiar de cada seed) | 97.08 ± 0.21 | 94.42 ± 1.12 | -2.65 ± 0.92 | **não** |
+| Experimento | Accuracy acordes (%) | Macro-F1 (%) | Acc. degradado (%) | Falso aceite (%) | Acurácia nos aceitos (%) | Limiares (s42, s43, s44) |
+|---|---:|---:|---:|---:|---:|---|
+| Produção: chroma_cqt (tuning automático) | 95.32 ± 0.26 | 95.67 ± 0.24 | 93.14 ± 0.45 | 1.49 ± 0.52 | 97.91 ± 0.28 | 0.50, 0.30, 0.55 |
+| chroma_stft, n_fft 2048 | 92.71 ± 1.44 | 93.42 ± 1.27 | 88.31 ± 1.10 | 0.90 ± 0.45 | 95.88 ± 1.04 | 0.55, 0.55, 0.45 |
+| A: chroma_cqt, tuning=0.0 | 94.58 ± 0.81 | 95.01 ± 0.75 | 92.32 ± 0.78 | 1.64 ± 0.26 | 97.41 ± 0.70 | 0.50, 0.30, 0.50 |
+| B: chroma_stft, n_fft 4096 | 93.53 ± 0.74 | 94.22 ± 0.63 | 89.41 ± 1.03 | 0.60 ± 0.26 | 96.42 ± 0.10 | 0.40, 0.50, 0.45 |
+| C: chroma_stft, n_fft 8192 | 94.09 ± 0.23 | 94.67 ± 0.19 | 90.36 ± 0.40 | 0.75 ± 0.26 | 96.95 ± 0.65 | 0.45, 0.60, 0.60 |
 
-Limiar único (média das 3 seeds, `threshold.py`): chroma_cqt 0.45, chroma_stft 0.5. Limiar por seed: chroma_cqt 0.50, 0.30, 0.55; chroma_stft 0.55, 0.55, 0.45.
+Δ pareado por seed contra a produção (p.p., variante − produção). ✓ = no máximo 1 p.p. pior que a produção (para falso aceite, pior = maior).
+
+| Experimento | Δ Accuracy acordes | Δ Macro-F1 | Δ Acc. degradado | Δ Falso aceite | Δ Acurácia nos aceitos | Até ~1 p.p. em tudo? |
+|---|---:|---:|---:|---:|---:|:---:|
+| chroma_stft, n_fft 2048 | -2.61 ± 1.38 | -2.25 ± 1.22 | -4.83 ± 0.65 | -0.60 ± 0.68 ✓ | -2.03 ± 0.77 | não |
+| A: chroma_cqt, tuning=0.0 | -0.73 ± 0.71 ✓ | -0.66 ± 0.67 ✓ | -0.82 ± 0.39 ✓ | +0.15 ± 0.26 ✓ | -0.50 ± 0.55 ✓ | sim |
+| B: chroma_stft, n_fft 4096 | -1.79 ± 0.71 | -1.45 ± 0.63 | -3.73 ± 0.65 | -0.90 ± 0.45 ✓ | -1.49 ± 0.33 | não |
+| C: chroma_stft, n_fft 8192 | -1.23 ± 0.06 | -1.00 ± 0.05 | -2.78 ± 0.06 | -0.75 ± 0.26 ✓ | -0.96 ± 0.93 ✓ | não |
 
 ## Parte 6 — modelo em produção (`trained_model/`)
 
