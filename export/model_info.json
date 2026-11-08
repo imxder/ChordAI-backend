@@ -1,6 +1,7 @@
 {
-  "model_version": "c1-chroma_stft8192-aug2-gapbn-none-s42",
-  "source_experiment": "experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s42",
+  "model_version": "c1-chroma_stft8192-aug2-gapbn-none-s44",
+  "seed": 44,
+  "source_experiment": "experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s44",
   "sample_rate": 22050,
   "channels": 1,
   "input_samples": 33075,
@@ -55,9 +56,9 @@
     "n_frames": 65
   },
   "validation_metrics_at_threshold": {
-    "coverage": 0.9788135593220338,
-    "accuracy": 0.9837662337662337,
-    "useful": 0.9629237288135594,
+    "coverage": 0.9851694915254238,
+    "accuracy": 0.9849462365591398,
+    "useful": 0.9703389830508474,
     "false_accept": 0.0
   }
 }

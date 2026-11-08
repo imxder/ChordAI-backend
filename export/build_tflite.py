@@ -1,4 +1,4 @@
-"""Parte 7b: exporta o modelo C1 (chroma_stft n_fft 8192 + aug2, seed 42) para TFLite com
+"""Parte 7b: exporta o modelo C1 (chroma_stft n_fft 8192 + aug2) para TFLite com
 a extracao de feature EMBUTIDA. O app manda audio bruto e recebe as probabilidades.
 
 Grafo (todos os parametros vem de pipeline.chroma_stft_params / CHROMA_STFT_*):
@@ -10,6 +10,9 @@ Grafo (todos os parametros vem de pipeline.chroma_stft_params / CHROMA_STFT_*):
   -> normalizacao por frame (norm=inf; frames com maximo < tiny(float32) ficam como estao)
   -> 65 frames -> StandardScaler por feature (12 medias / 12 desvios, constantes)
   -> CNN GAP+BN (pesos do .h5) -> softmax [1, n_classes] (inclui "_none")
+
+Seed: entre 42, 43 e 44, a de maior acuracia nos acordes na VALIDACAO (nunca pelo teste);
+empate -> menor val_loss. As metricas de validacao das tres vao para export_report.json.
 
 Etapas: equivalencia com o librosa (200 janelas), conversao float32 e int8 (quantizacao
 dinamica, so ops nativas), avaliacao no teste completo / degradado / negativos com o
@@ -32,10 +35,11 @@ import tensorflow as tf  # noqa: E402
 from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa: E402
 
 import pipeline as pl  # noqa: E402
-from experiments.data import DEGRADED_SEED, transform_test_degraded  # noqa: E402
+from experiments.data import DEGRADED_SEED, build, transform_test_degraded  # noqa: E402
 
-SOURCE_RUN = 'aug2_chroma_stft8192_scalerfeat_gapbn_none_s42'
-SOURCE_DIR = os.path.join(ROOT, 'experiments', 'results', SOURCE_RUN)
+SOURCE_GROUP = 'aug2_chroma_stft8192_scalerfeat_gapbn_none'
+CANDIDATE_SEEDS = [42, 43, 44]
+RESULTS_DIR = os.path.join(ROOT, 'experiments', 'results')
 THRESHOLD_SUGGESTION = os.path.join(ROOT, 'experiments', 'results', 'threshold_aug2_chroma_stft8192',
                                     'suggestion.json')
 EXPORT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -44,25 +48,65 @@ N_EQUIV_WINDOWS = 200
 EQUIV_SEED = 0
 MIN_CLASS_AGREEMENT = 0.995
 MAX_INT8_DROP_PP = 0.5
-MODEL_VERSION = 'c1-chroma_stft8192-aug2-gapbn-none-s42'
+MAX_FALSE_ACCEPT = 0.025  # item 0 da Parte 7b: acima disso, parar
+MODEL_VERSION = 'c1-chroma_stft8192-aug2-gapbn-none-s{seed}'
+
+
+# ---------------------------------------------------------------------------
+# Etapa 0: escolha da seed na validacao
+# ---------------------------------------------------------------------------
+def choose_seed():
+    """Acuracia nos acordes (argmax, todas as janelas de acorde da validacao) de cada seed;
+    escolhe a maior (empate: menor best_val_loss). O teste nao participa."""
+    train_files, _, _ = pl.load_split()
+    _, val_files = pl.split_train_val(train_files)
+    feature = json.load(open(os.path.join(RESULTS_DIR, f'{SOURCE_GROUP}_s{CANDIDATE_SEEDS[0]}', pl.CONFIG_FILENAME),
+                             encoding='utf-8'))['feature']
+    X, y, _, _ = build(val_files, feature, 'clean')
+    sug = json.load(open(THRESHOLD_SUGGESTION, encoding='utf-8'))
+    per_seed = {p['seed']: p for p in sug['limiar_por_seed']}
+    rows = []
+    for seed in CANDIDATE_SEEDS:
+        run_dir = os.path.join(RESULTS_DIR, f'{SOURCE_GROUP}_s{seed}')
+        model = tf.keras.models.load_model(os.path.join(run_dir, 'model.h5'), compile=False)
+        scaler = joblib.load(os.path.join(run_dir, 'scaler.joblib'))
+        classes = np.array(joblib.load(os.path.join(run_dir, 'encoder.joblib')).classes_)
+        pred = classes[model.predict(pl.apply_scaler(scaler, X, 'feature'), verbose=0).argmax(1)]
+        metrics = json.load(open(os.path.join(run_dir, 'metrics.json'), encoding='utf-8'))
+        rows.append({'seed': seed, 'val_accuracy_chords': float(np.mean(pred == y)),
+                     'best_val_loss': float(metrics['best_val_loss']),
+                     'val_threshold': per_seed[seed]['limiar'], 'val_at_threshold': per_seed[seed]['validacao']})
+    best = max(rows, key=lambda r: (r['val_accuracy_chords'], -r['best_val_loss']))
+    for r in rows:
+        print(f"[seed] {r['seed']}: validacao acc {r['val_accuracy_chords'] * 100:.2f}% | val_loss "
+              f"{r['best_val_loss']:.4f} | limiar {r['val_threshold']:.2f}" + ('  <- escolhida' if r is best else ''))
+    return best['seed'], {
+        'chosen_seed': best['seed'],
+        'criterion': 'maior acuracia nos acordes na VALIDACAO (argmax, todas as janelas de acorde dos 15% de '
+                     'arquivos de validacao); empate -> menor best_val_loss. O teste nao participa da escolha.',
+        'n_val_chord_windows': int(len(X)),
+        'candidates': rows,
+    }
 
 
 # ---------------------------------------------------------------------------
 # Modelo de origem
 # ---------------------------------------------------------------------------
-def load_source():
-    cfg = json.load(open(os.path.join(SOURCE_DIR, pl.CONFIG_FILENAME), encoding='utf-8'))
-    seed = cfg['seed']
+def load_source(seed):
+    source_run = f'{SOURCE_GROUP}_s{seed}'
+    source_dir = os.path.join(RESULTS_DIR, source_run)
+    cfg = json.load(open(os.path.join(source_dir, pl.CONFIG_FILENAME), encoding='utf-8'))
+    assert cfg['seed'] == seed
     sug = json.load(open(THRESHOLD_SUGGESTION, encoding='utf-8'))
     per_seed = next(p for p in sug['limiar_por_seed'] if p['seed'] == seed)
     cfg = dict(cfg, confidence_threshold=per_seed['limiar'],
                threshold_source=f'calibrado na validacao para este modelo (seed {seed}), criterio da Parte 5 '
                                 f'(experiments/results/threshold_aug2_chroma_stft8192/suggestion.json)',
-               source_experiment=f'experiments/results/{SOURCE_RUN}')
+               source_experiment=f'experiments/results/{source_run}', model_version=MODEL_VERSION.format(seed=seed))
     pl.validate_config(cfg)
-    model = tf.keras.models.load_model(os.path.join(SOURCE_DIR, 'model.h5'), compile=False)
-    encoder = joblib.load(os.path.join(SOURCE_DIR, 'encoder.joblib'))
-    scaler = joblib.load(os.path.join(SOURCE_DIR, 'scaler.joblib'))
+    model = tf.keras.models.load_model(os.path.join(source_dir, 'model.h5'), compile=False)
+    encoder = joblib.load(os.path.join(source_dir, 'encoder.joblib'))
+    scaler = joblib.load(os.path.join(source_dir, 'scaler.joblib'))
     assert cfg['scaler'] == 'feature' and cfg['feature'] in pl.CHROMA_STFT_N_FFT_BY_FEATURE
     assert list(encoder.classes_) == cfg['classes']
     return model, encoder, scaler, cfg, per_seed
@@ -282,7 +326,8 @@ def save_app_files(f32, i8, cfg, data, per_seed, probs_f32_clean):
         json.dump(cfg, f, indent=2, ensure_ascii=False)
     prm = pl.chroma_stft_params(cfg['feature'])
     info = {
-        'model_version': MODEL_VERSION,
+        'model_version': cfg['model_version'],
+        'seed': cfg['seed'],
         'source_experiment': cfg['source_experiment'],
         'sample_rate': pl.SAMPLE_RATE,
         'channels': 1,
@@ -329,9 +374,15 @@ def save_app_files(f32, i8, cfg, data, per_seed, probs_f32_clean):
 
 def main():
     out = {}
-    model, encoder, scaler, cfg, per_seed = load_source()
+    seed, out['seed_selection'] = choose_seed()
+    model, encoder, scaler, cfg, per_seed = load_source(seed)
+    source_run = f'{SOURCE_GROUP}_s{seed}'
     feature, classes, threshold = cfg['feature'], cfg['classes'], cfg['confidence_threshold']
-    print(f'modelo: {SOURCE_RUN} | feature {feature} | classes {classes} | limiar {threshold}')
+    print(f'modelo: {source_run} | feature {feature} | classes {classes} | limiar {threshold}')
+    fa = per_seed['teste']['false_accept']
+    print(f"[item 0] seed {seed}: falso aceite no teste com o limiar dela = {fa * 100:.2f}%")
+    if fa > MAX_FALSE_ACCEPT:
+        raise SystemExit(f'falso aceite da seed {seed} = {fa * 100:.2f}% > {MAX_FALSE_ACCEPT * 100:.1f}%: parar e avisar')
     e2e = EndToEnd(model, scaler, feature)
     print('carregando o audio do teste (limpo, degradado e negativos)...', flush=True)
     data = load_test_audio()
@@ -380,7 +431,7 @@ def main():
               f"(cobertura {m['coverage'] * 100:.2f})")
 
     out['example'] = save_app_files(blobs['float32'], blobs['int8'], cfg, data, per_seed, probs['float32'][0])
-    out['source'] = {'run': SOURCE_RUN, 'threshold': threshold, 'versions': {
+    out['source'] = {'run': source_run, 'seed': seed, 'threshold': threshold, 'versions': {
         'tensorflow': tf.__version__, 'librosa': pl.librosa.__version__, 'numpy': np.__version__}}
     with open(os.path.join(EXPORT_DIR, 'export_report.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=2, ensure_ascii=False)

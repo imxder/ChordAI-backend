@@ -29,8 +29,9 @@
     "scaler": "scaler.joblib"
   },
   "group": "aug2_chroma_stft8192_scalerfeat_gapbn_none",
-  "seed": 42,
+  "seed": 44,
   "trained_by": "experiments/exp_features.py",
-  "threshold_source": "calibrado na validacao para este modelo (seed 42), criterio da Parte 5 (experiments/results/threshold_aug2_chroma_stft8192/suggestion.json)",
-  "source_experiment": "experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s42"
+  "threshold_source": "calibrado na validacao para este modelo (seed 44), criterio da Parte 5 (experiments/results/threshold_aug2_chroma_stft8192/suggestion.json)",
+  "source_experiment": "experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s44",
+  "model_version": "c1-chroma_stft8192-aug2-gapbn-none-s44"
 }
