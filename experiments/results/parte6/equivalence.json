@@ -1,0 +1,39 @@
+{
+  "model_dir": "candidates\\candidate_chroma_gapbn_none",
+  "threshold": 0.5,
+  "production": {
+    "n_chord_windows": 1545,
+    "n_silence": 60,
+    "coverage": 0.98989898989899,
+    "unknown_rate_chords": 0.010101010101010102,
+    "accuracy_accepted": 0.9823129251700681,
+    "accuracy_chords_all": 0.9346278317152104,
+    "n_negative_windows": 223,
+    "false_accept": 0.017937219730941704,
+    "unknown_rate_negatives": 0.9820627802690582,
+    "n_negative_silence": 0
+  },
+  "production_breakdown": {
+    "total": 1545,
+    "correct": 1444,
+    "wrong": 26,
+    "unknown": 15,
+    "silence": 60,
+    "accuracy_excluding_silence": 0.9723905723905724,
+    "accuracy_all_windows": 0.9346278317152104
+  },
+  "experiment_seed42": {
+    "n_chord_windows": 1545,
+    "n_silence": 60,
+    "coverage": 0.98989898989899,
+    "unknown_rate_chords": 0.010101010101010055,
+    "accuracy_accepted": 0.9823129251700681,
+    "accuracy_chords_all": 0.9346278317152104,
+    "n_negative_windows": 223,
+    "false_accept": 0.017937219730941704,
+    "unknown_rate_negatives": 0.9820627802690582,
+    "n_negative_silence": 0
+  },
+  "tolerance_pp": 0.1,
+  "equivalent": true
+}

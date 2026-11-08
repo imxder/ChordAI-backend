@@ -36,7 +36,7 @@ import tensorflow as tf
 from joblib import Parallel, delayed
 
 from experiments import common
-from experiments.common import tm
+import pipeline as pl
 from experiments.data import N_JOBS, build, load_degraded_test, split_train_val
 from experiments.negatives import NONE_LABEL, build_negatives
 
@@ -54,7 +54,7 @@ KEYS_TEST = KEYS_VAL + ['coverage_degraded', 'accuracy_degraded']
 
 
 def _rms_file(path):
-    return [float(np.sqrt(np.mean(np.asarray(s, dtype=np.float64) ** 2))) for s in tm.make_windowed_segments(path)]
+    return [float(np.sqrt(np.mean(np.asarray(s, dtype=np.float64) ** 2))) for s in pl.make_windowed_segments(path)]
 
 
 def window_rms(files):
@@ -72,9 +72,9 @@ def load_eval_set(split, files, degraded=False):
     X, y, _, _ = build(files, FEATURE, 'clean')
     rms = window_rms(files)
     assert len(rms) == len(X)
-    gate = rms >= tm.SILENCE_THRESHOLD
+    gate = rms >= pl.SILENCE_THRESHOLD
     X_neg, kinds, neg_rms = build_negatives(split, files, FEATURE)
-    assert (neg_rms >= tm.SILENCE_THRESHOLD).all()
+    assert (neg_rms >= pl.SILENCE_THRESHOLD).all()
     s = dict(X=X[gate], y=y[gate], X_neg=X_neg, n_total=len(X), n_silence=int((~gate).sum()),
              neg_kinds={k: int((kinds == k).sum()) for k in sorted(set(kinds))})
     if degraded:
@@ -224,7 +224,7 @@ def main():
     def desc(split):
         s = sets[split]
         return (f'{len(s["X"])} janelas de acorde (de {s["n_total"]}; {s["n_silence"]} com RMS < '
-                f'{tm.SILENCE_THRESHOLD}, para as quais o app já devolve "silence") + {len(s["X_neg"])} negativas '
+                f'{pl.SILENCE_THRESHOLD}, para as quais o app já devolve "silence") + {len(s["X_neg"])} negativas '
                 f'({", ".join(f"{k}: {v}" for k, v in s["neg_kinds"].items())})')
 
     v, te = suggestion['validacao'], suggestion['teste']

@@ -1,205 +1,75 @@
 """Utilidades compartilhadas pelos experimentos do ChordAI.
 
-Tudo aqui reaproveita train_model.py (split por arquivo, janelas, MFCC) sem
-alterar o seu comportamento. Os experimentos salvam artefatos em
-experiments/results/<nome>/. A montagem treino/validacao/teste fica em data.py.
+O que producao e experimentos precisam fazer IGUAL (janelas, split, features,
+scalers, modelos, negativos, model_config.json) fica em pipeline.py, na raiz;
+aqui ficam so a avaliacao (metrics.json, matriz de confusao) e os caminhos dos
+experimentos. A montagem com cache fica em data.py.
 """
 import json
 import os
-import random
 import sys
 import time
 
-import joblib
 import numpy as np
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-import tensorflow as tf  # noqa: E402
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau  # noqa: E402
-from keras.layers import (  # noqa: E402
-    Activation,
-    BatchNormalization,
-    Conv1D,
-    Conv2D,
-    Dense,
-    Dropout,
-    Flatten,
-    GlobalAveragePooling1D,
-    GlobalAveragePooling2D,
-    Input,
-    MaxPooling1D,
-    MaxPooling2D,
-    Permute,
-    Reshape,
-)
-from keras.models import Sequential  # noqa: E402
-from keras.utils import to_categorical  # noqa: E402
 from sklearn.metrics import (  # noqa: E402
     accuracy_score,
     classification_report,
     confusion_matrix,
     f1_score,
 )
-from sklearn.preprocessing import LabelEncoder, StandardScaler  # noqa: E402
 
-import train_model as tm  # noqa: E402
+import pipeline as pl  # noqa: E402
+from pipeline import (  # noqa: E402,F401
+    DEFAULT_SEED,
+    SPLIT_RANDOM_STATE,
+    apply_scaler,
+    encode_labels,
+    fit_scaler,
+    set_seeds,
+)
 
-RESULTS_DIR = os.path.join(ROOT_DIR, 'experiments', 'results')
-CACHE_DIR = os.path.join(ROOT_DIR, 'experiments', 'cache')
-DATASET_PATH = os.path.join(ROOT_DIR, tm.DATASET_PATH)
-SPLIT_RANDOM_STATE = 42
-DEFAULT_SEED = 42
+# CHORDAI_RESULTS_DIR / CHORDAI_CACHE_DIR permitem rodar em outra pasta (ex.: a
+# conferencia de equivalencia da Parte 6) sem mexer nos resultados oficiais.
+RESULTS_DIR = os.environ.get('CHORDAI_RESULTS_DIR') or os.path.join(ROOT_DIR, 'experiments', 'results')
+CACHE_DIR = os.environ.get('CHORDAI_CACHE_DIR') or os.path.join(ROOT_DIR, 'experiments', 'cache')
+DATASET_PATH = pl.DATASET_PATH
 
-
-def set_seeds(seed=DEFAULT_SEED):
-    """Fixa as sementes para que o re-treino seja reproduzivel."""
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    try:
-        tf.config.experimental.enable_op_determinism()
-    except Exception:
-        pass
+# nomes de arquitetura usados na linha de comando / nomes dos grupos dos experimentos
+ARCHITECTURES = {'baseline': 'flatten', 'gap_bn': 'gap_bn', 'cnn2d': 'cnn2d'}
 
 
 def load_split():
     """O MESMO split por arquivo do baseline (random_state=42)."""
-    return tm.split_dataset_files(dataset_path=DATASET_PATH, random_state=SPLIT_RANDOM_STATE)
-
-
-def fit_scaler(X_train, kind='baseline'):
-    """Ajusta o StandardScaler SO no treino e devolve (X_train escalado, scaler).
-
-    kind='baseline': exatamente como train_model.train_model(). Atencao: como o
-      reshape e (-1, n_frames), a normalizacao e feita por POSICAO DE FRAME
-      (media/desvio de todos os coeficientes naquele instante), nao por
-      coeficiente. Mantido assim para reproduzir o baseline.
-    kind='per_feature': normaliza cada linha de feature (coeficiente/bin).
-    """
-    scaler = StandardScaler()
-    if kind == 'baseline':
-        scaler.fit(X_train.reshape(-1, X_train.shape[-1]))
-    else:
-        scaler.fit(np.swapaxes(X_train, 1, 2).reshape(-1, X_train.shape[1]))
-    return apply_scaler(scaler, X_train, kind), scaler
-
-
-def apply_scaler(scaler, X, kind='baseline'):
-    """Aplica um scaler ja treinado. X: (n, n_features, n_frames) ->
-    (n, n_frames, n_features), pronto para a CNN."""
-    if kind == 'baseline':
-        return np.swapaxes(scaler.transform(X.reshape(-1, X.shape[-1])).reshape(X.shape), 1, 2)
-    n_feat = X.shape[1]
-    return scaler.transform(np.swapaxes(X, 1, 2).reshape(-1, n_feat)).reshape(len(X), -1, n_feat)
-
-
-def encode_labels(labels, *y_sets):
-    """LabelEncoder nas classes + one-hot de cada conjunto. Retorna (encoder, *y_onehot)."""
-    encoder = LabelEncoder()
-    encoder.fit(labels)
-    n = len(labels)
-    return (encoder, *[to_categorical(encoder.transform(y), num_classes=n) for y in y_sets])
-
-
-def build_baseline_cnn(input_shape, n_classes):
-    """Mesma arquitetura de train_model.train_model() (la ela esta inline, por
-    isso e replicada aqui sem mudar nada)."""
-    model = Sequential([
-        Conv1D(filters=64, kernel_size=5, activation='relu', input_shape=input_shape),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        Conv1D(filters=128, kernel_size=3, activation='relu'),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        Flatten(),
-        Dense(128, activation='relu'),
-        Dropout(0.4),
-        Dense(n_classes, activation='softmax'),
-    ])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-def build_gap_bn_cnn(input_shape, n_classes):
-    """Variante A (Parte 4): a CNN 1D do baseline com BatchNormalization depois de
-    cada Conv1D (Conv sem ativacao -> BN -> ReLU) e GlobalAveragePooling1D no
-    lugar do Flatten, para a saida nao depender da posicao do acorde na janela."""
-    model = Sequential([
-        Input(shape=input_shape),
-        Conv1D(filters=64, kernel_size=5),
-        BatchNormalization(),
-        Activation('relu'),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        Conv1D(filters=128, kernel_size=3),
-        BatchNormalization(),
-        Activation('relu'),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        GlobalAveragePooling1D(),
-        Dense(128, activation='relu'),
-        Dropout(0.4),
-        Dense(n_classes, activation='softmax'),
-    ])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-def build_cnn2d(input_shape, n_classes):
-    """Variante B (Parte 4): CNN 2D pequena tratando a feature como imagem
-    [n_bins x n_frames x 1]. Recebe o mesmo tensor (n_frames, n_bins) das CNNs
-    1D e faz a transposicao dentro do modelo, entao scaler/evaluate/app nao mudam.
-    padding='same' para o eixo de 12 bins nao encolher (12 -> 6 -> 3)."""
-    n_frames, n_bins = input_shape
-
-    def conv_bn(filters):
-        return [Conv2D(filters, (3, 3), padding='same'), BatchNormalization(), Activation('relu')]
-
-    model = Sequential([
-        Input(shape=input_shape),
-        Permute((2, 1)),                      # (n_frames, n_bins) -> (n_bins, n_frames)
-        Reshape((n_bins, n_frames, 1)),
-        *conv_bn(32),
-        MaxPooling2D((2, 2)),
-        *conv_bn(64),
-        MaxPooling2D((2, 2)),
-        *conv_bn(128),
-        GlobalAveragePooling2D(),
-        Dropout(0.3),
-        Dense(n_classes, activation='softmax'),
-    ])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-ARCHITECTURES = {
-    'baseline': build_baseline_cnn,
-    'gap_bn': build_gap_bn_cnn,
-    'cnn2d': build_cnn2d,
-}
+    return pl.split_dataset_files(dataset_path=DATASET_PATH)
 
 
 def build_model(arch, input_shape, n_classes):
-    return ARCHITECTURES[arch](tuple(input_shape), n_classes)
+    return pl.build_model(arch, input_shape, n_classes)
+
+
+def build_baseline_cnn(input_shape, n_classes):
+    return pl.build_flatten_cnn(tuple(input_shape), n_classes)
 
 
 def baseline_callbacks():
-    return [
-        EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True),
-        ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, min_lr=0.00001),
-    ]
+    return pl.training_callbacks()
 
 
-def save_artifacts(model, encoder, scaler, out_dir):
-    os.makedirs(out_dir, exist_ok=True)
-    model.save(os.path.join(out_dir, 'model.h5'))
-    joblib.dump(encoder, os.path.join(out_dir, 'encoder.joblib'))
-    if scaler is not None:
+def save_artifacts(model, encoder, scaler, out_dir, config=None):
+    """Salva model.h5, encoder.joblib, scaler.joblib e, se dado, model_config.json."""
+    if config is None:
+        os.makedirs(out_dir, exist_ok=True)
+        model.save(os.path.join(out_dir, 'model.h5'))
+        import joblib
+        joblib.dump(encoder, os.path.join(out_dir, 'encoder.joblib'))
         joblib.dump(scaler, os.path.join(out_dir, 'scaler.joblib'))
+    else:
+        pl.save_model_bundle(model, encoder, scaler, config, out_dir)
 
 
 def _measure_inference_ms(model, X_test, n_samples=200, warmup=10):

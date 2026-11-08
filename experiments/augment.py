@@ -12,11 +12,10 @@ proposito, para nao avaliar exatamente a mesma distribuicao do treino.
 """
 import librosa
 import numpy as np
-from scipy.signal import butter, sosfilt
 
-from experiments.common import tm
+import pipeline as pl
 
-SR = tm.SAMPLE_RATE
+SR = pl.SAMPLE_RATE
 
 # probabilidade de cada augmentation ser aplicada a uma versao aumentada
 P_NOISE = 0.8
@@ -36,35 +35,21 @@ def _rms(x):
     return float(np.sqrt(np.mean(x ** 2)) + 1e-12)
 
 
-def white_noise(n, rng):
-    return rng.standard_normal(n)
-
-
-def pink_noise(n, rng):
-    """Ruido 1/f gerado no dominio da frequencia."""
-    spectrum = np.fft.rfft(rng.standard_normal(n))
-    freqs = np.arange(len(spectrum), dtype=np.float64)
-    freqs[0] = 1.0
-    noise = np.fft.irfft(spectrum / np.sqrt(freqs), n=n)
-    return noise / (np.std(noise) + 1e-12)
+white_noise = pl.white_noise
+pink_noise = pl.pink_noise
+bandpass = pl.bandpass
 
 
 def add_noise(x, rng, snr_db=None, color=None):
+    """pl.add_noise com SNR e cor sorteados quando nao informados."""
     snr_db = rng.uniform(*SNR_DB_RANGE) if snr_db is None else snr_db
     color = rng.choice(['white', 'pink']) if color is None else color
-    noise = white_noise(len(x), rng) if color == 'white' else pink_noise(len(x), rng)
-    noise *= _rms(x) / (_rms(noise) * 10 ** (snr_db / 20))
-    return x + noise
+    return pl.add_noise(x, rng, snr_db, color)
 
 
 def random_gain(x, rng, gain_db=None):
     gain_db = rng.uniform(*GAIN_DB_RANGE) if gain_db is None else gain_db
     return np.clip(x * 10 ** (gain_db / 20), -1.0, 1.0)
-
-
-def bandpass(x, low_hz, high_hz, sr=SR, order=4):
-    sos = butter(order, [low_hz, high_hz], btype='bandpass', fs=sr, output='sos')
-    return sosfilt(sos, x)
 
 
 def phone_mic(x, rng, sr=SR):

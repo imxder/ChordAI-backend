@@ -1,54 +1,42 @@
-import joblib
+"""Matriz de confusao e relatorio por classe do modelo salvo, no split de teste.
+Usa o mesmo caminho de inferencia de producao (model_config.json do modelo).
+
+Uso:  python confusion_report.py [--model-dir trained_model]
+"""
+import argparse
+
 import numpy as np
-import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
 
+import pipeline
+import train_model
 from audio_capture import RECORD_DURATION
-from train_model import (
-    ENCODER_SAVE_PATH,
-    MAX_PAD_LEN,
-    MODEL_SAVE_PATH,
-    N_MFCC,
-    SAMPLE_RATE,
-    SCALER_SAVE_PATH,
-    WINDOW_SECONDS,
-    extract_features,
-    make_windowed_segments,
-    split_dataset_files,
-)
+from train_model import WINDOW_SECONDS, make_windowed_segments, split_dataset_files
 
 assert abs(RECORD_DURATION - WINDOW_SECONDS) < 1e-6
 
 
-def predict(segment, model, encoder, scaler):
-    features = extract_features(
-        segment, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN, is_file=False
-    )
+def predict(segment, model, encoder, scaler, config):
+    """Classe de maior probabilidade (argmax), sem limiar."""
+    features = pipeline.features_for_model(segment, scaler, config)
     if features is None:
         return None
-    features_reshaped = features.reshape(-1, features.shape[-1])
-    features_scaled = scaler.transform(features_reshaped).reshape(features.shape)
-    features_final = np.swapaxes(features_scaled, 0, 1)
-    features_final = np.expand_dims(features_final, axis=0)
-    prediction = model.predict(features_final, verbose=0)
-    predicted_idx = np.argmax(prediction[0])
-    return encoder.inverse_transform([predicted_idx])[0]
+    prediction = model.predict(features, verbose=0)
+    return encoder.inverse_transform([int(np.argmax(prediction[0]))])[0]
 
 
-def main():
+def main(model_dir=train_model.MODEL_DIR):
     print("Carregando modelo, encoder e scaler salvos...")
-    model = tf.keras.models.load_model(MODEL_SAVE_PATH)
-    encoder = joblib.load(ENCODER_SAVE_PATH)
-    scaler = joblib.load(SCALER_SAVE_PATH)
+    model, encoder, scaler = train_model.load_trained_model(model_dir)
+    config = encoder.model_config_
 
-    _, test_files, labels = split_dataset_files()
-    labels = sorted(labels)
+    _, test_files, _ = split_dataset_files()
+    labels = [str(c) for c in encoder.classes_]
 
-    y_true = []
-    y_pred = []
+    y_true, y_pred = [], []
     for file_path, true_label in test_files:
         for segment in make_windowed_segments(file_path):
-            predicted = predict(segment, model, encoder, scaler)
+            predicted = predict(segment, model, encoder, scaler, config)
             if predicted is None:
                 continue
             y_true.append(true_label)
@@ -59,8 +47,7 @@ def main():
     print("MATRIZ DE CONFUSAO (linhas = esperado, colunas = previsto)")
     print("=" * 64)
     cm = confusion_matrix(y_true, y_pred, labels=labels)
-    header = "        " + "".join(f"{l:>6}" for l in labels)
-    print(header)
+    print("        " + "".join(f"{l:>6}" for l in labels))
     for label, row in zip(labels, cm):
         print(f"{label:>7} " + "".join(f"{v:>6}" for v in row))
 
@@ -72,4 +59,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model-dir', default=train_model.MODEL_DIR)
+    main(parser.parse_args().model_dir)

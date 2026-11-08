@@ -61,6 +61,20 @@ Efeito da classe _none (`feat_chroma_scalerfeat_gapbn_none` − `feat_chroma_sca
 
 Negativos por split: train: low_volume 252, noise 252, percussion 252; val: low_volume 45, noise 44, percussion 44; test: low_volume 75, noise 74, percussion 74
 
+## Parte 6 — modelo em produção (`trained_model/`)
+
+`chroma` + scaler `feature` + `gap_bn` + classe `_none`, pesos da seed 42 (`experiments/results/feat_chroma_scalerfeat_gapbn_none_s42`), **limiar de confiança 0.50**. O limiar foi calibrado na validação para este modelo (o mesmo valor que `train_model.py` calibra sozinho); o **0,45 da Parte 5 era a média das 3 seeds** (`threshold/threshold.md`). Medido pelo caminho de produção (`load_trained_model` + `recognize_chord`, áudio bruto) em `parte6/equivalence.json`; o caminho do experimento dá os mesmos números (diferença 0,00 p.p.).
+
+| Janelas de acorde do teste | Janelas | % |
+|---|---:|---:|
+| Certas | 1444 | 93.46 |
+| Erradas (outro acorde) | 26 | 1.68 |
+| `unknown` (_none ou confiança < limiar) | 15 | 0.97 |
+| `silence` (RMS < 0,003; o app trata à parte) | 60 | 3.88 |
+| **Total** | 1545 | 100.00 |
+
+Acurácia sem as janelas de silêncio: **97.24%** (1444/1485); nos aceitos: 98.23%; cobertura: 98.99%. Negativos do teste (223): 98.21% viram `unknown`, falso aceite 1.79%.
+
 ---
 
-<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; conferir com `python -m experiments.split_hash --check`). O modelo `candidates/candidate_91_81` (o mesmo de `trained_model/`) não aparece na tabela: foi treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e `experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem do NTFS, que compartilha só 59 dos 297 arquivos de teste com o atual).</sub>
+<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; conferir com `python -m experiments.split_hash --check`). O modelo `candidates/candidate_91_81` (o que ficava em `trained_model/` antes da Parte 6) não aparece na tabela: foi treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e `experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem do NTFS, que compartilha só 59 dos 297 arquivos de teste com o atual).</sub>

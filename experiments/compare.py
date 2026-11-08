@@ -13,6 +13,7 @@ from collections import defaultdict
 import numpy as np
 
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASELINE = 'feat_mfcc'
 METRICS = [('accuracy', 'Accuracy'), ('macro_f1', 'Macro-F1'), ('accuracy_degraded', 'Acc. degradado')]
 
@@ -175,6 +176,43 @@ def none_section(none_groups, groups):
     return lines
 
 
+def production_section():
+    """Parte 6: o modelo em trained_model/ e o teste de equivalencia producao x experimento."""
+    eq_path = os.path.join(RESULTS_DIR, 'parte6', 'equivalence.json')
+    cfg_path = os.path.join(ROOT_DIR, 'trained_model', 'model_config.json')
+    if not (os.path.exists(eq_path) and os.path.exists(cfg_path)):
+        return []
+    eq = json.load(open(eq_path, encoding='utf-8'))
+    cfg = json.load(open(cfg_path, encoding='utf-8'))
+    p, b = eq['production'], eq['production_breakdown']
+    pct = lambda v: f'{v * 100:.2f}'
+    return [
+        '## Parte 6 — modelo em produção (`trained_model/`)',
+        '',
+        f"`{cfg['feature']}` + scaler `{cfg['scaler']}` + `{cfg['arch']}` + classe `_none`, pesos da seed "
+        f"{cfg.get('seed')} (`{cfg.get('source_experiment', '')}`), **limiar de confiança "
+        f"{cfg['confidence_threshold']:.2f}**. O limiar foi calibrado na validação para este modelo (o mesmo "
+        f"valor que `train_model.py` calibra sozinho); o **0,45 da Parte 5 era a média das 3 seeds** "
+        f"(`threshold/threshold.md`). Medido pelo caminho de produção (`load_trained_model` + "
+        f"`recognize_chord`, áudio bruto) em `parte6/equivalence.json`; o caminho do experimento dá os mesmos "
+        f"números (diferença 0,00 p.p.).",
+        '',
+        '| Janelas de acorde do teste | Janelas | % |',
+        '|---|---:|---:|',
+        f"| Certas | {b['correct']} | {pct(b['correct'] / b['total'])} |",
+        f"| Erradas (outro acorde) | {b['wrong']} | {pct(b['wrong'] / b['total'])} |",
+        f"| `unknown` (_none ou confiança < limiar) | {b['unknown']} | {pct(b['unknown'] / b['total'])} |",
+        f"| `silence` (RMS < 0,003; o app trata à parte) | {b['silence']} | {pct(b['silence'] / b['total'])} |",
+        f"| **Total** | {b['total']} | 100.00 |",
+        '',
+        f"Acurácia sem as janelas de silêncio: **{pct(b['accuracy_excluding_silence'])}%** "
+        f"({b['correct']}/{b['total'] - b['silence']}); nos aceitos: {pct(p['accuracy_accepted'])}%; "
+        f"cobertura: {pct(p['coverage'])}%. Negativos do teste ({p['n_negative_windows']}): "
+        f"{pct(p['unknown_rate_negatives'])}% viram `unknown`, falso aceite {pct(p['false_accept'])}%.",
+        '',
+    ]
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding='utf-8')  # console do Windows (cp1252) nao tem '−'/'±'
@@ -218,12 +256,13 @@ def main():
         '',
         *confusion_section(groups, order),
         *none_section(none_groups, groups),
+        *production_section(),
         '---',
         '',
         '<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o '
         'teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; '
         'conferir com `python -m experiments.split_hash --check`). O modelo '
-        '`candidates/candidate_91_81` (o mesmo de `trained_model/`) não aparece na tabela: foi '
+        '`candidates/candidate_91_81` (o que ficava em `trained_model/` antes da Parte 6) não aparece na tabela: foi '
         'treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. '
         'Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e '
         '`experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem '

@@ -25,7 +25,7 @@ import time
 import numpy as np
 
 from experiments import augment, common
-from experiments.common import tm
+import pipeline as pl
 from experiments.data import VAL_SIZE, load_dataset
 from experiments.eval_degraded import evaluate_degraded
 from experiments.features import EXTRACTORS
@@ -88,7 +88,9 @@ def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_S
     )
     train_seconds = time.time() - t0
 
-    common.save_artifacts(model, encoder, scaler_obj, out_dir)
+    config = pl.make_model_config(feature, scaler, arch, encoder.classes_, with_none, confidence_threshold=None,
+                                  extra={'group': group, 'seed': seed, 'trained_by': 'experiments/exp_features.py'})
+    common.save_artifacts(model, encoder, scaler_obj, out_dir, config=config)
     extra_none = {}
     if with_none:
         extra_none = none_metrics(model, X_test_f, d['y_test'], d['test_none_kinds'], encoder, out_dir)
@@ -118,7 +120,7 @@ def run(feature, scaler='baseline', n_aug=0, detune=False, seed=common.DEFAULT_S
         'epochs_trained': len(history.history['loss']),
         'best_val_loss': float(min(history.history['val_loss'])),
         'train_seconds': round(train_seconds, 1),
-        'window_seconds': tm.WINDOW_SECONDS,
+        'window_seconds': pl.WINDOW_SECONDS,
     })
     evaluate_degraded(name, model, encoder, scaler_obj)
     return name

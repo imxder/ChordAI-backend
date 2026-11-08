@@ -16,7 +16,7 @@ import sys
 from unittest import mock
 
 from experiments import common
-from experiments.common import tm
+import pipeline as pl
 
 OUT_PATH = os.path.join(common.RESULTS_DIR, 'split_hash.txt')
 
@@ -33,7 +33,7 @@ def split_hash():
 
 def hash_with_listdir_order(order_fn):
     real = os.listdir
-    with mock.patch.object(tm.os, 'listdir', lambda p: order_fn(real(p))):
+    with mock.patch.object(pl.os, 'listdir', lambda p: order_fn(real(p))):
         return split_hash()
 
 
