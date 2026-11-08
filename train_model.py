@@ -1,261 +1,187 @@
+"""Treino e inferencia do reconhecedor de acordes do ChordAI.
+
+A configuracao padrao e a final dos experimentos (ver experiments/results/comparativo.md):
+chroma (chroma_cqt, 12 bins x 65 frames) + StandardScaler por feature + CNN 1D
+com BatchNorm e GlobalAveragePooling + classe "_none" + limiar de confianca
+calibrado na validacao.
+
+Para reproduzir o baseline do TCC (~88% com validacao separada):
+    FEATURE_TYPE = "mfcc"; SCALER_TYPE = "frame"; ARCH = "flatten"; WITH_NONE = False
+
+Todo modelo salvo tem um model_config.json; a inferencia (_predict_raw) le esse
+arquivo para extrair a feature e aplicar o scaler exatamente como no treino.
+Pastas sem model_config.json (ex.: candidates/candidate_91_81) sao tratadas
+como o pipeline antigo: 40 MFCC + scaler por frame, sem _none e sem limiar.
+"""
 import os
-import numpy as np
-import librosa
-import soundfile as sf
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv1D, MaxPooling1D
-from keras.utils import to_categorical
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+import time
 import warnings
-import joblib
+
+import numpy as np
+
+import pipeline
+from pipeline import (  # noqa: F401  (reexportados para app.py e scripts antigos)
+    CROP_HOP_SECONDS,
+    MAX_CROPS_PER_FILE,
+    MAX_PAD_LEN,
+    MIN_VALID_DURATION,
+    N_MFCC,
+    NONE_LABEL,
+    SAMPLE_RATE,
+    SILENCE_THRESHOLD,
+    WINDOW_SECONDS,
+    _compute_max_pad_len,
+    build_windowed_dataset,
+    extract_features,
+    list_dataset_files,
+    make_windowed_segments,
+    split_dataset_files,
+)
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+# ---------------------------------------------------------------------------
+# Configuracao do treino (padrao = configuracao final dos experimentos)
+# ---------------------------------------------------------------------------
+FEATURE_TYPE = "chroma"   # "mfcc" | "chroma" | "cqt" | "mfcc+chroma"
+SCALER_TYPE = "feature"   # "feature" (por coeficiente/bin) | "frame" (o original)
+ARCH = "gap_bn"           # "gap_bn" | "flatten" (o original) | "cnn2d"
+WITH_NONE = True          # classe "_none" (nenhum acorde) + limiar calibrado na validacao
+SEED = 42
+
 DATASET_PATH = 'dataset'
-MODEL_SAVE_PATH = 'trained_model/chord_recognizer_cnn_model.h5'
-ENCODER_SAVE_PATH = 'trained_model/label_encoder_chords.joblib'
-SCALER_SAVE_PATH = 'trained_model/scaler_chords.joblib'
+MODEL_DIR = 'trained_model'
 
-SAMPLE_RATE = 22050
-N_MFCC = 40
-
-# WINDOW_SECONDS precisa ser igual a RECORD_DURATION em audio_capture.py: o
-# modelo so acerta ao vivo se treinar com o mesmo tamanho de janela que vai
-# receber na captura em tempo real.
-WINDOW_SECONDS = 1.5
-CROP_HOP_SECONDS = WINDOW_SECONDS / 2  # 50% de sobreposicao entre janelas de treino
-MAX_CROPS_PER_FILE = 8  # evita que arquivos longos dominem o dataset
-MIN_VALID_DURATION = 0.05
+# Caminhos do formato ANTIGO (sem model_config.json), mantidos para scripts que
+# ainda os importam (train_ensemble_experiment.py, train_experiment_class_weight.py).
+MODEL_SAVE_PATH = os.path.join(MODEL_DIR, pipeline.LEGACY_FILES['model'])
+ENCODER_SAVE_PATH = os.path.join(MODEL_DIR, pipeline.LEGACY_FILES['encoder'])
+SCALER_SAVE_PATH = os.path.join(MODEL_DIR, pipeline.LEGACY_FILES['scaler'])
 
 
-def _compute_max_pad_len(window_seconds=WINDOW_SECONDS, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC):
-    dummy = np.zeros(int(sample_rate * window_seconds), dtype=np.float32)
-    return librosa.feature.mfcc(y=dummy, sr=sample_rate, n_mfcc=n_mfcc).shape[1]
+def train_model(out_dir=MODEL_DIR, feature=None, scaler=None, arch=None, with_none=None, seed=None,
+                dataset_path=DATASET_PATH, verbose=1):
+    """Treina e salva em out_dir (modelo, encoder, scaler, model_config.json, metrics.json).
+    Os argumentos None usam as constantes do topo. Retorna (model, encoder, scaler)."""
+    feature = FEATURE_TYPE if feature is None else feature
+    scaler_type = SCALER_TYPE if scaler is None else scaler
+    arch = ARCH if arch is None else arch
+    with_none = WITH_NONE if with_none is None else with_none
+    seed = SEED if seed is None else seed
 
-
-MAX_PAD_LEN = _compute_max_pad_len()
-
-
-def extract_features(audio_data, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN, is_file=True):
-    try:
-        if is_file:
-            audio, sr = librosa.load(audio_data, sr=sample_rate)
-        else:
-            audio = audio_data
-            sr = sample_rate
-
-        if len(audio) < sample_rate * 0.05:
-            return None
-
-        mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=n_mfcc)
-
-        if mfccs.shape[1] > max_pad_len:
-            mfccs = mfccs[:, :max_pad_len]
-        else:
-            pad_width = max_pad_len - mfccs.shape[1]
-            mfccs = np.pad(mfccs, pad_width=((0, 0), (0, pad_width)), mode='constant')
-
-        return mfccs
-    except Exception as e:
-        print(f"Erro ao processar áudio para features: {e}")
-        return None
-
-
-def list_dataset_files(dataset_path=DATASET_PATH):
-    """Lista (file_path, label) de todo o dataset, com a mesma filtragem por
-    duracao minima usada no treino (sem decodificar o audio inteiro)."""
-    file_paths = []
-    labels = []
-    valid_labels = sorted(
-        d for d in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, d))
-    )
-    for label in valid_labels:
-        label_path = os.path.join(dataset_path, label)
-        for filename in os.listdir(label_path):
-            if not filename.endswith(".wav"):
-                continue
-            file_path = os.path.join(label_path, filename)
-            try:
-                info = sf.info(file_path)
-                duration = info.frames / info.samplerate
-            except Exception:
-                continue
-            if duration >= MIN_VALID_DURATION:
-                file_paths.append(file_path)
-                labels.append(label)
-    return file_paths, labels, valid_labels
-
-
-def split_dataset_files(dataset_path=DATASET_PATH, test_size=0.2, random_state=42):
-    """Divide por ARQUIVO (nao por janela/crop), para nenhum recorte do mesmo
-    audio vazar entre treino e teste."""
-    file_paths, labels, valid_labels = list_dataset_files(dataset_path)
-    train_idx, test_idx = train_test_split(
-        np.arange(len(file_paths)), test_size=test_size, random_state=random_state, stratify=labels
-    )
-    train_files = [(file_paths[i], labels[i]) for i in train_idx]
-    test_files = [(file_paths[i], labels[i]) for i in test_idx]
-    return train_files, test_files, valid_labels
-
-
-def make_windowed_segments(file_path, window_seconds=WINDOW_SECONDS, hop_seconds=CROP_HOP_SECONDS,
-                            sample_rate=SAMPLE_RATE, max_crops=MAX_CROPS_PER_FILE):
-    """Recorta o arquivo em janelas deslizantes do tamanho da captura ao vivo,
-    simulando os offsets que get_audio_segment() entrega em audio_capture.py."""
-    audio, _ = librosa.load(file_path, sr=sample_rate)
-    window_len = int(sample_rate * window_seconds)
-
-    if len(audio) < window_len:
-        audio = np.pad(audio, (0, window_len - len(audio)))
-
-    hop_len = max(1, int(sample_rate * hop_seconds))
-    starts = list(range(0, len(audio) - window_len + 1, hop_len))
-    if not starts:
-        starts = [0]
-
-    if len(starts) > max_crops:
-        idx = sorted(set(np.linspace(0, len(starts) - 1, max_crops).round().astype(int)))
-        starts = [starts[i] for i in idx]
-
-    return [audio[s:s + window_len] for s in starts]
-
-
-def build_windowed_dataset(file_label_pairs):
-    X, y = [], []
-    for file_path, label in file_label_pairs:
-        for segment in make_windowed_segments(file_path):
-            features = extract_features(segment, is_file=False)
-            if features is not None:
-                X.append(features)
-                y.append(label)
-    return np.array(X), np.array(y)
-
-
-def train_model():
-    print("Listando e dividindo arquivos do dataset (split por arquivo, 80/20)...")
-    train_files, test_files, labels = split_dataset_files()
-
-    if not train_files:
+    print(f"Configuracao: feature={feature} scaler={scaler_type} arch={arch} with_none={with_none} seed={seed}")
+    pipeline.set_seeds(seed)
+    print("Montando treino / validacao (15% dos arquivos de treino) / teste (split por arquivo, 80/20)...")
+    d = pipeline.load_dataset(feature, with_none=with_none, dataset_path=os.path.abspath(dataset_path))
+    if len(d['X_train']) == 0 or len(d['X_test']) == 0:
         print("Nenhum dado encontrado no dataset. Verifique se a pasta 'dataset' contém subpastas com arquivos .wav de acordes.")
         return None, None, None
 
-    print(f"Gerando janelas de {WINDOW_SECONDS}s (= RECORD_DURATION em audio_capture.py, hop={CROP_HOP_SECONDS}s, max {MAX_CROPS_PER_FILE} crops/arquivo)...")
-    X_train, y_train_raw = build_windowed_dataset(train_files)
-    X_test, y_test_raw = build_windowed_dataset(test_files)
-    print(f"Exemplos de treino: {len(X_train)} (de {len(train_files)} arquivos)")
-    print(f"Exemplos de teste:  {len(X_test)} (de {len(test_files)} arquivos)")
+    encoder, y_train, y_val, y_test = pipeline.encode_labels(d['labels'], d['y_train'], d['y_val'], d['y_test'])
+    X_train, scaler_obj = pipeline.fit_scaler(d['X_train'], scaler_type)
+    X_val = pipeline.apply_scaler(scaler_obj, d['X_val'], scaler_type)
+    X_test = pipeline.apply_scaler(scaler_obj, d['X_test'], scaler_type)
 
-    if len(X_train) == 0 or len(X_test) == 0:
-        print("Nenhum dado válido após extração de features. Verifique seus arquivos de áudio.")
+    model = pipeline.build_model(arch, X_train.shape[1:], len(d['labels']))
+    print(f"Shape de entrada: {X_train.shape[1:]}  classes: {d['labels']}  parametros: {model.count_params()}")
+    print("Iniciando treinamento (EarlyStopping / ReduceLROnPlateau na VALIDACAO)...")
+    t0 = time.time()
+    history = model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_val, y_val),
+                        callbacks=pipeline.training_callbacks(), verbose=verbose)
+    train_seconds = time.time() - t0
+
+    classes = np.array(encoder.classes_)
+    threshold = None
+    if with_none:
+        # calibra o limiar na VALIDACAO, como na Parte 5 (janelas de silencio fora)
+        val_rms = d['rms_val']
+        n_val_chords = len(val_rms)
+        gate = val_rms >= SILENCE_THRESHOLD
+        probs_val = model.predict(X_val, verbose=0)
+        rows = pipeline.threshold_curve(probs_val[:n_val_chords][gate], d['y_val'][:n_val_chords][gate],
+                                        probs_val[n_val_chords:], classes)
+        threshold = pipeline.choose_threshold(rows)
+        print(f"Limiar de confianca calibrado na validacao: {threshold}")
+
+    pred = classes[np.argmax(model.predict(X_test, verbose=0), axis=1)]
+    y_test_raw = np.asarray(d['y_test'])
+    is_chord = y_test_raw != NONE_LABEL
+    metrics = {
+        'accuracy': float(np.mean(pred == y_test_raw)),
+        'accuracy_chords': float(np.mean(pred[is_chord] == y_test_raw[is_chord])),
+        'n_test_chord_windows': int(is_chord.sum()),
+        'n_params': int(model.count_params()),
+        'epochs_trained': len(history.history['loss']),
+        'train_seconds': round(train_seconds, 1),
+        'classes': [str(c) for c in classes],
+    }
+    if with_none:
+        metrics['none_recall'] = float(np.mean(pred[~is_chord] == NONE_LABEL))
+    print(f"Acuracia no teste (janelas de acorde de {WINDOW_SECONDS}s): {metrics['accuracy_chords']:.4f}")
+
+    config = pipeline.make_model_config(feature, scaler_type, arch, classes, with_none, threshold,
+                                        extra={'seed': seed, 'trained_by': 'train_model.py'})
+    pipeline.save_model_bundle(model, encoder, scaler_obj, config, out_dir, metrics=metrics)
+    print(f"Modelo, encoder, scaler e model_config.json salvos em: {out_dir}")
+    return model, encoder, scaler_obj
+
+
+def load_trained_model(model_dir=MODEL_DIR):
+    """Carrega (model, encoder, scaler) de model_dir. O model_config.json fica em
+    encoder.model_config_ e e usado por _predict_raw() / recognize_chord() /
+    predict_note(). Sem modelo salvo, lanca FileNotFoundError: o treino so acontece
+    explicitamente, via `python train_model.py`."""
+    if not pipeline.model_bundle_exists(model_dir):
+        raise FileNotFoundError(f"Modelo não encontrado em {model_dir}. Rode python train_model.py")
+    print(f"Carregando modelo de acordes de: {model_dir}")
+    try:
+        model, encoder, scaler, config = pipeline.load_model_bundle(model_dir)
+        encoder.model_config_ = config
+        desc = 'pipeline antigo (sem model_config.json)' if config.get('legacy') else (
+            f"feature={config['feature']} scaler={config['scaler']} arch={config['arch']} "
+            f"_none={config['with_none']} limiar={config['confidence_threshold']}")
+        print(f"Modelo de acordes carregado: {desc}")
+        return model, encoder, scaler
+    except Exception as e:
+        print(f"Erro ao carregar o modelo de acordes: {e}")
+        print("Pode ser necessário retreinar o modelo ou verificar a integridade dos arquivos.")
         return None, None, None
 
-    encoder = LabelEncoder()
-    encoder.fit(labels)
-    y_train = to_categorical(encoder.transform(y_train_raw), num_classes=len(labels))
-    y_test = to_categorical(encoder.transform(y_test_raw), num_classes=len(labels))
 
-    original_shape = X_train.shape
-    X_train_reshaped_for_scaler = X_train.reshape(-1, X_train.shape[-1])
-    X_test_reshaped_for_scaler = X_test.reshape(-1, X_test.shape[-1])
-
-    scaler = StandardScaler()
-    X_train_scaled_reshaped = scaler.fit_transform(X_train_reshaped_for_scaler)
-    X_test_scaled_reshaped = scaler.transform(X_test_reshaped_for_scaler)
-
-    X_train_scaled = X_train_scaled_reshaped.reshape(original_shape)
-    X_test_scaled = X_test_scaled_reshaped.reshape(X_test.shape)
-
-    X_train_final = np.swapaxes(X_train_scaled, 1, 2)
-    X_test_final = np.swapaxes(X_test_scaled, 1, 2)
+def get_model_config(encoder, config=None):
+    """Configuracao do modelo: a explicita, a anexada pelo load_trained_model()
+    ou, na falta das duas, a do pipeline antigo."""
+    if config is not None:
+        return config
+    cfg = getattr(encoder, 'model_config_', None)
+    return cfg if cfg is not None else pipeline.legacy_model_config()
 
 
-    model = Sequential([
-        Conv1D(filters=64, kernel_size=5, activation='relu', input_shape=(X_train_final.shape[1], X_train_final.shape[2])),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        Conv1D(filters=128, kernel_size=3, activation='relu'),
-        MaxPooling1D(pool_size=2),
-        Dropout(0.3),
-        Flatten(),
-        Dense(128, activation='relu'),
-        Dropout(0.4),
-        Dense(len(labels), activation='softmax')
-    ])
-
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-    print(f"Shape final de X_train para o modelo: {X_train_final.shape}")
-    print(f"Shape de y_train: {y_train.shape}")
-    print(model.summary())
-
-    print("Iniciando treinamento do modelo de acordes (CNN)...")
-
-    early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, min_lr=0.00001)
-
-    history = model.fit(X_train_final, y_train,
-                        epochs=200,
-                        batch_size=32,
-                        validation_data=(X_test_final, y_test),
-                        callbacks=[early_stopping, reduce_lr],
-                        verbose=1)
-
-    loss, accuracy = model.evaluate(X_test_final, y_test, verbose=0)
-    print(f"Acurácia final do modelo de acordes no conjunto de teste (janelas de {WINDOW_SECONDS}s): {accuracy:.4f}")
-
-    os.makedirs(os.path.dirname(MODEL_SAVE_PATH), exist_ok=True)
-    model.save(MODEL_SAVE_PATH)
-    joblib.dump(encoder, ENCODER_SAVE_PATH)
-    joblib.dump(scaler, SCALER_SAVE_PATH)
-    print(f"Modelo de acordes (CNN), encoder e scaler salvos em: {os.path.dirname(MODEL_SAVE_PATH)}")
-
-    return model, encoder, scaler
-
-def load_trained_model():
-    if not os.path.exists(MODEL_SAVE_PATH) or \
-       not os.path.exists(ENCODER_SAVE_PATH) or \
-       not os.path.exists(SCALER_SAVE_PATH):
-        print(f"Arquivos do modelo/encoder/scaler para acordes não encontrados em 'trained_model/'.")
-        print("Treinando um novo modelo de acordes...")
-        return train_model()
-    else:
-        print(f"Carregando modelo de acordes de: {MODEL_SAVE_PATH}")
-        try:
-            model = tf.keras.models.load_model(MODEL_SAVE_PATH)
-            encoder = joblib.load(ENCODER_SAVE_PATH)
-            scaler = joblib.load(SCALER_SAVE_PATH)
-            print("Modelo de acordes (CNN), encoder e scaler carregados com sucesso!")
-            return model, encoder, scaler
-        except Exception as e:
-            print(f"Erro ao carregar o modelo de acordes: {e}")
-            print("Pode ser necessário retreinar o modelo ou verificar a integridade dos arquivos.")
-            return None, None, None
+def _is_unknown(chord, confidence, config, confidence_threshold=None):
+    """True quando nao ha acorde confiavel: classe invalida, a classe "_none" do
+    modelo ou confianca abaixo do limiar do model_config.json (Parte 5)."""
+    if chord is None:
+        return True
+    none_label = config.get('none_label')
+    if none_label is not None and chord == none_label:
+        return True
+    threshold = config.get('confidence_threshold') if confidence_threshold is None else confidence_threshold
+    return threshold is not None and confidence < threshold
 
 
-SILENCE_THRESHOLD = 0.003
-
-
-def _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
+def _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC,
+                 max_pad_len=MAX_PAD_LEN, config=None):
     """Nucleo compartilhado de inferencia. Retorna (chord_or_None, confidence, status),
-    onde status in {'silence', 'too_short', 'ok'}."""
+    onde status in {'silence', 'too_short', 'ok'}. A feature e o scaler seguem o
+    model_config.json do modelo (n_mfcc/max_pad_len ficam por compatibilidade)."""
+    config = get_model_config(encoder, config)
     if audio_segment_np.size > 0:
-        segment_rms = np.sqrt(np.mean(audio_segment_np ** 2))
-        if segment_rms < SILENCE_THRESHOLD:
+        if np.sqrt(np.mean(audio_segment_np ** 2)) < SILENCE_THRESHOLD:
             return None, 0.0, 'silence'
 
-    features = extract_features(audio_segment_np, sample_rate=sample_rate, n_mfcc=n_mfcc, max_pad_len=max_pad_len, is_file=False)
-    if features is None:
+    features_final = pipeline.features_for_model(audio_segment_np, scaler, config, sample_rate=sample_rate)
+    if features_final is None:
         return None, 0.0, 'too_short'
-
-    features_reshaped_for_scaler = features.reshape(-1, features.shape[-1])
-    features_scaled_reshaped = scaler.transform(features_reshaped_for_scaler)
-    features_scaled = features_scaled_reshaped.reshape(features.shape)
-
-    features_final = np.swapaxes(features_scaled, 0, 1)
-    features_final = np.expand_dims(features_final, axis=0)
 
     prediction = model.predict(features_final, verbose=0)[0]
     predicted_class_idx = int(np.argmax(prediction))
@@ -269,23 +195,37 @@ def _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RA
     return predicted_chord, confidence, 'ok'
 
 
-def predict_note(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
-    chord, _, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc, max_pad_len)
+def predict_note(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC,
+                 max_pad_len=MAX_PAD_LEN, config=None, confidence_threshold=None):
+    """Usado pela interface web (app.py). Devolve "Acorde Desconhecido" quando o
+    modelo preve "_none" ou a confianca fica abaixo do limiar do model_config.json."""
+    config = get_model_config(encoder, config)
+    chord, confidence, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc,
+                                             max_pad_len, config=config)
     if status == 'silence':
         return "Silêncio"
     if status == 'too_short':
         return "N/A - Áudio curto"
-    return chord if chord is not None else "Acorde Desconhecido"
+    if _is_unknown(chord, confidence, config, confidence_threshold):
+        return "Acorde Desconhecido"
+    return chord
 
 
-def recognize_chord(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN):
-    """Usado pela API HTTP: retorna um dict serializavel em JSON para o cliente Flutter."""
-    chord, confidence, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc, max_pad_len)
+def recognize_chord(audio_segment_np, model, encoder, scaler, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC,
+                    max_pad_len=MAX_PAD_LEN, config=None, confidence_threshold=None):
+    """Usado pela API HTTP: retorna um dict serializavel em JSON para o cliente Flutter.
+
+    status 'unknown' (chord=None) quando o modelo preve a classe "_none" ou
+    quando a confianca fica abaixo do limiar do model_config.json."""
+    config = get_model_config(encoder, config)
+    chord, confidence, status = _predict_raw(audio_segment_np, model, encoder, scaler, sample_rate, n_mfcc,
+                                             max_pad_len, config=config)
     if status in ('silence', 'too_short'):
         return {'status': status, 'chord': None, 'confidence': 0.0}
-    if chord is None:
+    if _is_unknown(chord, confidence, config, confidence_threshold):
         return {'status': 'unknown', 'chord': None, 'confidence': round(confidence, 4)}
     return {'status': 'ok', 'chord': str(chord), 'confidence': round(confidence, 4)}
+
 
 if __name__ == '__main__':
     train_model()

@@ -1,0 +1,53 @@
+{
+  "experiment": "feat_mfcc_s43",
+  "accuracy": 0.8978805394990366,
+  "macro_f1": 0.8979558644671182,
+  "f1_per_class": {
+    "Am": 0.9387755102040817,
+    "Bb": 0.8555858310626703,
+    "Bdim": 0.9090909090909091,
+    "C": 0.9072681704260651,
+    "Dm": 0.8900523560209425,
+    "Em": 0.8669950738916257,
+    "F": 0.9427083333333334,
+    "G": 0.8731707317073171
+  },
+  "n_params": 268104,
+  "inference_ms_per_window": 111.22172999990653,
+  "inference_ms_per_window_median": 108.66445000101521,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "group": "feat_mfcc",
+  "seed": 43,
+  "features": "mfcc",
+  "feature_key": "mfcc",
+  "input_shape": [
+    65,
+    40
+  ],
+  "scaler": "baseline",
+  "n_aug": 0,
+  "augmentation": null,
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 5386,
+  "n_val_windows": 946,
+  "model": "CNN 1D (Conv64-Conv128-Dense128)",
+  "epochs_trained": 46,
+  "best_val_loss": 0.3301768898963928,
+  "train_seconds": 68.0,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.714193962748876,
+  "macro_f1_degraded": 0.720207523382585
+}

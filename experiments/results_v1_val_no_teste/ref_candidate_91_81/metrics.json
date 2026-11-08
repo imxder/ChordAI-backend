@@ -1,0 +1,31 @@
+{
+  "experiment": "ref_candidate_91_81",
+  "accuracy": 0.9723827874116892,
+  "macro_f1": 0.9721467577470806,
+  "f1_per_class": {
+    "Am": 0.9846153846153847,
+    "Bb": 0.9267015706806283,
+    "Bdim": 0.9740932642487047,
+    "C": 0.9701492537313433,
+    "Dm": 0.9782608695652174,
+    "Em": 0.9928057553956835,
+    "F": 0.9736842105263158,
+    "G": 0.9768637532133676
+  },
+  "n_params": 268104,
+  "inference_ms_per_window": 100.08658450004077,
+  "inference_ms_per_window_median": 99.02885000155948,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "source_model_dir": "candidates/candidate_91_81",
+  "note": "modelo pre-treinado, apenas avaliado"
+}

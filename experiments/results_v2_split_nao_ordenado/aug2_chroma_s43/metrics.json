@@ -1,0 +1,53 @@
+{
+  "experiment": "aug2_chroma_s43",
+  "accuracy": 0.9678869621066153,
+  "macro_f1": 0.9675562372930275,
+  "f1_per_class": {
+    "Am": 0.9722921914357683,
+    "Bb": 0.9247311827956989,
+    "Bdim": 0.9766233766233766,
+    "C": 0.9672544080604534,
+    "Dm": 0.9551451187335093,
+    "Em": 0.9807692307692307,
+    "F": 0.9840425531914894,
+    "G": 0.9795918367346939
+  },
+  "n_params": 259144,
+  "inference_ms_per_window": 116.19464600000356,
+  "inference_ms_per_window_median": 113.22404999918945,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "group": "aug2_chroma",
+  "seed": 43,
+  "features": "chroma",
+  "feature_key": "chroma",
+  "input_shape": [
+    65,
+    12
+  ],
+  "scaler": "baseline",
+  "n_aug": 2,
+  "augmentation": "2 versao(oes)/janela: ruido branco/rosa SNR 10-30 dB, ganho -12..+6 dB, passa-banda ~150 Hz-7 kHz, deslocamento ate 0,15 s",
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 16158,
+  "n_val_windows": 946,
+  "model": "CNN 1D (Conv64-Conv128-Dense128)",
+  "epochs_trained": 23,
+  "best_val_loss": 0.11687669157981873,
+  "train_seconds": 85.7,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.9633911368015414,
+  "macro_f1_degraded": 0.9627907775432657
+}

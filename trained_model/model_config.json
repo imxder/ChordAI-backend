@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "feature": "chroma",
+  "scaler": "feature",
+  "arch": "gap_bn",
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "none_label": "_none",
+  "confidence_threshold": 0.5,
+  "sample_rate": 22050,
+  "window_seconds": 1.5,
+  "hop_length": 512,
+  "n_frames": 65,
+  "n_features": 12,
+  "n_mfcc": null,
+  "files": {
+    "model": "model.h5",
+    "encoder": "encoder.joblib",
+    "scaler": "scaler.joblib"
+  },
+  "seed": 42,
+  "source_experiment": "experiments/results/feat_chroma_scalerfeat_gapbn_none_s42",
+  "threshold_source": "calibrado na validacao para este modelo (seed 42), criterio da Parte 5; mesmo valor que train_model.py calibra sozinho",
+  "threshold_parte5_mean_3_seeds": 0.45
+}

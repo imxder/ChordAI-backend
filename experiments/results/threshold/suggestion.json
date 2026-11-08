@@ -1,0 +1,96 @@
+{
+  "limiar": 0.45,
+  "escolhido_em": "validacao",
+  "criterio": "maior cobertura com falso aceite <= 5% e acuracia nos aceitos >= 98% (modelo feat_chroma_scalerfeat_gapbn_none, media das seeds [42, 43, 44])",
+  "modelo": "feat_chroma_scalerfeat_gapbn_none",
+  "validacao": {
+    "coverage": {
+      "mean": 0.9918785310734463,
+      "std": 0.001618141135224604
+    },
+    "accuracy": {
+      "mean": 0.9800679720565586,
+      "std": 0.003719302185776976
+    },
+    "useful": {
+      "mean": 0.9721045197740114,
+      "std": 0.002205154660451416
+    },
+    "false_accept": {
+      "mean": 0.020050125313283207,
+      "std": 0.015651624056136338
+    }
+  },
+  "teste": {
+    "coverage": {
+      "mean": 0.988327721661055,
+      "std": 0.0047298108879249715
+    },
+    "accuracy": {
+      "mean": 0.9793355909301767,
+      "std": 0.0030441657409285387
+    },
+    "useful": {
+      "mean": 0.9679012345679012,
+      "std": 0.004583743626635692
+    },
+    "false_accept": {
+      "mean": 0.016442451420029897,
+      "std": 0.002589014660043165
+    },
+    "coverage_degraded": {
+      "mean": 0.9744107744107744,
+      "std": 0.0071266028580864275
+    },
+    "accuracy_degraded": {
+      "mean": 0.970984935006141,
+      "std": 0.00420530178912494
+    }
+  },
+  "teste_sem_none_mesmo_limiar": {
+    "coverage": {
+      "mean": 0.9901234567901234,
+      "std": 0.004059066514034794
+    },
+    "accuracy": {
+      "mean": 0.9757542749196868,
+      "std": 0.004327754636994034
+    },
+    "useful": {
+      "mean": 0.9661054994388327,
+      "std": 0.00038878806006036515
+    },
+    "false_accept": {
+      "mean": 0.3467862481315397,
+      "std": 0.09745843535248454
+    },
+    "coverage_degraded": {
+      "mean": 0.9856341189674522,
+      "std": 0.00580584384124689
+    },
+    "accuracy_degraded": {
+      "mean": 0.9670033142409374,
+      "std": 0.006653463290422995
+    }
+  },
+  "conjuntos": {
+    "val": {
+      "janelas_acorde": 944,
+      "janelas_silencio_descartadas": 41,
+      "negativos": {
+        "low_volume": 45,
+        "noise": 44,
+        "percussion": 44
+      }
+    },
+    "test": {
+      "janelas_acorde": 1485,
+      "janelas_silencio_descartadas": 60,
+      "negativos": {
+        "low_volume": 75,
+        "noise": 74,
+        "percussion": 74
+      }
+    }
+  }
+}
