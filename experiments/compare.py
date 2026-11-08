@@ -184,6 +184,9 @@ P7A_VARIANTS = [
     ('A: chroma_cqt, tuning=0.0', 'feat_chroma_cqt_t0_scalerfeat_gapbn_none', 'threshold_chroma_cqt_t0'),
     ('B: chroma_stft, n_fft 4096', 'feat_chroma_stft4096_scalerfeat_gapbn_none', 'threshold_chroma_stft4096'),
     ('C: chroma_stft, n_fft 8192', 'feat_chroma_stft8192_scalerfeat_gapbn_none', 'threshold_chroma_stft8192'),
+    ('C1: C + aug2', 'aug2_chroma_stft8192_scalerfeat_gapbn_none', 'threshold_aug2_chroma_stft8192'),
+    ('C2: C + aug2 + detune ±40 cents', 'aug2_chroma_stft8192_scalerfeat_detune_gapbn_none',
+     'threshold_aug2_chroma_stft8192_detune'),
 ]
 # (rotulo, origem, chave, maior_e_melhor); origem 'm' = metrics.json (sem limiar),
 # 't' = teste no limiar de cada seed (escolhido na validacao da propria seed)
@@ -237,7 +240,8 @@ def stft_section(all_groups):
     head = ' | '.join(f'{name} (%)' for name, *_ in P7A_METRICS)
     lines = ['## Parte 7a — chroma_stft × chroma_cqt (configuração de produção)', '',
              'Mesma configuração do modelo em produção (scaler por feature, GAP+BN, classe `_none`, validação '
-             'separada, sem augmentation), mudando só a feature. Teste, seeds 42, 43, 44. Accuracy, macro-F1 e '
+             'separada, sem augmentation), mudando só a feature (C1/C2: + augmentation da Parte 3, com e sem '
+             'detune). Teste, seeds 42, 43, 44. Accuracy, macro-F1 e '
              'acc. degradado sem limiar (argmax); falso aceite (negativos do teste aceitos como acorde) e acurácia '
              'nos aceitos com o **limiar de cada seed**, escolhido na validação da própria seed (como o de '
              'produção). Todas as variantes saem com 65 frames.', '',

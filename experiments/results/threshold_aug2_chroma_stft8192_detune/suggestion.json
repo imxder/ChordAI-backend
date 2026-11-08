@@ -1,0 +1,154 @@
+{
+  "limiar": 0.65,
+  "escolhido_em": "validacao",
+  "criterio": "maior cobertura com falso aceite <= 5% e acuracia nos aceitos >= 98% (modelo aug2_chroma_stft8192_scalerfeat_detune_gapbn_none, media das seeds [42, 43, 44])",
+  "modelo": "aug2_chroma_stft8192_scalerfeat_detune_gapbn_none",
+  "validacao": {
+    "coverage": {
+      "mean": 0.965042372881356,
+      "std": 0.0031779661016948777
+    },
+    "accuracy": {
+      "mean": 0.9805904028470617,
+      "std": 0.009243135989596142
+    },
+    "useful": {
+      "mean": 0.9463276836158191,
+      "std": 0.01166858166797896
+    },
+    "false_accept": {
+      "mean": 0.002506265664160401,
+      "std": 0.004340979467591171
+    }
+  },
+  "teste": {
+    "coverage": {
+      "mean": 0.9638608305274973,
+      "std": 0.002057273039261862
+    },
+    "accuracy": {
+      "mean": 0.9729882946064676,
+      "std": 0.004878247798670739
+    },
+    "useful": {
+      "mean": 0.9378226711560045,
+      "std": 0.004329360610995787
+    },
+    "false_accept": {
+      "mean": 0.022421524663677132,
+      "std": 0.011864355654998165
+    },
+    "coverage_degraded": {
+      "mean": 0.9539842873176206,
+      "std": 0.0016946878642583533
+    },
+    "accuracy_degraded": {
+      "mean": 0.9694062696806752,
+      "std": 0.005396981366710289
+    }
+  },
+  "teste_sem_none_mesmo_limiar": null,
+  "feature": "chroma_stft8192",
+  "limiar_por_seed": [
+    {
+      "seed": 42,
+      "limiar": 0.75,
+      "validacao": {
+        "coverage": 0.9385593220338984,
+        "accuracy": 0.9841986455981941,
+        "useful": 0.923728813559322,
+        "false_accept": 0.007518796992481203
+      },
+      "teste": {
+        "coverage": 0.9393939393939394,
+        "accuracy": 0.9734767025089606,
+        "useful": 0.9144781144781144,
+        "false_accept": 0.004484304932735426,
+        "coverage_degraded": 0.9306397306397306,
+        "accuracy_degraded": 0.9725036179450073
+      }
+    },
+    {
+      "seed": 43,
+      "limiar": 0.7,
+      "validacao": {
+        "coverage": 0.9396186440677966,
+        "accuracy": 0.9909808342728298,
+        "useful": 0.9311440677966102,
+        "false_accept": 0.0
+      },
+      "teste": {
+        "coverage": 0.9501683501683502,
+        "accuracy": 0.9801559177888023,
+        "useful": 0.9313131313131313,
+        "false_accept": 0.02242152466367713,
+        "coverage_degraded": 0.9407407407407408,
+        "accuracy_degraded": 0.9799570508231925
+      }
+    },
+    {
+      "seed": 44,
+      "limiar": 0.5,
+      "validacao": {
+        "coverage": 0.9851694915254238,
+        "accuracy": 0.9806451612903225,
+        "useful": 0.9661016949152542,
+        "false_accept": 0.0
+      },
+      "teste": {
+        "coverage": 0.9824915824915825,
+        "accuracy": 0.9691569568197396,
+        "useful": 0.9521885521885521,
+        "false_accept": 0.03587443946188341,
+        "coverage_degraded": 0.9804713804713805,
+        "accuracy_degraded": 0.9615384615384616
+      }
+    }
+  ],
+  "teste_limiar_por_seed": {
+    "coverage": {
+      "mean": 0.957351290684624,
+      "std": 0.022428724573372465
+    },
+    "accuracy": {
+      "mean": 0.9742631923725007,
+      "std": 0.005541498924373256
+    },
+    "useful": {
+      "mean": 0.9326599326599326,
+      "std": 0.018891259446606776
+    },
+    "false_accept": {
+      "mean": 0.02092675635276532,
+      "std": 0.015748361364503347
+    },
+    "coverage_degraded": {
+      "mean": 0.9506172839506174,
+      "std": 0.026343080886040298
+    },
+    "accuracy_degraded": {
+      "mean": 0.9713330434355538,
+      "std": 0.009264922629009815
+    }
+  },
+  "conjuntos": {
+    "val": {
+      "janelas_acorde": 944,
+      "janelas_silencio_descartadas": 41,
+      "negativos": {
+        "low_volume": 45,
+        "noise": 44,
+        "percussion": 44
+      }
+    },
+    "test": {
+      "janelas_acorde": 1485,
+      "janelas_silencio_descartadas": 60,
+      "negativos": {
+        "low_volume": 75,
+        "noise": 74,
+        "percussion": 74
+      }
+    }
+  }
+}

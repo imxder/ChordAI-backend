@@ -34,6 +34,9 @@ CONFIGS = [
     ('chroma_cqt_t0', 'per_feature', 0, False, 'gap_bn', True),
     ('chroma_stft4096', 'per_feature', 0, False, 'gap_bn', True),
     ('chroma_stft8192', 'per_feature', 0, False, 'gap_bn', True),
+    # Parte 7a: C1 = C + aug2; C2 = C + aug2 + detune +-40 cents
+    ('chroma_stft8192', 'per_feature', 2, False, 'gap_bn', True),
+    ('chroma_stft8192', 'per_feature', 2, True, 'gap_bn', True),
 ]
 
 

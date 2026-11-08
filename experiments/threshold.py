@@ -45,17 +45,24 @@ import pipeline as pl
 from experiments.data import N_JOBS, build, load_degraded_test, split_train_val
 from experiments.negatives import NONE_LABEL, build_negatives
 
-# feature -> (modelo com _none, mesmo modelo sem _none ou None, pasta de saida)
+# variante -> (feature, modelo com _none, mesmo modelo sem _none ou None, pasta de saida)
 FEATURE_GROUPS = {
-    'chroma': ('feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_scalerfeat_gapbn', 'threshold'),
-    'chroma_stft': ('feat_chroma_stft_scalerfeat_gapbn_none', None, 'threshold_chroma_stft'),
-    'chroma_cqt_t0': ('feat_chroma_cqt_t0_scalerfeat_gapbn_none', None, 'threshold_chroma_cqt_t0'),
-    'chroma_stft4096': ('feat_chroma_stft4096_scalerfeat_gapbn_none', None, 'threshold_chroma_stft4096'),
-    'chroma_stft8192': ('feat_chroma_stft8192_scalerfeat_gapbn_none', None, 'threshold_chroma_stft8192'),
+    'chroma': ('chroma', 'feat_chroma_scalerfeat_gapbn_none', 'feat_chroma_scalerfeat_gapbn', 'threshold'),
+    'chroma_stft': ('chroma_stft', 'feat_chroma_stft_scalerfeat_gapbn_none', None, 'threshold_chroma_stft'),
+    'chroma_cqt_t0': ('chroma_cqt_t0', 'feat_chroma_cqt_t0_scalerfeat_gapbn_none', None, 'threshold_chroma_cqt_t0'),
+    'chroma_stft4096': ('chroma_stft4096', 'feat_chroma_stft4096_scalerfeat_gapbn_none', None,
+                        'threshold_chroma_stft4096'),
+    'chroma_stft8192': ('chroma_stft8192', 'feat_chroma_stft8192_scalerfeat_gapbn_none', None,
+                        'threshold_chroma_stft8192'),
+    # Parte 7a: C + augmentation (C1) e C + augmentation + detune (C2)
+    'aug2_chroma_stft8192': ('chroma_stft8192', 'aug2_chroma_stft8192_scalerfeat_gapbn_none', None,
+                             'threshold_aug2_chroma_stft8192'),
+    'aug2_chroma_stft8192_detune': ('chroma_stft8192', 'aug2_chroma_stft8192_scalerfeat_detune_gapbn_none', None,
+                                    'threshold_aug2_chroma_stft8192_detune'),
 }
 SEEDS = [42, 43, 44]
 FEATURE = 'chroma'
-GROUP_NONE, GROUP_PLAIN, _out = FEATURE_GROUPS[FEATURE]
+_, GROUP_NONE, GROUP_PLAIN, _out = FEATURE_GROUPS[FEATURE]
 THRESHOLDS = pl.THRESHOLD_GRID
 OUT_DIR = os.path.join(common.RESULTS_DIR, _out)
 # criterio de escolha (modelo com _none, VALIDACAO, media das seeds)
@@ -214,9 +221,9 @@ def plot(results, best):
 def main():
     global FEATURE, GROUP_NONE, GROUP_PLAIN, OUT_DIR
     parser = argparse.ArgumentParser()
-    parser.add_argument('--feature', default='chroma', choices=sorted(FEATURE_GROUPS))
-    FEATURE = parser.parse_args().feature
-    GROUP_NONE, GROUP_PLAIN, out = FEATURE_GROUPS[FEATURE]
+    parser.add_argument('--feature', default='chroma', choices=sorted(FEATURE_GROUPS),
+                        help='variante (ver FEATURE_GROUPS); define a feature e o modelo')
+    FEATURE, GROUP_NONE, GROUP_PLAIN, out = FEATURE_GROUPS[parser.parse_args().feature]
     OUT_DIR = os.path.join(common.RESULTS_DIR, out)
     os.makedirs(OUT_DIR, exist_ok=True)
     train_files, test_files, _ = common.load_split()
