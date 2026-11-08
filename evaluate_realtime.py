@@ -33,13 +33,18 @@ assert abs(RECORD_DURATION - WINDOW_SECONDS) < 1e-6, (
 )
 
 
-def predict_with_timing(segment, model, encoder, scaler):
-    """Replica predict_note() mas mede separadamente extracao de features
-    (Librosa) e inferencia do modelo."""
-    t0 = time.perf_counter()
-    features = extract_features(
+def _default_feature_fn(segment):
+    return extract_features(
         segment, sample_rate=SAMPLE_RATE, n_mfcc=N_MFCC, max_pad_len=MAX_PAD_LEN, is_file=False
     )
+
+
+def predict_with_timing(segment, model, encoder, scaler, feature_fn=_default_feature_fn):
+    """Replica predict_note() mas mede separadamente extracao de features
+    (Librosa) e inferencia do modelo. feature_fn permite avaliar modelos
+    treinados com outra feature (ex.: experiments/); o padrao e o MFCC atual."""
+    t0 = time.perf_counter()
+    features = feature_fn(segment)
     extraction_time = time.perf_counter() - t0
 
     if features is None:
@@ -67,11 +72,12 @@ def print_timing_block(title, times_seconds):
     print(f"  p95:     {np.percentile(times_ms, 95):.2f} ms")
 
 
-def main():
-    print("Carregando modelo, encoder e scaler salvos...")
-    model = tf.keras.models.load_model(MODEL_SAVE_PATH)
-    encoder = joblib.load(ENCODER_SAVE_PATH)
-    scaler = joblib.load(SCALER_SAVE_PATH)
+def main(model_path=MODEL_SAVE_PATH, encoder_path=ENCODER_SAVE_PATH, scaler_path=SCALER_SAVE_PATH,
+         feature_fn=_default_feature_fn, feature_label="Librosa/MFCC"):
+    print(f"Carregando modelo, encoder e scaler salvos ({model_path})...")
+    model = tf.keras.models.load_model(model_path)
+    encoder = joblib.load(encoder_path)
+    scaler = joblib.load(scaler_path)
 
     print("Reconstruindo split de teste (20% nao usado no treino, mesmo random_state=42)...")
     _, test_files, _ = split_dataset_files()
@@ -87,7 +93,7 @@ def main():
     for file_path, true_label in test_files:
         segments = make_windowed_segments(file_path)
         for segment in segments:
-            predicted, extraction_time, inference_time = predict_with_timing(segment, model, encoder, scaler)
+            predicted, extraction_time, inference_time = predict_with_timing(segment, model, encoder, scaler, feature_fn)
             extraction_times.append(extraction_time)
             if predicted is None:
                 continue
@@ -106,7 +112,7 @@ def main():
     else:
         print("Acuracia em segmentos curtos:      N/A (nenhum segmento valido)")
     print("-" * 64)
-    print_timing_block("Tempo de extracao de features (Librosa/MFCC):", extraction_times)
+    print_timing_block(f"Tempo de extracao de features ({feature_label}):", extraction_times)
     print("-" * 64)
     print_timing_block("Tempo de inferencia do modelo (model.predict):", inference_times)
     print("-" * 64)
