@@ -2,7 +2,7 @@
 
 Tudo aqui reaproveita train_model.py (split por arquivo, janelas, MFCC) sem
 alterar o seu comportamento. Os experimentos salvam artefatos em
-experiments/results/<nome>/.
+experiments/results/<nome>/. A montagem treino/validacao/teste fica em data.py.
 """
 import json
 import os
@@ -56,55 +56,21 @@ def load_split():
     return tm.split_dataset_files(dataset_path=DATASET_PATH, random_state=SPLIT_RANDOM_STATE)
 
 
-def build_windowed_dataset_cached(file_label_pairs, cache_name, feature_fn=None):
-    """Igual a tm.build_windowed_dataset (com feature_fn=None), mas guarda o
-    resultado em experiments/cache/<cache_name>.npz para nao recalcular as
-    features a cada execucao. feature_fn(segment) -> np.ndarray ou None permite
-    trocar o extrator (ex.: chroma) mantendo as mesmas janelas."""
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    cache_path = os.path.join(CACHE_DIR, f'{cache_name}.npz')
-    files_key = np.array([f'{os.path.relpath(p, ROOT_DIR)}|{l}' for p, l in file_label_pairs])
+def fit_scaler(X_train, kind='baseline'):
+    """Ajusta o StandardScaler SO no treino e devolve (X_train escalado, scaler).
 
-    if os.path.exists(cache_path):
-        data = np.load(cache_path, allow_pickle=False)
-        if np.array_equal(data['files_key'], files_key):
-            print(f'  cache: {os.path.relpath(cache_path, ROOT_DIR)}')
-            return data['X'], data['y']
-        print(f'  cache desatualizado, recalculando: {cache_path}')
-
-    if feature_fn is None:
-        X, y = tm.build_windowed_dataset(file_label_pairs)
+    kind='baseline': exatamente como train_model.train_model(). Atencao: como o
+      reshape e (-1, n_frames), a normalizacao e feita por POSICAO DE FRAME
+      (media/desvio de todos os coeficientes naquele instante), nao por
+      coeficiente. Mantido assim para reproduzir o baseline.
+    kind='per_feature': normaliza cada linha de feature (coeficiente/bin).
+    """
+    scaler = StandardScaler()
+    if kind == 'baseline':
+        scaler.fit(X_train.reshape(-1, X_train.shape[-1]))
     else:
-        X, y = [], []
-        for file_path, label in file_label_pairs:
-            for segment in tm.make_windowed_segments(file_path):
-                features = feature_fn(segment)
-                if features is not None:
-                    X.append(features)
-                    y.append(label)
-        X, y = np.array(X), np.array(y)
-
-    np.savez_compressed(cache_path, X=X, y=y, files_key=files_key)
-    return X, y
-
-
-def fit_scaler_like_baseline(X_train, X_test):
-    """StandardScaler exatamente como train_model.train_model().
-    Atencao: como o reshape e (-1, n_frames), a normalizacao e feita por
-    POSICAO DE FRAME (media/desvio de todos os coeficientes naquele instante),
-    nao por coeficiente. Mantido assim para reproduzir o baseline.
-    Entrada (n, n_features, n_frames); saida (n, n_frames, n_features)."""
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train.reshape(-1, X_train.shape[-1])).reshape(X_train.shape)
-    X_test_scaled = scaler.transform(X_test.reshape(-1, X_test.shape[-1])).reshape(X_test.shape)
-    return np.swapaxes(X_train_scaled, 1, 2), np.swapaxes(X_test_scaled, 1, 2), scaler
-
-
-def fit_scaler_per_feature(X_train, X_test):
-    """StandardScaler por linha de feature (coeficiente/bin)."""
-    scaler = StandardScaler()
-    scaler.fit(np.swapaxes(X_train, 1, 2).reshape(-1, X_train.shape[1]))
-    return apply_scaler(scaler, X_train, 'per_feature'), apply_scaler(scaler, X_test, 'per_feature'), scaler
+        scaler.fit(np.swapaxes(X_train, 1, 2).reshape(-1, X_train.shape[1]))
+    return apply_scaler(scaler, X_train, kind), scaler
 
 
 def apply_scaler(scaler, X, kind='baseline'):
@@ -116,13 +82,12 @@ def apply_scaler(scaler, X, kind='baseline'):
     return scaler.transform(np.swapaxes(X, 1, 2).reshape(-1, n_feat)).reshape(len(X), -1, n_feat)
 
 
-def encode_labels(labels, y_train_raw, y_test_raw):
+def encode_labels(labels, *y_sets):
+    """LabelEncoder nas classes + one-hot de cada conjunto. Retorna (encoder, *y_onehot)."""
     encoder = LabelEncoder()
     encoder.fit(labels)
     n = len(labels)
-    y_train = to_categorical(encoder.transform(y_train_raw), num_classes=n)
-    y_test = to_categorical(encoder.transform(y_test_raw), num_classes=n)
-    return encoder, y_train, y_test
+    return (encoder, *[to_categorical(encoder.transform(y), num_classes=n) for y in y_sets])
 
 
 def build_baseline_cnn(input_shape, n_classes):

@@ -13,7 +13,7 @@ import joblib
 import tensorflow as tf
 
 from experiments import common
-from experiments.augmented_data import load_degraded_test
+from experiments.data import load_degraded_test
 from experiments.features import EXTRACTORS
 
 

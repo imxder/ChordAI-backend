@@ -1,0 +1,140 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108489.491988   36672 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108492.031015   36672 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+=== feat_chroma_s42 ===
+  extraindo chroma12_test_degraded_v1_s42_2afd1b73d6 (297 arquivos, paralelo)...
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.145357   38076 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.200207    4708 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.218886   30140 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.224296   40104 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.288235   43192 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.288270   32592 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.328188   39520 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108500.335506   38500 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.789035   38076 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.789407    4708 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.821290   40104 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.865182   30140 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.908190   32592 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.909576   43192 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.968044   38500 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794108502.972955   39520 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+  arquivos: treino=1007 val=178 teste=297 | janelas: treino=5386+0 aum. val=946 teste=1557
+I0000 00:00:1794108531.288047   36672 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+Epoch 1/200
+E0000 00:00:1794108531.478704   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_15}}
+169/169 - 3s - 21ms/step - accuracy: 0.8903 - loss: 0.3396 - val_accuracy: 0.9440 - val_loss: 0.1782 - learning_rate: 0.0010
+Epoch 2/200
+169/169 - 1s - 8ms/step - accuracy: 0.9452 - loss: 0.1629 - val_accuracy: 0.9619 - val_loss: 0.1245 - learning_rate: 0.0010
+Epoch 3/200
+169/169 - 1s - 8ms/step - accuracy: 0.9514 - loss: 0.1465 - val_accuracy: 0.9609 - val_loss: 0.1275 - learning_rate: 0.0010
+Epoch 4/200
+169/169 - 1s - 8ms/step - accuracy: 0.9584 - loss: 0.1227 - val_accuracy: 0.9619 - val_loss: 0.1351 - learning_rate: 0.0010
+Epoch 5/200
+169/169 - 1s - 8ms/step - accuracy: 0.9631 - loss: 0.1126 - val_accuracy: 0.9641 - val_loss: 0.1320 - learning_rate: 0.0010
+Epoch 6/200
+169/169 - 1s - 9ms/step - accuracy: 0.9638 - loss: 0.1108 - val_accuracy: 0.9715 - val_loss: 0.1023 - learning_rate: 0.0010
+Epoch 7/200
+169/169 - 1s - 9ms/step - accuracy: 0.9651 - loss: 0.0994 - val_accuracy: 0.9598 - val_loss: 0.1237 - learning_rate: 0.0010
+Epoch 8/200
+169/169 - 1s - 8ms/step - accuracy: 0.9671 - loss: 0.0954 - val_accuracy: 0.9715 - val_loss: 0.1172 - learning_rate: 0.0010
+Epoch 9/200
+169/169 - 1s - 8ms/step - accuracy: 0.9662 - loss: 0.0966 - val_accuracy: 0.9662 - val_loss: 0.1307 - learning_rate: 0.0010
+Epoch 10/200
+169/169 - 1s - 8ms/step - accuracy: 0.9649 - loss: 0.1064 - val_accuracy: 0.9693 - val_loss: 0.1130 - learning_rate: 0.0010
+Epoch 11/200
+169/169 - 1s - 8ms/step - accuracy: 0.9697 - loss: 0.0870 - val_accuracy: 0.9651 - val_loss: 0.1171 - learning_rate: 0.0010
+Epoch 12/200
+169/169 - 1s - 9ms/step - accuracy: 0.9722 - loss: 0.0847 - val_accuracy: 0.9693 - val_loss: 0.1357 - learning_rate: 0.0010
+Epoch 13/200
+169/169 - 1s - 9ms/step - accuracy: 0.9744 - loss: 0.0761 - val_accuracy: 0.9715 - val_loss: 0.1234 - learning_rate: 0.0010
+Epoch 14/200
+169/169 - 1s - 8ms/step - accuracy: 0.9733 - loss: 0.0765 - val_accuracy: 0.9651 - val_loss: 0.1132 - learning_rate: 0.0010
+Epoch 15/200
+169/169 - 1s - 8ms/step - accuracy: 0.9716 - loss: 0.0847 - val_accuracy: 0.9641 - val_loss: 0.1441 - learning_rate: 0.0010
+Epoch 16/200
+169/169 - 1s - 9ms/step - accuracy: 0.9755 - loss: 0.0681 - val_accuracy: 0.9672 - val_loss: 0.1096 - learning_rate: 0.0010
+Epoch 17/200
+169/169 - 1s - 8ms/step - accuracy: 0.9799 - loss: 0.0581 - val_accuracy: 0.9672 - val_loss: 0.1034 - learning_rate: 2.0000e-04
+Epoch 18/200
+169/169 - 1s - 8ms/step - accuracy: 0.9803 - loss: 0.0549 - val_accuracy: 0.9693 - val_loss: 0.1067 - learning_rate: 2.0000e-04
+Epoch 19/200
+169/169 - 1s - 8ms/step - accuracy: 0.9801 - loss: 0.0547 - val_accuracy: 0.9704 - val_loss: 0.1043 - learning_rate: 2.0000e-04
+Epoch 20/200
+169/169 - 1s - 8ms/step - accuracy: 0.9801 - loss: 0.0546 - val_accuracy: 0.9704 - val_loss: 0.1076 - learning_rate: 2.0000e-04
+Epoch 21/200
+169/169 - 1s - 8ms/step - accuracy: 0.9818 - loss: 0.0493 - val_accuracy: 0.9704 - val_loss: 0.1086 - learning_rate: 2.0000e-04
+Epoch 22/200
+169/169 - 1s - 8ms/step - accuracy: 0.9814 - loss: 0.0499 - val_accuracy: 0.9736 - val_loss: 0.1080 - learning_rate: 2.0000e-04
+Epoch 23/200
+169/169 - 1s - 8ms/step - accuracy: 0.9816 - loss: 0.0484 - val_accuracy: 0.9725 - val_loss: 0.1098 - learning_rate: 2.0000e-04
+Epoch 24/200
+169/169 - 1s - 8ms/step - accuracy: 0.9824 - loss: 0.0513 - val_accuracy: 0.9725 - val_loss: 0.1089 - learning_rate: 2.0000e-04
+Epoch 25/200
+169/169 - 1s - 8ms/step - accuracy: 0.9805 - loss: 0.0498 - val_accuracy: 0.9715 - val_loss: 0.1106 - learning_rate: 2.0000e-04
+Epoch 26/200
+169/169 - 2s - 9ms/step - accuracy: 0.9812 - loss: 0.0498 - val_accuracy: 0.9693 - val_loss: 0.1147 - learning_rate: 2.0000e-04
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+E0000 00:00:1794108570.283862   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108575.354562   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108580.371657   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108585.397693   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108590.430953   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108595.814809   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108600.857400   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108605.866228   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108610.981069   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+E0000 00:00:1794108616.069313   36672 node_def_util.cc:682] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_14}}
+
+[feat_chroma_s42] accuracy=0.9595  macro-F1=0.9598  params=259144  114.20 ms/janela
+              precision    recall  f1-score   support
+
+          Am     0.8744    1.0000    0.9330       195
+          Bb     1.0000    0.9341    0.9659       182
+        Bdim     0.9786    0.9337    0.9556       196
+           C     0.9948    0.9360    0.9645       203
+          Dm     0.9045    0.9730    0.9375       185
+          Em     0.9756    0.9524    0.9639       210
+           F     0.9787    0.9735    0.9761       189
+           G     0.9897    0.9746    0.9821       197
+
+    accuracy                         0.9595      1557
+   macro avg     0.9620    0.9597    0.9598      1557
+weighted avg     0.9624    0.9595    0.9599      1557
+
+
+[degraded] accuracy=0.9563  macro-F1=0.9563  params=259144  112.50 ms/janela
+              precision    recall  f1-score   support
+
+          Am     0.9190    0.9897    0.9531       195
+          Bb     0.9940    0.9176    0.9543       182
+        Bdim     0.9730    0.9184    0.9449       196
+           C     0.9369    0.9507    0.9438       203
+          Dm     0.8911    0.9730    0.9302       185
+          Em     0.9851    0.9476    0.9660       210
+           F     0.9738    0.9841    0.9789       189
+           G     0.9896    0.9695    0.9795       197
+
+    accuracy                         0.9563      1557
+   macro avg     0.9578    0.9563    0.9563      1557
+weighted avg     0.9581    0.9563    0.9565      1557
+

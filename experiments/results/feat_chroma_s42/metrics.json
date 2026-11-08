@@ -1,0 +1,53 @@
+{
+  "experiment": "feat_chroma_s42",
+  "accuracy": 0.9595375722543352,
+  "macro_f1": 0.9598229945522674,
+  "f1_per_class": {
+    "Am": 0.9330143540669856,
+    "Bb": 0.9659090909090909,
+    "Bdim": 0.9556135770234987,
+    "C": 0.9644670050761421,
+    "Dm": 0.9375,
+    "Em": 0.963855421686747,
+    "F": 0.9761273209549072,
+    "G": 0.9820971867007673
+  },
+  "n_params": 259144,
+  "inference_ms_per_window": 114.20455600009518,
+  "inference_ms_per_window_median": 111.02969999956258,
+  "n_test_windows": 1557,
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G"
+  ],
+  "group": "feat_chroma",
+  "seed": 42,
+  "features": "chroma",
+  "feature_key": "chroma",
+  "input_shape": [
+    65,
+    12
+  ],
+  "scaler": "baseline",
+  "n_aug": 0,
+  "augmentation": null,
+  "detune_cents": null,
+  "validation": "15% dos arquivos de treino (estratificado, random_state=42)",
+  "n_train_files": 1007,
+  "n_val_files": 178,
+  "n_train_windows": 5386,
+  "n_val_windows": 946,
+  "model": "CNN 1D (Conv64-Conv128-Dense128)",
+  "epochs_trained": 26,
+  "best_val_loss": 0.10225392132997513,
+  "train_seconds": 38.8,
+  "window_seconds": 1.5,
+  "accuracy_degraded": 0.9563262684649968,
+  "macro_f1_degraded": 0.9563382285624586
+}

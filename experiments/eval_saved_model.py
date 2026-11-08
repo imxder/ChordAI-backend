@@ -1,16 +1,19 @@
 """Avalia um modelo JA treinado (ex.: candidates/candidate_91_81) com o mesmo
 split e a mesma funcao evaluate(), so leitura -- nada em candidates/ e alterado.
 
+Obs.: o candidate_91_81 foi treinado com outro split (deu 97,24% aqui, contra
+~91,8% documentado), entao NAO e comparavel com os experimentos.
+
 Uso:  python -m experiments.eval_saved_model candidates/candidate_91_81 [--name ref_candidate_91_81]
 """
 import argparse
 import os
 
 import joblib
-import numpy as np
 import tensorflow as tf
 
 from experiments import common
+from experiments.data import build
 
 
 def main():
@@ -28,8 +31,8 @@ def main():
     scaler = joblib.load(os.path.join(model_dir, 'scaler_chords.joblib'))
 
     _, test_files, _ = common.load_split()
-    X_test, y_test_raw = common.build_windowed_dataset_cached(test_files, 'mfcc40_test')
-    X_test_f = np.swapaxes(scaler.transform(X_test.reshape(-1, X_test.shape[-1])).reshape(X_test.shape), 1, 2)
+    X_test, y_test_raw, _, _ = build(test_files, 'mfcc', 'clean')
+    X_test_f = common.apply_scaler(scaler, X_test, 'baseline')
 
     common.evaluate(model, X_test_f, y_test_raw, encoder, out_dir, extra={
         'source_model_dir': args.model_dir,
