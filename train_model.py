@@ -74,7 +74,9 @@ def list_dataset_files(dataset_path=DATASET_PATH):
     )
     for label in valid_labels:
         label_path = os.path.join(dataset_path, label)
-        for filename in os.listdir(label_path):
+        # sorted(): os.listdir() nao garante ordem (NTFS ordena sem diferenciar
+        # maiusculas, ext4 por hash, APFS de outro jeito), e a ordem define o split.
+        for filename in sorted(os.listdir(label_path)):
             if not filename.endswith(".wav"):
                 continue
             file_path = os.path.join(label_path, filename)

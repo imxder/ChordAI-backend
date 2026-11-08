@@ -143,7 +143,7 @@ def main():
         '',
         f'Média ± desvio padrão (amostral) sobre as seeds {", ".join(map(str, seeds))}. '
         'Teste: o mesmo do baseline (20% dos arquivos, split por arquivo, `random_state=42`, '
-        '1557 janelas de 1,5 s), usado **só** na avaliação final. A validação dos callbacks '
+        '1545 janelas de 1,5 s), usado **só** na avaliação final. A validação dos callbacks '
         '(EarlyStopping/ReduceLROnPlateau) usa 15% dos arquivos de treino (estratificado, '
         '`random_state=42`). "Acc. degradado" = mesmo teste com ruído rosa a 15 dB + '
         'passa-banda 200 Hz–5 kHz. ms/janela = média de `model.predict` (batch 1), sem extração '
@@ -164,13 +164,14 @@ def main():
         *confusion_section(groups, order),
         '---',
         '',
-        '<sub>O modelo `candidates/candidate_91_81` (o mesmo de `trained_model/`) não aparece na '
-        'tabela: ele dá 97,24% neste teste contra ~91,8% documentado, o que indica que foi treinado '
-        'com outro split treino/teste (provavelmente porque `list_dataset_files()` não ordena o '
-        '`os.listdir()`, cuja ordem varia entre sistemas) e viu parte destes arquivos no treino. '
-        'Por isso não é comparável. '
-        'Os resultados da primeira rodada (que usava o teste como validação, como '
-        '`train_model.py`) estão em `experiments/results_v1_val_no_teste/`.</sub>',
+        '<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o '
+        'teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; '
+        'conferir com `python -m experiments.split_hash --check`). O modelo '
+        '`candidates/candidate_91_81` (o mesmo de `trained_model/`) não aparece na tabela: foi '
+        'treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. '
+        'Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e '
+        '`experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem '
+        'do NTFS, que compartilha só 59 dos 297 arquivos de teste com o atual).</sub>',
         '',
     ]
     out = os.path.join(RESULTS_DIR, 'comparativo.md')

@@ -3,8 +3,9 @@
 afetado por outra execucao). Pula o que ja tem metrics.json, entao pode ser
 interrompido e retomado. No fim regenera o comparativo.
 
-Uso:  python -m experiments.run_seeds
+Uso:  python -m experiments.run_seeds [--only feat_mfcc feat_chroma ...]
 """
+import argparse
 import os
 import subprocess
 import sys
@@ -26,7 +27,22 @@ CONFIGS = [
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--only', nargs='+', help='grupos a rodar (ex.: feat_mfcc aug2_chroma)')
+    args = parser.parse_args()
+    known = [group_name(*c) for c in CONFIGS]
+    unknown = set(args.only or []) - set(known)
+    if unknown:
+        sys.exit(f'grupos desconhecidos: {sorted(unknown)}; opcoes: {known}')
+
+    # o split tem que ser o registrado em results/split_hash.txt
+    if subprocess.call([sys.executable, '-W', 'ignore', '-m', 'experiments.split_hash', '--check'],
+                       cwd=common.ROOT_DIR) != 0:
+        sys.exit('split diferente do registrado em results/split_hash.txt')
+
     for feature, scaler, n_aug, detune in CONFIGS:
+        if args.only and group_name(feature, scaler, n_aug, detune) not in args.only:
+            continue
         for seed in SEEDS:
             name = f'{group_name(feature, scaler, n_aug, detune)}_s{seed}'
             if os.path.exists(os.path.join(common.RESULTS_DIR, name, 'metrics.json')):

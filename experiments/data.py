@@ -24,7 +24,9 @@ from experiments.features import CACHE_NAMES, EXTRACTORS
 
 VAL_SIZE = 0.15
 VAL_RANDOM_STATE = 42
-N_TEST_WINDOWS = 1557   # tamanho do teste do baseline; nao pode mudar
+# tamanho do teste com o split ordenado (sorted(os.listdir()), hash em
+# results/split_hash.txt). Era 1557 com a ordem do NTFS, antes da correcao.
+N_TEST_WINDOWS = 1545
 DEGRADED_SEED = 42      # o teste degradado e uma condicao FIXA (nao varia com a seed do treino)
 MAX_N_AUG = 2           # o cache guarda 2 versoes; n_aug=1 usa so k=0
 # cada worker importa train_model (e portanto o TensorFlow, ~0,6 GB); 28 workers
