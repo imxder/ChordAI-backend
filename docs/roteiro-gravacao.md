@@ -23,33 +23,44 @@ O V3 está em 16.000 Hz, então não tem nada acima de 8 kHz. Mesmo assim não v
 - Se errar, não paro: toco o próximo compasso. O script descarta o compasso com duas batidas, e eu confiro no relatório.
 - O **arpejo** tem que ser rápido, as seis cordas em menos de meio tempo (uns 0,3 s). Arpejo lento vira "duas batidas" e é descartado.
 
-Num take de 16 compassos, eu vario assim:
+Num take de 8 compassos (s1, s2 e g1), eu vario assim:
 
 | Compassos | Como |
 | --- | --- |
-| 1 a 4 | rasgueado para baixo, forte |
-| 5 a 8 | rasgueado para baixo, fraco |
-| 9 a 12 | rasgueado para cima |
-| 13 a 16 | arpejo rápido |
+| 1 e 2 | rasgueado para baixo, forte |
+| 3 e 4 | rasgueado para baixo, fraco |
+| 5 e 6 | rasgueado para cima |
+| 7 e 8 | arpejo rápido |
 
-Nos takes de 12 compassos, faço 3 compassos de cada.
+Nos takes de 12 compassos (s3), faço 3 compassos de cada jeito, na mesma ordem.
+
+Cada acorde tem dois takes por sessão (`take01` e `take02`). Cortes do mesmo take saem quase iguais, então na hora de treinar a validação separa por take, não por arquivo; com dois takes por acorde em cada sessão, sobra take pra validação.
 
 ## Sessões
 
-| Sessão | Quando | Instrumento | Microfone e lugar | Compassos por acorde | Uso |
+| Sessão | Quando | Instrumento | Microfone e lugar | Takes por acorde | Uso |
 | --- | --- | --- | --- | --- | --- |
-| `s1` | sábado | violão | interface, microfone a uns 30 cm da boca do violão | 16 | treino |
-| `s2` | sábado | violão | celular a uns 1 m, em outro cômodo | 16 | treino |
-| `g1` | sábado | semi-acústica desplugada (`semi`) e Jazzmaster limpa pela GT-1 ou direto (`jazzmaster`) | interface | 12 de cada | treino |
-| `s3` | domingo | violão | outro celular ou outra posição, outro cômodo | 12 | **teste** |
+| `s1` | sábado | violão | interface, microfone a uns 30 cm da boca do violão | 2 de 8 compassos | treino |
+| `s2` | sábado | violão | celular a uns 1 m, em outro cômodo | 2 de 8 compassos | treino |
+| `g1` | sábado | semi-acústica desplugada (`semi`) e Jazzmaster limpa pela GT-1 ou direto (`jazzmaster`) | interface | 2 de 8 compassos em cada guitarra | treino |
+| `s3` | domingo | violão | outro celular ou outra posição, outro cômodo | 2 de 12 compassos | **teste** |
 
-Isso dá 44 cortes de violão por acorde (16 + 16 + 12), 12 de semi e 12 de Jazzmaster.
+Por acorde, isso dá:
+
+| Instrumento | Treino | Teste |
+| --- | --- | --- |
+| violão | 32 (16 da `s1` + 16 da `s2`) | 24 (`s3`) |
+| semi | 16 | – |
+| Jazzmaster | 16 | – |
+| **total** | **64** | **24** |
+
+São 11 acordes (os 8 do app mais D, A e E), então no fim de semana são 88 takes de acorde: 22 na `s1`, 22 na `s2`, 22 por guitarra na `g1` e 22 na `s3`. Os números de cortes contam um corte por compasso; os descartados pelo script saem dessa conta.
 
 A `s3` é a sessão de teste: tudo nela tem que ser diferente das outras (outro dia, outro cômodo, outro microfone ou posição). Se ela parecer demais com o treino, o número do teste fica otimista.
 
 ### Acordes
 
-Am, Bb, Bdim, C, Dm, Em, F e G em todas as sessões. No sábado gravo também D, A e E do mesmo jeito; eles ficam na pasta, mas só entram num treino separado, depois.
+Am, Bb, Bdim, C, Dm, Em, F e G, e também D, A e E, em **todas** as sessões, inclusive na `s3`. Sem a `s3`, os extras não teriam teste. Eles ficam na pasta, mas só entram num treino separado, depois do modelo dos 8 acordes.
 
 ### Sem acorde
 
@@ -87,7 +98,7 @@ Um arquivo por take, direto na pasta `gravacoes/` (ela não vai pro Git).
 python -m scripts.cortar_takes gravacoes/Am_violao_s1_take01.wav --conferir
 ```
 
-O relatório mostra quantos cortes saíram e por que os outros foram descartados (`duas batidas`, `silencio`, `fraco` ou `curto`). Num take de 16 compassos o esperado é perto de 16 cortes. Se vier muito menos, ouço o take antes de seguir.
+O relatório mostra quantos cortes saíram e por que os outros foram descartados (`duas batidas`, `silencio`, `fraco` ou `curto`). O esperado é um corte por compasso: 8 num take da `s1`, `s2` ou `g1` e 12 num take da `s3`. Se vier muito menos, ouço o take antes de seguir. Se as batidas fracas caírem como `fraco`, me aviso antes de gravar o resto.
 
 Quando estiver tudo certo, corto de verdade:
 
