@@ -55,18 +55,22 @@ Para reproduzir os resultados com as mesmas versões exatas, instale o lock:
 pip install -r requirements.lock.txt
 ```
 
-## 2. Baixe o DATASET.
+## 2. Baixe o dataset
 
-- Execute o codigo de `baixar_bataset.py`.
+Uso duas fontes, em pastas separadas que nunca se misturam em disco:
+
+- **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da Fabiana Vinci (CC BY-SA 4.0). Ela autorizou por escrito, nos comentários do dataset, o uso pra treinar, avaliar e distribuir o modelo no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
+- **Minhas gravações**, em `dataset_proprio/<acorde>/`. Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
 
 ```bash
-python baixar_bataset.py
+python baixar_dataset.py              # V3 -> dataset_kaggle/ (o Kaggle entrega sem login)
+python baixar_dataset.py --proprio    # meu dataset -> dataset_proprio/, depois que eu publicar
+python -m scripts.montar_sources      # gera data/sources.csv com as duas fontes
 ```
 
-Este script deve:
+O `data/sources.csv` tem uma linha por arquivo: caminho, acorde, fonte, instrumento, sessão, take, microfone e uso (treino ou teste). As sessões das minhas gravações estão em `data/sessoes.csv`.
 
-- Baixar a pasta do dataset do Google Drive descomprimir.
-- Descomprimir pasta `dataset.zip`.
+O modelo que está no app hoje foi treinado com a pasta antiga `dataset/` (a Training do V3 mais 42 gravações minhas). Pra reproduzir ele, `python baixar_dataset.py --antigo` baixa esse zip do Google Drive. Essa opção sai quando o modelo com as duas fontes for aprovado.
 
 ## 3. Modelo de reconhecimento
 
@@ -261,7 +265,16 @@ Para acessar de outro dispositivo (ex.: celular), use o IP da máquina na rede (
 /
 ├── app.py                     # API Flask (Aplicação Principal)
 ├── serve.py                   # Sobe a API com waitress (servidor para deixar rodando no Windows)
-├── baixar_dataset.py          # Script para baixar o dataset (via gdown)
+├── baixar_dataset.py          # Baixa o V3 do Kaggle (e o meu dataset, depois de publicado)
+├── scripts/
+│   ├── cortar_takes.py        # Corta os takes longos em um arquivo por batida
+│   ├── montar_sources.py      # Monta o data/sources.csv com as duas fontes
+│   └── fontes.py              # Lista de acordes, pastas e formato do sources.csv
+├── data/
+│   ├── sessoes.csv            # Data, cômodo, microfone e uso de cada sessão de gravação
+│   └── sources.csv            # Uma linha por arquivo de áudio das duas fontes
+├── docs/
+│   └── roteiro-gravacao.md    # Como gravei o meu dataset
 ├── pipeline.py                # Código comum a produção e experimentos (features, split, modelos, model_config)
 ├── train_model.py             # Treino e inferência (recognize_chord / predict_note)
 ├── audio_capture.py           # Script para captura de áudio do usuário (Microfone ou Interface)
@@ -287,7 +300,8 @@ Para acessar de outro dispositivo (ex.: celular), use o IP da máquina na rede (
 │   ├── unit/
 │   │   ├── test_app_logic.py      # Testes da lógica de estabilização do acorde
 │   │   ├── test_unknown_chord.py  # Classe _none e limiar de confiança -> "unknown"
-│   │   └── test_model_config.py   # model_config.json e compatibilidade com o pipeline antigo
+│   │   ├── test_model_config.py   # model_config.json e compatibilidade com o pipeline antigo
+│   │   └── test_cortar_takes.py   # Script de corte do meu dataset (takes sintéticos)
 │   └── integration/
 │       └── test_api.py        # Testes dos endpoints da API
 |
