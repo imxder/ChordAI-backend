@@ -1,0 +1,198 @@
+{
+  "limiar": 0.3,
+  "teste_v3": {
+    "acuracia": 0.769893899204244,
+    "n_janelas": 1508,
+    "cobertura": 0.873342175066313,
+    "acuracia_aceitos": 0.8618071374335611,
+    "confusao": {
+      "Am": {
+        "Am": 115,
+        "Bdim": 3,
+        "C": 26,
+        "Dm": 2,
+        "Em": 25,
+        "_none": 9
+      },
+      "Bb": {
+        "Bb": 135,
+        "Dm": 7,
+        "F": 16,
+        "_none": 23
+      },
+      "Bdim": {
+        "Am": 1,
+        "Bdim": 95,
+        "Dm": 7,
+        "Em": 1,
+        "G": 18,
+        "_none": 54
+      },
+      "C": {
+        "Am": 2,
+        "Bdim": 3,
+        "C": 163,
+        "Dm": 1,
+        "Em": 1,
+        "F": 12,
+        "G": 1,
+        "_none": 12
+      },
+      "Dm": {
+        "Dm": 180,
+        "F": 1,
+        "G": 1,
+        "_none": 6
+      },
+      "Em": {
+        "Bdim": 39,
+        "Dm": 7,
+        "Em": 127,
+        "G": 6,
+        "_none": 26
+      },
+      "F": {
+        "Am": 6,
+        "C": 1,
+        "F": 169,
+        "_none": 9
+      },
+      "G": {
+        "Bdim": 5,
+        "Dm": 4,
+        "G": 177,
+        "_none": 12
+      }
+    }
+  },
+  "take02": {
+    "acuracia": 1.0,
+    "n_janelas": 256,
+    "cobertura": 1.0,
+    "acuracia_aceitos": 1.0,
+    "acuracia_extras": 0.0,
+    "n_janelas_extras": 96,
+    "confusao": {
+      "A": {
+        "Am": 24,
+        "Dm": 8
+      },
+      "Am": {
+        "Am": 32
+      },
+      "Bb": {
+        "Bb": 32
+      },
+      "Bdim": {
+        "Bdim": 32
+      },
+      "C": {
+        "C": 32
+      },
+      "D": {
+        "Dm": 32
+      },
+      "Dm": {
+        "Dm": 32
+      },
+      "E": {
+        "Em": 32
+      },
+      "Em": {
+        "Em": 32
+      },
+      "F": {
+        "F": 32
+      },
+      "G": {
+        "G": 32
+      }
+    },
+    "pares": {
+      "A->Am": {
+        "n": 24,
+        "de": 32
+      },
+      "Am->A": {
+        "n": 0,
+        "de": 32
+      },
+      "E->Em": {
+        "n": 32,
+        "de": 32
+      },
+      "Em->E": {
+        "n": 0,
+        "de": 32
+      },
+      "D->Dm": {
+        "n": 32,
+        "de": 32
+      },
+      "Dm->D": {
+        "n": 0,
+        "de": 32
+      }
+    }
+  },
+  "sem_acorde": {
+    "gravado": 0.14583333333333334,
+    "sintetico": 0.05,
+    "por_tipo": {
+      "gravado_abafadas": {
+        "falso_aceite": 0.0,
+        "n": 24
+      },
+      "gravado_afinando": {
+        "falso_aceite": 0.2916666666666667,
+        "n": 24
+      },
+      "low_volume": {
+        "falso_aceite": 0.11607142857142858,
+        "n": 112
+      },
+      "noise": {
+        "falso_aceite": 0.0,
+        "n": 74
+      },
+      "percussion": {
+        "falso_aceite": 0.0,
+        "n": 74
+      }
+    }
+  },
+  "modelo": "A",
+  "seed": 44,
+  "fontes": [
+    "proprio"
+  ],
+  "classes": [
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "Dm",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "peso_por_classe": null,
+  "arquivos": {
+    "treino": 138,
+    "val": 32,
+    "none_treino": 38,
+    "none_val": 12
+  },
+  "janelas": {
+    "n_acordes_treino": 360,
+    "n_sinteticos_treino": 539,
+    "n_gravados_treino": 75,
+    "n_acordes_val": 64,
+    "n_sinteticos_val": 96,
+    "n_gravados_val": 24
+  },
+  "pessoas_val_v3": [],
+  "epocas": 42,
+  "segundos_treino": 19.1
+}
