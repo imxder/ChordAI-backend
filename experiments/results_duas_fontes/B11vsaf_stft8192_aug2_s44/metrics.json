@@ -1,0 +1,236 @@
+{
+  "limiar": 0.5,
+  "teste_v3": {
+    "acuracia": 0.8620689655172413,
+    "n_janelas": 1508,
+    "cobertura": 0.9297082228116711,
+    "acuracia_aceitos": 0.9065620542082738,
+    "confusao": {
+      "Am": {
+        "Am": 155,
+        "Bdim": 7,
+        "C": 2,
+        "Dm": 1,
+        "E": 2,
+        "Em": 5,
+        "_none": 8
+      },
+      "Bb": {
+        "Bb": 157,
+        "Bdim": 2,
+        "Dm": 3,
+        "F": 8,
+        "_none": 11
+      },
+      "Bdim": {
+        "Am": 2,
+        "Bdim": 151,
+        "D": 1,
+        "Dm": 9,
+        "Em": 3,
+        "G": 1,
+        "_none": 9
+      },
+      "C": {
+        "Am": 10,
+        "C": 167,
+        "Dm": 2,
+        "Em": 3,
+        "F": 8,
+        "G": 1,
+        "_none": 4
+      },
+      "Dm": {
+        "A": 1,
+        "Am": 3,
+        "Dm": 181,
+        "_none": 3
+      },
+      "Em": {
+        "Bdim": 41,
+        "E": 5,
+        "Em": 154,
+        "_none": 5
+      },
+      "F": {
+        "A": 1,
+        "Am": 9,
+        "C": 3,
+        "Dm": 1,
+        "F": 164,
+        "_none": 7
+      },
+      "G": {
+        "Bdim": 3,
+        "Dm": 17,
+        "F": 2,
+        "G": 171,
+        "_none": 5
+      }
+    }
+  },
+  "take02": {
+    "acuracia": 0.984375,
+    "n_janelas": 256,
+    "cobertura": 1.0,
+    "acuracia_aceitos": 0.984375,
+    "acuracia_extras": 0.875,
+    "n_janelas_extras": 96,
+    "confusao": {
+      "A": {
+        "A": 31,
+        "Am": 1
+      },
+      "Am": {
+        "Am": 32
+      },
+      "Bb": {
+        "Bb": 32
+      },
+      "Bdim": {
+        "Bdim": 28,
+        "G": 4
+      },
+      "C": {
+        "C": 32
+      },
+      "D": {
+        "D": 21,
+        "Dm": 11
+      },
+      "Dm": {
+        "Dm": 32
+      },
+      "E": {
+        "E": 32
+      },
+      "Em": {
+        "Em": 32
+      },
+      "F": {
+        "F": 32
+      },
+      "G": {
+        "G": 32
+      }
+    },
+    "pares": {
+      "A->Am": {
+        "n": 1,
+        "de": 32
+      },
+      "Am->A": {
+        "n": 0,
+        "de": 32
+      },
+      "E->Em": {
+        "n": 0,
+        "de": 32
+      },
+      "Em->E": {
+        "n": 0,
+        "de": 32
+      },
+      "D->Dm": {
+        "n": 11,
+        "de": 32
+      },
+      "Dm->D": {
+        "n": 0,
+        "de": 32
+      }
+    }
+  },
+  "sem_acorde": {
+    "gravado": 0.4583333333333333,
+    "sintetico": 0.015384615384615385,
+    "por_tipo": {
+      "gravado_abafadas": {
+        "falso_aceite": 0.0,
+        "n": 24
+      },
+      "gravado_afinando": {
+        "falso_aceite": 0.9166666666666666,
+        "n": 24
+      },
+      "low_volume": {
+        "falso_aceite": 0.026785714285714284,
+        "n": 112
+      },
+      "noise": {
+        "falso_aceite": 0.0,
+        "n": 74
+      },
+      "percussion": {
+        "falso_aceite": 0.013513513513513514,
+        "n": 74
+      }
+    }
+  },
+  "take02_no_treino": false,
+  "modelo": "B11vsaf_stft8192_aug2",
+  "seed": 44,
+  "fontes": [
+    "kaggle_v3",
+    "proprio"
+  ],
+  "classes": [
+    "A",
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "D",
+    "Dm",
+    "E",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "feature": "chroma_stft8192",
+  "n_aug": 2,
+  "janelas_aumentadas": 14106,
+  "peso_por_classe": null,
+  "arquivos": {
+    "treino": 1409,
+    "val": 249,
+    "none_treino": 38,
+    "none_val": 12
+  },
+  "janelas": {
+    "n_acordes_treino": 7053,
+    "n_sinteticos_treino": 857,
+    "n_gravados_treino": 75,
+    "n_acordes_val": 1188,
+    "n_sinteticos_val": 151,
+    "n_gravados_val": 24
+  },
+  "pessoas_val_v3": [],
+  "correcao_afinacao_cents": {
+    "A_jazzmaster_g1_take01": 7.0,
+    "A_violao_s1_take01": 3.5,
+    "Am_jazzmaster_g1_take01": 7.0,
+    "Am_violao_s1_take01": 21.0,
+    "Bb_jazzmaster_g1_take01": 9.5,
+    "Bb_violao_s1_take01": 15.0,
+    "Bdim_jazzmaster_g1_take01": 6.5,
+    "Bdim_violao_s1_take01": 7.0,
+    "C_jazzmaster_g1_take01": 9.0,
+    "C_violao_s1_take01": 6.5,
+    "D_jazzmaster_g1_take01": 12.0,
+    "D_violao_s1_take01": 17.0,
+    "Dm_jazzmaster_g1_take01": 7.5,
+    "Dm_violao_s1_take01": 13.0,
+    "E_jazzmaster_g1_take01": 12.5,
+    "E_violao_s1_take01": 1.0,
+    "Em_jazzmaster_g1_take01": 13.5,
+    "Em_violao_s1_take01": 5.5,
+    "F_jazzmaster_g1_take01": 4.5,
+    "F_violao_s1_take01": 12.5,
+    "G_jazzmaster_g1_take01": 14.0,
+    "G_violao_s1_take01": 11.0
+  },
+  "epocas": 52,
+  "segundos_treino": 310.2
+}
