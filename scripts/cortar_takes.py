@@ -9,8 +9,13 @@ Como funciona:
 - O acorde vem do nome do take (<acorde>_<instrumento>_<sessao>_take<NN>.wav):
   cada take tem um acorde so, entao o script nao tenta adivinhar.
 - Acha o inicio de cada batida (onset) e corta CORTE_SEGUNDOS a partir dele.
-- Onsets muito perto do primeiro (JUNTAR_SEGUNDOS) contam como a mesma
-  batida: o ataque de um rasgueado ou de um arpejo rapido.
+- Onsets a menos de JUNTAR_SEGUNDOS do onset anterior contam como a mesma
+  batida: as cordas de um rasgueado ou de um arpejo vem em sequencia, e o
+  corte comeca no primeiro onset da sequencia.
+- Ignora onsets em que o volume nao sobe pelo menos SUBIDA_MINIMA vezes
+  logo depois: sao a cauda do acorde ou ruido, nao uma batida nova. A guitarra
+  limpa sustenta mais que o violao e a batida sobe menos, entao o limite
+  depende do instrumento (SUBIDA_MINIMA_POR_INSTRUMENTO).
 - Descarta o corte se outra batida comecar antes de CORTE_MINIMO segundos
   ("duas batidas"), se ficar abaixo do limiar de silencio do app ("silencio")
   ou se tiver menos de FRACO_RELATIVO do volume mediano das batidas do take
@@ -39,15 +44,23 @@ PRE_ATAQUE = 0.05
 JUNTAR_SEGUNDOS = 0.35
 FORCA_MINIMA = 0.1
 FRACO_RELATIVO = 0.15
+SUBIDA_MINIMA = 3.5
+# Faixa que deu 8 cortes no lugar certo em todos os takes, com SUBIDA_ATE 0,25:
+# violao s1 (iPhone): so 3,5 (3,0 e 4,0 ja erram); Jazzmaster g1 (GT-1): 1,6 a 2,5.
+SUBIDA_MINIMA_POR_INSTRUMENTO = {'jazzmaster': 2.0}
+SUBIDA_JANELA = 0.2
+SUBIDA_ATE = 0.25
 HOP = 512
 
 
-def detectar_batidas(y, sr, juntar=JUNTAR_SEGUNDOS, forca_minima=FORCA_MINIMA):
+def detectar_batidas(y, sr, juntar=JUNTAR_SEGUNDOS, forca_minima=FORCA_MINIMA, subida_minima=None):
     """Inicio de cada batida, em segundos.
 
     Fica so com onsets que tenham pelo menos `forca_minima` da forca do maior
     onset do take (tira ruido de corda e a cauda do som) e junta os que vem
-    a menos de `juntar` segundos do anterior."""
+    a menos de `juntar` segundos do onset anterior, em cadeia: um rasgueado
+    espalhado tem varios onsets seguidos e vira uma batida so, que comeca
+    no primeiro."""
     envelope = librosa.onset.onset_strength(y=y, sr=sr, hop_length=HOP)
     if envelope.max() <= 0:
         return []
@@ -59,21 +72,44 @@ def detectar_batidas(y, sr, juntar=JUNTAR_SEGUNDOS, forca_minima=FORCA_MINIMA):
     t_picos = librosa.frames_to_time(picos, sr=sr, hop_length=HOP)
     t_inicios = librosa.frames_to_time(inicios, sr=sr, hop_length=HOP)
 
+    # O filtro de subida vem antes de juntar: a cauda de um acorde pode ter
+    # onsets fracos a cada 0,3 s, e se eles entrassem na cadeia ela iria ate a
+    # batida seguinte e a batida inteira seria descartada junto com a cauda.
+    onsets = [(pico, inicio) for pico, inicio in zip(t_picos, t_inicios)
+              if subida(y, sr, float(inicio)) >= (SUBIDA_MINIMA if subida_minima is None else subida_minima)]
+
     # A distancia entre batidas e medida pelos picos; o recuo ate o comeco do
     # som (backtrack) so serve para o corte nao cortar o ataque.
     batidas, ultimo_pico = [], None
-    for pico, inicio in zip(t_picos, t_inicios):
+    for pico, inicio in onsets:
         if ultimo_pico is None or pico - ultimo_pico >= juntar:
             batidas.append(float(max(inicio, batidas[-1] if batidas else 0.0)))
-            ultimo_pico = pico
+        ultimo_pico = pico
     return batidas
+
+
+def subida(y, sr, t):
+    """Quanto o volume sobe logo depois de `t`: o maior RMS numa janela de
+    SUBIDA_JANELA comecando ate SUBIDA_ATE - SUBIDA_JANELA segundos depois,
+    dividido pelo RMS da janela logo antes. Nos 22 takes de acorde da s1
+    (iPhone), com SUBIDA_MINIMA em 3,5, saem as 8 batidas de cada take e os
+    onsets na cauda do som (zumbido de corda, ruido) ficam de fora. A janela
+    e curta de proposito: olhando mais longe, um onset de cauda ate 1 s antes
+    da batida seguinte "via" a subida dela e o corte comecava cedo demais.
+    """
+    def r(a, z):
+        return rms(y[max(0, int(a * sr)):max(0, int(z * sr))])
+    passo = 0.05
+    depois = max(r(t + k * passo, t + k * passo + SUBIDA_JANELA)
+                 for k in range(int(round((SUBIDA_ATE - SUBIDA_JANELA) / passo)) + 1))
+    return depois / max(r(t - SUBIDA_JANELA, t), 1e-6)
 
 
 def rms(trecho):
     return float(np.sqrt(np.mean(np.square(trecho)))) if len(trecho) else 0.0
 
 
-def planejar_cortes(y, sr, sem_acorde=False):
+def planejar_cortes(y, sr, sem_acorde=False, subida_minima=None):
     """Lista de cortes com inicio, fim, duracao e status ('ok' ou o motivo do descarte)."""
     total = len(y) / sr
     cortes = []
@@ -84,7 +120,7 @@ def planejar_cortes(y, sr, sem_acorde=False):
             cortes.append({'inicio': inicio, 'fim': fim})
             inicio = fim
     else:
-        batidas = detectar_batidas(y, sr)
+        batidas = detectar_batidas(y, sr, subida_minima=subida_minima)
         for i, batida in enumerate(batidas):
             inicio = max(0.0, batida - PRE_ATAQUE)
             proxima = batidas[i + 1] if i + 1 < len(batidas) else None
@@ -134,7 +170,8 @@ def cortar_take(caminho, conferir=False, refazer=False, destino=None, sources=No
 
     y, sr = librosa.load(caminho, sr=None, mono=True)
     sem_acorde = info['acorde'] == fontes.NONE_NO_NOME
-    cortes = planejar_cortes(y, sr, sem_acorde=sem_acorde)
+    cortes = planejar_cortes(y, sr, sem_acorde=sem_acorde,
+                             subida_minima=SUBIDA_MINIMA_POR_INSTRUMENTO.get(info['instrumento']))
     if conferir:
         return info, cortes
 

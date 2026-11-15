@@ -77,16 +77,45 @@ def test_nome_valido_inclui_extras_e_none():
 
 
 def test_corta_uma_vez_por_batida_e_descarta_batida_dupla(ambiente):
-    inicios = [0.5, 4.5, 8.5, 12.5, 12.9, 16.5]
+    inicios = [0.5, 4.5, 8.5, 12.5, 14.0, 16.5]
     caminho = gravar(ambiente, 'Am_violao_s1_take01.wav', montar_take(inicios, 20.0))
     _, cortes = cortar(ambiente, caminho, conferir=True)
 
     ok = [c for c in cortes if c['status'] == 'ok']
     assert len(ok) == 5
     assert [c['status'] for c in cortes].count('duas batidas') == 1
-    for c, inicio in zip(ok, [0.5, 4.5, 8.5, 12.9, 16.5]):
+    for c, inicio in zip(ok, [0.5, 4.5, 8.5, 14.0, 16.5]):
         assert inicio - 0.25 <= c['inicio'] <= inicio
         assert cortar_takes.CORTE_MINIMO <= c['duracao'] <= 3.0
+
+
+def test_rasgueado_espalhado_vira_uma_batida_que_comeca_no_primeiro_onset(ambiente):
+    # Cordas a 0,25 s uma da outra: cada uma perto da anterior, mas o grupo
+    # todo passa de JUNTAR_SEGUNDOS. Antes o corte comecava na ultima corda.
+    y = montar_take([0.5, 8.5], 12.0)
+    for k, inicio in enumerate([4.5, 4.75, 5.0, 5.25]):
+        corda = batida(f0=110.0 * (k + 1), ganho=0.3)
+        a = int(inicio * SR)
+        y[a:a + len(corda)] += corda[:len(y) - a]
+    caminho = gravar(ambiente, 'C_violao_s1_take01.wav', y)
+
+    _, cortes = cortar(ambiente, caminho, conferir=True)
+    assert [c['status'] for c in cortes] == ['ok', 'ok', 'ok']
+    assert 4.25 <= cortes[1]['inicio'] <= 4.5
+
+
+def test_ruido_na_cauda_e_batida_logo_em_cima_nao_viram_batida_nova(ambiente):
+    # Com o acorde ainda soando alto, o volume quase nao sobe: um estalo na
+    # cauda ou uma segunda batida a 0,4 s ficam dentro do corte da primeira.
+    y = montar_take([0.5, 4.5, 4.9, 8.5], 12.0)
+    estalo = 0.05 * np.random.default_rng(2).standard_normal(int(0.02 * SR)).astype(np.float32)
+    a = int(1.8 * SR)
+    y[a:a + len(estalo)] += estalo
+    caminho = gravar(ambiente, 'G_violao_s1_take01.wav', y)
+
+    _, cortes = cortar(ambiente, caminho, conferir=True)
+    assert [c['status'] for c in cortes] == ['ok', 'ok', 'ok']
+    assert [round(c['inicio']) for c in cortes] == [0, 4, 8]
 
 
 def test_batida_fraca_fica_e_estalo_no_fim_do_som_sai(ambiente):
@@ -164,3 +193,43 @@ def test_sessao_sem_microfone_ou_fora_da_lista_para(ambiente):
         cortar(ambiente, gravar(ambiente, 'Am_violao_sx_take01.wav', y))
     with pytest.raises(fontes.ErroDeNome, match='sessoes.csv'):
         cortar(ambiente, gravar(ambiente, 'Am_violao_s9_take01.wav', y))
+
+
+def test_onsets_de_cauda_em_sequencia_nao_engolem_a_batida_seguinte(ambiente):
+    # Como no G_violao_s1_take02: o acorde ainda soa, tem ruido de fundo e a
+    # cauda tem estalinhos a cada 0,25 s ate a batida seguinte. Eles nao podem
+    # virar batida, nem puxar o comeco do corte de 4,5 s para antes do ataque.
+    y = 0.01 * np.random.default_rng(0).standard_normal(int(12.0 * SR)).astype(np.float32)
+    for inicio in [0.5, 4.5, 8.5]:
+        b = batida(segundos=4.0)
+        a = int(inicio * SR)
+        y[a:a + len(b)] += b[:len(y) - a]
+    for k in range(10):
+        a = int((2.2 + 0.25 * k) * SR)
+        y[a:a + int(0.01 * SR)] += 0.08 * np.random.default_rng(10 + k).standard_normal(int(0.01 * SR)).astype(np.float32)
+    caminho = gravar(ambiente, 'G_violao_s1_take02.wav', y)
+
+    _, cortes = cortar(ambiente, caminho, conferir=True)
+    ok = [c for c in cortes if c['status'] == 'ok']
+    assert [round(c['inicio']) for c in ok] == [0, 4, 8]
+    assert 4.25 <= ok[1]['inicio'] <= 4.5
+
+
+def take_que_sustenta(total=14.0):
+    """Guitarra limpa: o acorde quase nao decai, entao a batida seguinte soma
+    em cima de um som ainda alto e o volume sobe so umas 2 a 3 vezes."""
+    y = np.zeros(int(total * SR), dtype=np.float32)
+    for inicio in [0.5, 4.5, 8.5]:
+        a = int(inicio * SR)
+        b = batida(segundos=total - inicio)
+        b = b * np.exp((1.5 - 0.15) * np.arange(len(b)) / SR)
+        y[a:] += b[:len(y) - a]
+    return 0.3 * y
+
+
+def test_jazzmaster_usa_limite_de_subida_menor_que_o_violao(ambiente):
+    y = take_que_sustenta()
+    _, violao = cortar(ambiente, gravar(ambiente, 'C_violao_s1_take01.wav', y), conferir=True)
+    _, guitarra = cortar(ambiente, gravar(ambiente, 'C_jazzmaster_s1_take01.wav', y), conferir=True)
+    assert [c['status'] for c in violao] == ['ok']
+    assert [c['status'] for c in guitarra] == ['ok', 'ok', 'ok']
