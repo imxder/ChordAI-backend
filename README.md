@@ -60,11 +60,11 @@ pip install -r requirements.lock.txt
 Uso duas fontes, em pastas separadas que nunca se misturam em disco:
 
 - **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da Fabiana Vinci (CC BY-SA 4.0). Ela autorizou por escrito, nos comentários do dataset, o uso pra treinar, avaliar e distribuir o modelo no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
-- **Minhas gravações**, em `dataset_proprio/<acorde>/`. Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
+- **Minhas gravações**, em `dataset_proprio/<acorde>/`. Publiquei no Kaggle como [ChordAI Guitar Chords](https://www.kaggle.com/datasets/imxder/chordai-guitar-chords-v1) (CC BY-SA 4.0). Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
 
 ```bash
 python baixar_dataset.py              # V3 -> dataset_kaggle/ (o Kaggle entrega sem login)
-python baixar_dataset.py --proprio    # meu dataset -> dataset_proprio/, depois que eu publicar
+python baixar_dataset.py --proprio    # meu dataset -> dataset_proprio/ (também sem login)
 python -m scripts.montar_sources      # gera data/sources.csv com as duas fontes
 ```
 
@@ -265,7 +265,7 @@ Para acessar de outro dispositivo (ex.: celular), use o IP da máquina na rede (
 /
 ├── app.py                     # API Flask (Aplicação Principal)
 ├── serve.py                   # Sobe a API com waitress (servidor para deixar rodando no Windows)
-├── baixar_dataset.py          # Baixa o V3 do Kaggle (e o meu dataset, depois de publicado)
+├── baixar_dataset.py          # Baixa o V3 e o meu dataset do Kaggle
 ├── scripts/
 │   ├── cortar_takes.py        # Corta os takes longos em um arquivo por batida
 │   ├── montar_sources.py      # Monta o data/sources.csv com as duas fontes
