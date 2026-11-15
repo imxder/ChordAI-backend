@@ -70,7 +70,7 @@ python -m scripts.montar_sources      # gera data/sources.csv com as duas fontes
 
 O `data/sources.csv` tem uma linha por arquivo: caminho, acorde, fonte, instrumento, sessão, take, microfone e uso (treino ou teste). As sessões das minhas gravações estão em `data/sessoes.csv`.
 
-O modelo que está no app hoje foi treinado com a pasta antiga `dataset/` (a Training do V3 mais 42 gravações minhas). Pra reproduzir ele, `python baixar_dataset.py --antigo` baixa esse zip do Google Drive. Essa opção sai quando o modelo com as duas fontes for aprovado.
+O modelo "Só v3" do app foi treinado com a pasta antiga `dataset/` (a Training do V3 mais 42 gravações minhas). Pra reproduzir ele, `python baixar_dataset.py --antigo` baixa esse zip do Google Drive. Deixei essa opção porque o app ainda deixa escolher esse modelo nas configurações.
 
 ## 3. Modelo de reconhecimento
 

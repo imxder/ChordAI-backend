@@ -3,15 +3,15 @@
 Uso:
     python baixar_dataset.py              # Guitar Chords V3 -> dataset_kaggle/
     python baixar_dataset.py --proprio    # meu dataset (ChordAI Guitar Chords) -> dataset_proprio/
-    python baixar_dataset.py --antigo     # zip antigo do Google Drive -> dataset/ (o do modelo atual)
+    python baixar_dataset.py --antigo     # zip antigo do Google Drive -> dataset/ (o do modelo so v3)
 
 O Guitar Chords V3 e publico: o Kaggle entrega o zip sem login nem token.
 Ele e da Fabiana Vinci (CC BY-SA 4.0), que autorizou o uso no ChordAI com
 credito e link: https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3
 
-O --antigo existe so para reproduzir o modelo que esta no app hoje, que foi
-treinado com a pasta dataset/ (Training do V3 + 42 gravacoes minhas). Ele sai
-quando o modelo treinado com as duas fontes for aprovado."""
+O --antigo existe para reproduzir o modelo "So v3" do app, que foi treinado
+com a pasta dataset/ (Training do V3 + 42 gravacoes minhas). Fica enquanto o
+app deixar escolher esse modelo."""
 import argparse
 import os
 import shutil
