@@ -1,5 +1,8 @@
 .venv/
 dataset/
+dataset_kaggle/
+dataset_proprio/
+gravacoes/
 __MACOSX/
 __pycache__/
 *.pyc

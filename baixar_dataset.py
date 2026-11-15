@@ -1,33 +1,94 @@
-import gdown
-import zipfile
+"""Baixa os datasets do Kaggle para treinar o modelo.
+
+Uso:
+    python baixar_dataset.py              # Guitar Chords V3 -> dataset_kaggle/
+    python baixar_dataset.py --proprio    # meu dataset (ChordAI Guitar Chords) -> dataset_proprio/
+    python baixar_dataset.py --antigo     # zip antigo do Google Drive -> dataset/ (o do modelo atual)
+
+O Guitar Chords V3 e publico: o Kaggle entrega o zip sem login nem token.
+Ele e da Fabiana Vinci (CC BY-SA 4.0), que autorizou o uso no ChordAI com
+credito e link: https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3
+
+O --antigo existe so para reproduzir o modelo que esta no app hoje, que foi
+treinado com a pasta dataset/ (Training do V3 + 42 gravacoes minhas). Ele sai
+quando o modelo treinado com as duas fontes for aprovado."""
+import argparse
 import os
-import time 
+import shutil
+import sys
+import tempfile
+import urllib.request
+import zipfile
 
-file_id = '15d92Uf9keWqYeFZtpAfYQAoEeSjSQwCs'
-zip_filename = 'dataset.zip'
-dest_folder = '.'
-download_url = f'https://drive.google.com/uc?id={file_id}'
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-print(f"Baixando {zip_filename}...")
+KAGGLE_DOWNLOAD = 'https://www.kaggle.com/api/v1/datasets/download/{slug}'
+GUITAR_CHORDS_V3 = 'fabianavinci/guitar-chords-v3'
+DATASET_PROPRIO = 'imxder/chordai-guitar-chords-v1'
+DRIVE_ANTIGO = '15d92Uf9keWqYeFZtpAfYQAoEeSjSQwCs'
 
-try:
-    gdown.download(download_url, zip_filename, quiet=False)
-    print(f"{zip_filename} baixado com sucesso!")
 
-    print("Aguardando 2 segundos antes de extrair...")
-    time.sleep(2) 
-    print(f"\nExtraindo {zip_filename} para '{os.path.abspath(dest_folder)}'...")
+def baixar_zip(url, destino_zip):
+    print(f'baixando {url}')
+    with urllib.request.urlopen(url, timeout=120) as resposta, open(destino_zip, 'wb') as arquivo:
+        shutil.copyfileobj(resposta, arquivo)
 
-    with zipfile.ZipFile(zip_filename, 'r') as zip_ref:
-        zip_ref.extractall(dest_folder)
-    print("Arquivos extraídos com sucesso!")
 
-    time.sleep(1)
+def extrair(zip_path, destino):
+    with zipfile.ZipFile(zip_path) as z:
+        nomes = [n for n in z.namelist() if not n.startswith('__MACOSX/')]
+        z.extractall(destino, members=nomes)
+    print(f'{len([n for n in nomes if n.lower().endswith(".wav")])} arquivos .wav em {destino}')
 
-    os.remove(zip_filename)
-    print(f"{zip_filename} removido.")
 
-except Exception as e:
-    print(f"ERRO: Ocorreu um problema durante o download ou extração: {e}")
+def tirar_pasta_de_cima(destino):
+    """Quando subi meu dataset arrastando a pasta, o Kaggle guardou tudo dentro
+    dela (chordai_dataset_kaggle/C/...). Se o zip tiver uma pasta so na raiz, o
+    conteudo dela sobe um nivel, para ficar dataset_proprio/C/... como o
+    sources.csv espera. O V3 tem Training e Test na raiz e nao muda."""
+    itens = [i for i in os.listdir(destino) if not i.startswith('.')]
+    if len(itens) != 1 or not os.path.isdir(os.path.join(destino, itens[0])):
+        return
+    de_cima = os.path.join(destino, itens[0])
+    for item in os.listdir(de_cima):
+        shutil.move(os.path.join(de_cima, item), os.path.join(destino, item))
+    os.rmdir(de_cima)
 
-print("\nProcesso concluído.")
+
+def baixar_do_kaggle(slug, destino):
+    if os.path.isdir(destino) and os.listdir(destino):
+        print(f'{destino} ja existe e nao esta vazia: apague a pasta para baixar de novo')
+        return 0
+    with tempfile.TemporaryDirectory() as tmp:
+        zip_path = os.path.join(tmp, 'dataset.zip')
+        baixar_zip(KAGGLE_DOWNLOAD.format(slug=slug), zip_path)
+        extrair(zip_path, destino)
+    tirar_pasta_de_cima(destino)
+    return 0
+
+
+def baixar_antigo():
+    import gdown
+    with tempfile.TemporaryDirectory() as tmp:
+        zip_path = os.path.join(tmp, 'dataset.zip')
+        gdown.download(f'https://drive.google.com/uc?id={DRIVE_ANTIGO}', zip_path, quiet=False)
+        extrair(zip_path, ROOT_DIR)
+    return 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='Baixa os datasets do ChordAI.')
+    grupo = parser.add_mutually_exclusive_group()
+    grupo.add_argument('--proprio', action='store_true', help='baixa o meu dataset para dataset_proprio/')
+    grupo.add_argument('--antigo', action='store_true', help='baixa o zip antigo do Drive para dataset/')
+    args = parser.parse_args(argv)
+
+    if args.antigo:
+        return baixar_antigo()
+    if args.proprio:
+        return baixar_do_kaggle(DATASET_PROPRIO, os.path.join(ROOT_DIR, 'dataset_proprio'))
+    return baixar_do_kaggle(GUITAR_CHORDS_V3, os.path.join(ROOT_DIR, 'dataset_kaggle'))
+
+
+if __name__ == '__main__':
+    sys.exit(main())
