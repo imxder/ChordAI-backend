@@ -18,6 +18,10 @@ NONE_LABEL = '_none'
 
 SILENCE_RMS = 0.003
 
+# .m4a e o que o Gravador do iPhone exporta; o script de corte converte para .wav.
+EXTENSOES_TAKE = ('.wav', '.m4a')
+
+GRAVACOES = os.path.join(ROOT_DIR, 'gravacoes')
 DATASET_ANTIGO = os.path.join(ROOT_DIR, 'dataset')
 DATASET_PROPRIO = os.path.join(ROOT_DIR, 'dataset_proprio')
 DATASET_KAGGLE = os.path.join(ROOT_DIR, 'dataset_kaggle')
@@ -44,11 +48,11 @@ def rotulo(acorde_no_nome):
 
 
 def ler_nome_do_take(caminho):
-    """Am_violao_s1_take01.wav -> {'acorde': 'Am', 'instrumento': 'violao', 'sessao': 's1', 'take': 'Am_violao_s1_take01'}."""
+    """Am_violao_s1_take01.wav (ou .m4a) -> {'acorde': 'Am', 'instrumento': 'violao', 'sessao': 's1', 'take': 'Am_violao_s1_take01'}."""
     nome = os.path.basename(caminho)
     raiz, ext = os.path.splitext(nome)
-    if ext.lower() != '.wav':
-        raise ErroDeNome(f'{nome}: o take precisa ser .wav')
+    if ext.lower() not in EXTENSOES_TAKE:
+        raise ErroDeNome(f'{nome}: o take precisa ser .wav ou .m4a')
     m = _TAKE.match(raiz)
     if not m:
         raise ErroDeNome(

@@ -2,7 +2,8 @@
 
 Uso:
     python -m scripts.cortar_takes gravacoes/Am_violao_s1_take01.wav --conferir
-    python -m scripts.cortar_takes gravacoes/                       # todos os .wav da pasta
+    python -m scripts.cortar_takes ~/Downloads/Am_violao_s1_take01.m4a   # direto do iPhone
+    python -m scripts.cortar_takes gravacoes/                       # todos os .wav e .m4a da pasta
     python -m scripts.cortar_takes gravacoes/Am_violao_s1_take01.wav --refazer
 
 Como funciona:
@@ -22,6 +23,10 @@ Como funciona:
   ("fraco", que costuma ser um estalo no fim do som).
 - Takes "sem acorde" (none_...) nao tem batida para seguir: sao cortados em
   pedacos seguidos de CORTE_SEGUNDOS, sem os que forem silencio.
+- Take em .m4a (Gravador do iPhone) e convertido com o afconvert do macOS
+  para gravacoes/<take>.wav, mantendo a taxa de amostragem, e o corte sai
+  desse .wav. Se o .wav ja existir, para e avisa (com --refazer, converte de
+  novo). Em --conferir a conversao vai para uma pasta temporaria.
 - Nunca altera o take original. Os cortes vao para dataset_proprio/<acorde>/
   como <take>_<NNN>.wav e as linhas entram no data/sources.csv.
 - Rodar de novo no mesmo take para e avisa; com --refazer, apaga so os cortes
@@ -30,7 +35,10 @@ import argparse
 import csv
 import glob
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 
 import librosa
 import numpy as np
@@ -150,14 +158,52 @@ def planejar_cortes(y, sr, sem_acorde=False, subida_minima=None):
     return cortes
 
 
+class ErroDeConversao(RuntimeError):
+    pass
+
+
+def converter_para_wav(caminho, destino):
+    """Converte um .m4a para .wav PCM 24 bits, mesma taxa e mesmos canais."""
+    if shutil.which('afconvert') is None:
+        raise ErroDeConversao('nao achei o afconvert (vem com o macOS) para converter o .m4a')
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    temporario = destino + '.convertendo'
+    resultado = subprocess.run(['afconvert', '-f', 'WAVE', '-d', 'LEI24', caminho, temporario],
+                               capture_output=True, text=True)
+    if resultado.returncode != 0:
+        if os.path.exists(temporario):
+            os.remove(temporario)
+        raise ErroDeConversao(f'{os.path.basename(caminho)}: o afconvert falhou: {resultado.stderr.strip()}')
+    os.replace(temporario, destino)
+    return destino
+
+
+def preparar_take(caminho, conferir=False, refazer=False, pasta_wav=None, pasta_temporaria=None):
+    """Devolve o .wav que vai ser cortado. Um .wav passa direto; um .m4a e
+    convertido para <pasta_wav>/<take>.wav (ou para a pasta temporaria em --conferir)."""
+    if os.path.splitext(caminho)[1].lower() == '.wav':
+        return caminho
+    take = fontes.ler_nome_do_take(caminho)['take']
+    if conferir:
+        return converter_para_wav(caminho, os.path.join(pasta_temporaria or tempfile.mkdtemp(), take + '.wav'))
+    destino = os.path.join(pasta_wav or fontes.GRAVACOES, take + '.wav')
+    if os.path.exists(destino) and not refazer:
+        raise FileExistsError(
+            f'{fontes.caminho_relativo(destino)} ja existe. Use --refazer para converter o .m4a de novo '
+            'por cima dele, ou corte o .wav direto.'
+        )
+    return converter_para_wav(caminho, destino)
+
+
 def cortes_existentes(take, pasta):
     return sorted(glob.glob(os.path.join(pasta, f'{glob.escape(take)}_[0-9][0-9][0-9].wav')))
 
 
-def cortar_take(caminho, conferir=False, refazer=False, destino=None, sources=None, sessoes=None):
-    """Corta um take. Devolve (info do take, lista de cortes planejados).
+def cortar_take(caminho, conferir=False, refazer=False, destino=None, sources=None, sessoes=None,
+                pasta_wav=None, pasta_temporaria=None):
+    """Corta um take (.wav ou .m4a). Devolve (info do take, lista de cortes planejados).
 
-    Em --conferir nao grava nada: so planeja, para o relatorio."""
+    Em --conferir nao grava nada no projeto: so planeja, para o relatorio."""
     info = fontes.ler_nome_do_take(caminho)
     sessoes = sessoes if sessoes is not None else fontes.ler_sessoes()
     sessao = sessoes.get(info['sessao'])
@@ -168,6 +214,8 @@ def cortar_take(caminho, conferir=False, refazer=False, destino=None, sources=No
     if sessao.get('uso') not in fontes.USOS:
         raise fontes.ErroDeNome(f'o uso da sessao "{info["sessao"]}" em data/sessoes.csv precisa ser treino ou teste')
 
+    caminho = preparar_take(caminho, conferir=conferir, refazer=refazer,
+                            pasta_wav=pasta_wav, pasta_temporaria=pasta_temporaria)
     y, sr = librosa.load(caminho, sr=None, mono=True)
     sem_acorde = info['acorde'] == fontes.NONE_NO_NOME
     cortes = planejar_cortes(y, sr, sem_acorde=sem_acorde,
@@ -216,7 +264,11 @@ def listar_takes(entradas):
     takes = []
     for entrada in entradas:
         if os.path.isdir(entrada):
-            takes += sorted(glob.glob(os.path.join(entrada, '*.wav')))
+            # Depois de converter, o .m4a e o .wav do mesmo take ficam lado a
+            # lado na pasta: o .wav e o convertido, entao o .m4a fica de fora.
+            arquivos = sorted(c for ext in fontes.EXTENSOES_TAKE for c in glob.glob(os.path.join(entrada, '*' + ext)))
+            wavs = {os.path.splitext(c)[0] for c in arquivos if c.lower().endswith('.wav')}
+            takes += [c for c in arquivos if c.lower().endswith('.wav') or os.path.splitext(c)[0] not in wavs]
         else:
             takes.append(entrada)
     return takes
@@ -249,9 +301,10 @@ def imprimir_relatorio(resultados, saida_csv=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Corta takes longos em um arquivo por batida.')
-    parser.add_argument('takes', nargs='+', help='arquivos .wav ou pastas com takes')
+    parser.add_argument('takes', nargs='+', help='arquivos .wav ou .m4a, ou pastas com takes')
     parser.add_argument('--conferir', action='store_true', help='so mostra o relatorio, sem gravar nada')
-    parser.add_argument('--refazer', action='store_true', help='apaga os cortes antigos do take e corta de novo')
+    parser.add_argument('--refazer', action='store_true',
+                        help='apaga os cortes antigos do take e corta de novo (e converte o .m4a de novo)')
     parser.add_argument('--relatorio', help='salva um CSV com cada corte (inicio, fim, duracao, status)')
     args = parser.parse_args(argv)
 
@@ -260,13 +313,19 @@ def main(argv=None):
         print('nenhum .wav encontrado')
         return 1
     try:
+        vistos = {}
         for take in takes:
-            fontes.ler_nome_do_take(take)
+            nome = fontes.ler_nome_do_take(take)['take']
+            if nome in vistos:
+                raise fontes.ErroDeNome(f'o take {nome} apareceu duas vezes ({vistos[nome]} e {take}); passe so um deles')
+            vistos[nome] = take
         resultados = []
-        for take in takes:
-            info, cortes = cortar_take(take, conferir=args.conferir, refazer=args.refazer)
-            resultados.append((take, info, cortes))
-    except (fontes.ErroDeNome, FileExistsError) as erro:
+        with tempfile.TemporaryDirectory() as temporaria:
+            for take in takes:
+                info, cortes = cortar_take(take, conferir=args.conferir, refazer=args.refazer,
+                                           pasta_temporaria=temporaria)
+                resultados.append((take, info, cortes))
+    except (fontes.ErroDeNome, FileExistsError, ErroDeConversao) as erro:
         print(f'parei: {erro}')
         return 1
     imprimir_relatorio(resultados, args.relatorio)
