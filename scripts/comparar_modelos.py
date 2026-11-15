@@ -52,7 +52,10 @@ MODELOS = {
     'B8': ({'proprio', 'kaggle_v3'}, fontes.ACORDES, False),
     'B11': ({'proprio', 'kaggle_v3'}, fontes.acordes_validos(), True),
 }
-ORDEM = ['0', 'A', 'B8', 'B11']
+# R = a receita do modelo atual retreinada (so dataset/, split sorteado por
+# arquivo, como o train_model.py), para ter 3 seeds dela no Test do v3 e nao
+# comparar com uma seed so.
+ORDEM = ['0', 'R', 'A', 'B8', 'B11']
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -244,13 +247,40 @@ def calibrar_limiar(model, d, classes):
     return pl.choose_threshold(linhas)
 
 
+def montar_receita_atual():
+    """Treino e validacao do jeito do train_model.py: dataset/ sorteado 80/20
+    por arquivo e 15% do treino para validacao, com os negativos sinteticos.
+    O teste desse sorteio nao e usado; a avaliacao e nos testes fixos."""
+    from experiments.data import build
+    d = pl.load_dataset(FEATURE, with_none=True, dataset_path=fontes.DATASET_ANTIGO,
+                        build_fn=lambda files, feat: build(files, feat, 'clean'),
+                        negatives_fn=lambda split, files, feat: _negativos_sinteticos(split, files),
+                        verbose=False)
+    rms_val = _features(d['val_files'])[2]
+    n = len(rms_val)
+    return {'X_treino': d['X_train'], 'y_treino': d['y_train'], 'X_val': d['X_val'], 'y_val': d['y_val'],
+            # a calibracao do limiar so olha o rms das janelas de acorde (as n primeiras)
+            'rms_val': np.concatenate([rms_val, np.ones(len(d['X_val']) - n)]),
+            'n_acordes_treino': int((d['y_train'] != pl.NONE_LABEL).sum()),
+            'n_sinteticos_treino': int((d['y_train'] == pl.NONE_LABEL).sum()), 'n_gravados_treino': 0,
+            'n_acordes_val': n, 'n_sinteticos_val': len(d['X_val']) - n, 'n_gravados_val': 0}, {
+            'treino': d['train_files'], 'val': d['val_files'], 'none_treino': [], 'none_val': []}
+
+
 def treinar(nome, seed, testes, dados_cache):
-    fontes_usadas, acordes, com_peso = MODELOS[nome]
+    if nome == 'R':
+        fontes_usadas, acordes, com_peso = {'dataset/'}, fontes.ACORDES, False
+    else:
+        fontes_usadas, acordes, com_peso = MODELOS[nome]
     pasta = os.path.join(RESULTADOS, f'{nome}_s{seed}')
     print(f'=== {nome} seed {seed} ===', flush=True)
     if nome not in dados_cache:
-        partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
-        dados_cache[nome] = (partes, montar_treino(partes))
+        if nome == 'R':
+            d, partes = montar_receita_atual()
+            dados_cache[nome] = (partes, d)
+        else:
+            partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
+            dados_cache[nome] = (partes, montar_treino(partes))
     partes, d = dados_cache[nome]
 
     import keras
