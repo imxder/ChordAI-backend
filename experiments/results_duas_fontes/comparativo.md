@@ -3,7 +3,7 @@
 Gerado por `python -m scripts.comparar_modelos` a partir dos `metrics.json` desta pasta.
 Média das seeds, com o menor e o maior entre parênteses. O modelo 0 é um só (não tem seed).
 
-| Modelo | Seeds | Teste v3, 8 acordes | take02, 8 acordes | take02, extras (D, A, E) | Falso aceite, gravado | Falso aceite, sintético | Limiar |
+| Modelo | Seeds | Teste v3, 8 acordes | take02, 8 acordes | take02, extras que o modelo conhece | Falso aceite, gravado | Falso aceite, sintético | Limiar |
 |---|---|---|---|---|---|---|---|
 | 0 | - | 90.7% | 99.2% | - | 87.5% | 2.7% | 0.5 |
 | 0c | - | 87.4% | 98.0% | - | 81.2% | 1.9% | 0.5 |
@@ -22,6 +22,7 @@ Média das seeds, com o menor e o maior entre parênteses. O modelo 0 é um só 
 | B11vsaf_stft8192_aug2 | 42, 43, 44 | 85.9% (84.7–86.7) | 98.7% (98.0–99.6) | 84.4% (81.2–87.5) | 47.2% (45.8–50.0) | 0.6% (0.0–1.5) | 0.4, 0.5, 0.75 |
 | B8v_stft8192_aug2 | 42, 43, 44 | 86.3% (85.3–86.8) | 100.0% (100.0–100.0) | - | 41.7% (39.6–45.8) | 0.6% (0.4–1.2) | 0.65, 0.7 |
 | B8vp_stft8192_aug2 | 42, 43, 44 | 86.5% (85.1–87.5) | 99.9% (99.6–100.0) | - | 42.4% (39.6–45.8) | 0.4% (0.4–0.4) | 0.65, 0.7 |
+| F9_stft8192_aug2 | 42, 43, 44 | 85.7% (85.5–85.9) | 99.5% (98.8–100.0) | 100.0% (100.0–100.0) | 29.9% (22.9–41.7) | 1.0% (0.4–1.5) | 0.55 |
 | Fc_stft8192_aug2 | 42, 43, 44 | 84.2% (84.1–84.3) | - | - | 16.7% (8.3–20.8) | 0.7% (0.0–1.8) | 0.6, 0.65, 0.7 |
 | Fd_stft8192_aug2 | 42, 43, 44 | 85.4% (84.8–86.4) | 99.0% (98.0–100.0) | 96.9% (94.8–99.0) | 31.2% (27.1–39.6) | 1.3% (1.2–1.5) | 0.3, 0.4, 0.45 |
 | R_stft8192_aug2 | 42, 43, 44 | 87.4% (87.3–87.6) | 98.2% (98.0–98.4) | - | 88.9% (81.2–95.8) | 1.8% (1.5–1.9) | 0.5 |

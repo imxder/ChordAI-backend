@@ -51,6 +51,8 @@ MODELOS = {
     'A': ({'proprio'}, fontes.ACORDES, False),
     'B8': ({'proprio', 'kaggle_v3'}, fontes.ACORDES, False),
     'B11': ({'proprio', 'kaggle_v3'}, fontes.acordes_validos(), True),
+    # 8 acordes do app + A: no iPhone o D e o E nao funcionaram, o A sim
+    'B9': ({'proprio', 'kaggle_v3'}, fontes.ACORDES + ['A'], False),
 }
 # R = a receita do modelo atual retreinada (so dataset/, split sorteado por
 # arquivo, como o train_model.py), para ter 3 seeds dela no Test do v3 e nao
@@ -76,16 +78,17 @@ MODELOS = {
 # treino. Rodar com --feature chroma_stft8192 --aug 2 (a receita do celular).
 # Fd = o Fc sem os take02 no treino (eles continuam de teste, inclusive dos
 # acordes extras). Colocar os take02 no treino custou ~1,5 ponto no Test do v3.
-ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa', 'Fc', 'Fd']
-PESO_PROPRIO = {'B8vp': 0.5, 'Fc': 0.5, 'Fd': 0.5}
+# F9 = o Fd so com o A de acorde extra (8 + A), mesma receita.
+ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa', 'Fc', 'Fd', 'F9']
+PESO_PROPRIO = {'B8vp': 0.5, 'Fc': 0.5, 'Fd': 0.5, 'F9': 0.5}
 FINAIS = ('F', 'Fa', 'Fc')  # treinam com os take02
-COM_AFINACAO = ('Fa', 'Fc', 'Fd')
+COM_AFINACAO = ('Fa', 'Fc', 'Fd', 'F9')
 AFINACAO_CORRIGIDA = ('B11vsaf',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
 VARIANTES = {'B8v': ('B8', True, None), 'B8vp': ('B8', True, None), 'B11v': ('B11', True, None),
              'B11vs': ('B11', True, False),
              'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False),
-             'Fc': ('B11', True, False), 'Fd': ('B11', True, False)}
+             'Fc': ('B11', True, False), 'Fd': ('B11', True, False), 'F9': ('B9', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -301,7 +304,10 @@ def metricas_de_saidas(saidas, classes, limiar):
     pred, conf = predicoes(probs, classes)
     m['take02'] = dict(zip(('acuracia', 'n_janelas'), acuracia(pred, y, fontes.ACORDES)))
     m['take02'].update(aceitos(pred, conf, rms, y, limiar, fontes.ACORDES))
-    m['take02']['acuracia_extras'], m['take02']['n_janelas_extras'] = acuracia(pred, y, fontes.ACORDES_EXTRAS)
+    # extras: so os que o modelo conhece (o F9 so tem o A)
+    extras = [e for e in fontes.ACORDES_EXTRAS if e in list(classes)]
+    m['take02']['acuracia_extras'], m['take02']['n_janelas_extras'] = acuracia(pred, y, extras)
+    m['take02']['acuracia_por_extra'] = {e: acuracia(pred, y, [e])[0] for e in extras}
     m['take02']['confusao'] = confusao(pred, y)
     m['take02']['pares'] = confusao_pares(m['take02']['confusao'])
 
@@ -521,7 +527,7 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
     limiar, linha_val, acc_val = calibrar_limiar(model, d, classes)
 
     metricas = avaliar(model, scaler, classes, limiar, testes)
-    if nome in FINAIS:
+    if nome in FINAIS or nome in COM_AFINACAO:
         metricas['curva_limiar'] = curva_limiar(model, scaler, classes, testes)
     metricas.update({
         'take02_no_treino': nome in FINAIS,
@@ -670,8 +676,8 @@ def resumo(metricas):
     colunas = [
         ('Teste v3, 8 acordes', lambda m: m['teste_v3']['acuracia']),
         ('take02, 8 acordes', lambda m: None if m.get('take02_no_treino') else m['take02']['acuracia']),
-        ('take02, extras (D, A, E)', lambda m: None if m.get('take02_no_treino') or 'D' not in m['classes']
-         else m['take02']['acuracia_extras']),
+        ('take02, extras que o modelo conhece', lambda m: None if m.get('take02_no_treino')
+         or not set(fontes.ACORDES_EXTRAS) & set(m['classes']) else m['take02']['acuracia_extras']),
         ('Falso aceite, gravado', lambda m: m['sem_acorde']['gravado']),
         ('Falso aceite, sintético', lambda m: m['sem_acorde']['sintetico']),
     ]

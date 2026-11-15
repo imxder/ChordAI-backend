@@ -9,9 +9,7 @@
     "Bb",
     "Bdim",
     "C",
-    "D",
     "Dm",
-    "E",
     "Em",
     "F",
     "G",
@@ -19,7 +17,7 @@
   ],
   "with_none": true,
   "none_label": "_none",
-  "confidence_threshold": 0.3,
+  "confidence_threshold": 0.55,
   "sample_rate": 22050,
   "window_seconds": 1.5,
   "hop_length": 512,
@@ -33,9 +31,9 @@
   },
   "seed": 43,
   "trained_by": "scripts/comparar_modelos.py",
-  "modelo": "Fd_stft8192_aug2",
+  "modelo": "F9_stft8192_aug2",
   "n_aug": 2,
   "threshold_source": "calibrado na validacao no treino (seed 43), criterio da Parte 5 (scripts/comparar_modelos.py)",
-  "source_experiment": "experiments/results_duas_fontes/Fd_stft8192_aug2_s43",
-  "model_version": "fd_stft8192_aug2-s43"
+  "source_experiment": "experiments/results_duas_fontes/F9_stft8192_aug2_s43",
+  "model_version": "f9_stft8192_aug2-s43"
 }
