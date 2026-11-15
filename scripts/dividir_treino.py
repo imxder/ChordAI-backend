@@ -34,11 +34,18 @@ SEED_DIVISAO = 42
 
 _CORTE = re.compile(r'_(\d{3})\.wav$')
 
+# Nomes do v3 que sao a mesma gravacao com outro nome em alguns arquivos: os
+# dois juntos dao 32 arquivos, 4 por acorde, como as outras pessoas.
+# ClassicCleanGB so aparece em Dm e Em; acusticBG_JO so em Em.
+_MESMA_PESSOA_V3 = {'ClassicCleanGB': 'ClassicCleanGB_JO', 'acusticBG_JO': 'acusticGB_JO'}
+
 
 def pessoa_v3(sessao):
     """Nome da pessoa/instrumento do v3, sem os erros de digitacao do dataset
-    ('AcusticPlug29 ' com espaco, 'AcustiicPlug10', 'Retro GB_JO')."""
-    return re.sub(r'\s+', '', sessao).replace('Acustiic', 'Acustic')
+    ('AcusticPlug29 ' com espaco, 'AcustiicPlug10', 'Retro GB_JO',
+    'ClassicCleanGB', 'acusticBG_JO')."""
+    nome = re.sub(r'\s+', '', sessao).replace('Acustiic', 'Acustic')
+    return _MESMA_PESSOA_V3.get(nome, nome)
 
 
 def numero_do_corte(caminho):

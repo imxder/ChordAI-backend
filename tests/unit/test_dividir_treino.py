@@ -57,6 +57,26 @@ def test_validacao_separa_pessoas_do_v3_e_1_de_cada_4_cortes():
     assert ('AcusticPlug9' in val_v3) == all('AcusticPlug9_' not in n for n in nomes(p['treino']))
 
 
+def test_nomes_errados_do_v3_viram_a_mesma_pessoa():
+    assert dividir_treino.pessoa_v3('AcusticPlug29 ') == 'AcusticPlug29'
+    assert dividir_treino.pessoa_v3('AcustiicPlug10') == 'AcusticPlug10'
+    assert dividir_treino.pessoa_v3('Retro GB_JO') == 'RetroGB_JO'
+    assert dividir_treino.pessoa_v3('ClassicCleanGB') == 'ClassicCleanGB_JO'
+    assert dividir_treino.pessoa_v3('acusticBG_JO') == 'acusticGB_JO'
+    assert dividir_treino.pessoa_v3('acusticGB_JO') == 'acusticGB_JO'
+
+
+def test_nome_errado_nao_separa_a_pessoa_entre_treino_e_validacao():
+    linhas = []
+    for i in range(20):
+        linhas += v3('C', f'AcusticPlug{i}', 'treino')
+    linhas += v3('Dm', 'ClassicCleanGB', 'treino') + v3('C', 'ClassicCleanGB_JO', 'treino')
+    p = dividir_treino.dividir(linhas, {'kaggle_v3'}, ['C', 'Dm'], raiz='/r')
+    no_treino = any('ClassicCleanGB' in n for n in nomes(p['treino']))
+    na_val = any('ClassicCleanGB' in n for n in nomes(p['val']))
+    assert no_treino != na_val
+
+
 def test_acordes_extras_so_entram_quando_pedidos():
     linhas = montar()
     so_app = dividir_treino.dividir(linhas, {'proprio'}, fontes.ACORDES, raiz='/r')
