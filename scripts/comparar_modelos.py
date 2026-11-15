@@ -58,7 +58,11 @@ MODELOS = {
 # B8v = os mesmos dados do B8, mas com a validacao sorteada por arquivo (15%,
 # como o train_model.py), em vez de separada por pessoa. Serve para saber se a
 # diferenca do B8 para o R vem do jeito de validar.
-ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11']
+# B11v = B11 com a validacao sorteada; B11vs = o mesmo sem o peso por classe
+# (para separar o efeito dos acordes extras do efeito do peso).
+ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs']
+# nome -> (modelo base, validacao sorteada, forca o peso por classe a)
+VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -281,8 +285,10 @@ def montar_receita_atual():
 def treinar(nome, seed, testes, dados_cache):
     if nome == 'R':
         fontes_usadas, acordes, com_peso = {'dataset/'}, fontes.ACORDES, False
-    elif nome == 'B8v':
-        fontes_usadas, acordes, com_peso = MODELOS['B8']
+    elif nome in VARIANTES:
+        base, _, peso = VARIANTES[nome]
+        fontes_usadas, acordes, com_peso = MODELOS[base]
+        com_peso = com_peso if peso is None else peso
     else:
         fontes_usadas, acordes, com_peso = MODELOS[nome]
     pasta = os.path.join(RESULTADOS, f'{nome}_s{seed}')
@@ -293,7 +299,7 @@ def treinar(nome, seed, testes, dados_cache):
             dados_cache[nome] = (partes, d)
         else:
             partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
-            if nome == 'B8v':
+            if nome in VARIANTES and VARIANTES[nome][1]:
                 partes = validacao_sorteada(partes)
             dados_cache[nome] = (partes, montar_treino(partes))
     partes, d = dados_cache[nome]
