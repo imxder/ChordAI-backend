@@ -60,9 +60,13 @@ MODELOS = {
 # diferenca do B8 para o R vem do jeito de validar.
 # B11v = B11 com a validacao sorteada; B11vs = o mesmo sem o peso por classe
 # (para separar o efeito dos acordes extras do efeito do peso).
-ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs']
+# F = o modelo final candidato: B11vs treinado com tudo, inclusive os take02.
+# Os take02 deixam de ser teste, entao a coluna take02 do F nao vale; a prova
+# dele e o Test do v3 e o sem acorde gravado (take04 e take06).
+ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F']
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
-VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False)}
+VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False),
+             'F': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -122,9 +126,11 @@ def partes_de_teste():
     return dividir_treino.dividir(fontes.ler_sources(), {'proprio', 'kaggle_v3'}, fontes.acordes_validos())
 
 
-def montar_testes(partes):
+def montar_testes(partes, low_volume_so_v3=False):
     """Janelas dos testes. teste_v3 e take02 com rotulo; sem acorde com o tipo
-    de cada janela (take04, take06 ou o tipo sintetico)."""
+    de cada janela (take04, take06 ou o tipo sintetico). low_volume_so_v3: o
+    low_volume sai so de arquivos do Test do v3 (para o modelo F, que treina
+    com os take02)."""
     testes = {}
     X, y, rms, _ = _features(partes['teste_v3'])
     testes['teste_v3'] = {'X': X, 'y': y, 'rms': rms}
@@ -135,7 +141,8 @@ def montar_testes(partes):
     Xg, _, rms_g, fidx = _gravados(gravados)
     tipo_g = np.array([_tipo_gravado(gravados[i]) for i in fidx])
     # low_volume sai dos arquivos de acorde de teste (das duas fontes, so os 8 acordes do app)
-    base = [p for p in partes['teste_v3'] + partes['teste_proprio'] if p[1] in fontes.ACORDES]
+    origem = partes['teste_v3'] if low_volume_so_v3 else partes['teste_v3'] + partes['teste_proprio']
+    base = [p for p in origem if p[1] in fontes.ACORDES]
     Xs, tipo_s, rms_s = _negativos_sinteticos('test', base)
     testes['sem_acorde'] = {'X': np.concatenate([Xg, Xs]), 'tipo': np.concatenate([tipo_g, tipo_s]),
                             'rms': np.concatenate([rms_g, rms_s])}
@@ -241,6 +248,26 @@ def avaliar(model, scaler, classes, limiar, testes):
     return m
 
 
+def curva_limiar(model, scaler, classes, testes):
+    """Para cada limiar da grade: quanto do Test do v3 o app mostraria, quanto
+    do que mostrou estava certo e o falso aceite do sem acorde. So informativa:
+    o limiar de verdade e o calibrado na validacao."""
+    def prever(X):
+        return predicoes(model.predict(pl.apply_scaler(scaler, X, SCALER), verbose=0), classes)
+
+    v3 = testes['teste_v3']
+    pred_v, conf_v = prever(v3['X'])
+    sa = testes['sem_acorde']
+    pred_s, conf_s = prever(sa['X'])
+    linhas = []
+    for t in pl.THRESHOLD_GRID:
+        a = aceitos(pred_v, conf_v, v3['rms'], v3['y'], float(t), fontes.ACORDES)
+        f = falso_aceite(pred_s, conf_s, sa['rms'], sa['tipo'], float(t))
+        linhas.append({'limiar': float(t), 'cobertura_v3': a['cobertura'], 'acuracia_aceitos_v3': a['acuracia_aceitos'],
+                       'falso_aceite_gravado': f['gravado'], 'falso_aceite_sintetico': f['sintetico']})
+    return linhas
+
+
 # ---------------------------------------------------------------------------
 # Treino
 # ---------------------------------------------------------------------------
@@ -299,6 +326,8 @@ def treinar(nome, seed, testes, dados_cache):
             dados_cache[nome] = (partes, d)
         else:
             partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
+            if nome == 'F':  # o modelo final treina tambem com os take02
+                partes = dict(partes, treino=partes['treino'] + partes['teste_proprio'])
             if nome in VARIANTES and VARIANTES[nome][1]:
                 partes = validacao_sorteada(partes)
             dados_cache[nome] = (partes, montar_treino(partes))
@@ -324,7 +353,10 @@ def treinar(nome, seed, testes, dados_cache):
     limiar = calibrar_limiar(model, d, classes)
 
     metricas = avaliar(model, scaler, classes, limiar, testes)
+    if nome == 'F':
+        metricas['curva_limiar'] = curva_limiar(model, scaler, classes, testes)
     metricas.update({
+        'take02_no_treino': nome == 'F',
         'modelo': nome, 'seed': seed, 'fontes': sorted(fontes_usadas), 'classes': [str(c) for c in classes],
         'peso_por_classe': pesos,
         'arquivos': {k: len(partes[k]) for k in ('treino', 'val', 'none_treino', 'none_val')},
@@ -383,8 +415,9 @@ def _celula(valores):
 def resumo(metricas):
     colunas = [
         ('Teste v3, 8 acordes', lambda m: m['teste_v3']['acuracia']),
-        ('take02, 8 acordes', lambda m: m['take02']['acuracia']),
-        ('take02, extras (D, A, E)', lambda m: m['take02']['acuracia_extras'] if 'D' in m['classes'] else None),
+        ('take02, 8 acordes', lambda m: None if m.get('take02_no_treino') else m['take02']['acuracia']),
+        ('take02, extras (D, A, E)', lambda m: None if m.get('take02_no_treino') or 'D' not in m['classes']
+         else m['take02']['acuracia_extras']),
         ('Falso aceite, gravado', lambda m: m['sem_acorde']['gravado']),
         ('Falso aceite, sintético', lambda m: m['sem_acorde']['sintetico']),
     ]
@@ -440,6 +473,7 @@ def main(argv=None):
 
     if not args.so_resumo:
         testes = montar_testes(partes_de_teste())
+        testes_por_modelo = {}
         dados_cache = {}
         for nome in args.modelos:
             if nome == '0':
@@ -450,7 +484,9 @@ def main(argv=None):
                 if os.path.exists(os.path.join(RESULTADOS, f'{nome}_s{seed}', 'metrics.json')):
                     print(f'[pula] {nome}_s{seed}', flush=True)
                     continue
-                treinar(nome, seed, testes, dados_cache)
+                if nome == 'F' and 'F' not in testes_por_modelo:
+                    testes_por_modelo['F'] = montar_testes(partes_de_teste(), low_volume_so_v3=True)
+                treinar(nome, seed, testes_por_modelo.get(nome, testes), dados_cache)
 
     texto = resumo(_ler_metricas())
     os.makedirs(RESULTADOS, exist_ok=True)
