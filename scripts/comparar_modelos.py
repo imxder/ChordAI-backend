@@ -65,7 +65,8 @@ MODELOS = {
 # dele e o Test do v3 e o sem acorde gravado (take04 e take06).
 # Fa = o F com negativos sinteticos de afinacao no treino (o teste de afinacao
 # continua sendo o take06 real, que nao entra no treino).
-ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F', 'Fa']
+# 0c = o modelo que esta no celular (export/chord_model.tflite), so avaliado.
+ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F', 'Fa']
 FINAIS = ('F', 'Fa')  # treinam com os take02
 COM_AFINACAO = ('Fa',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
@@ -261,29 +262,42 @@ def pesos_por_classe(y):
     return {str(c): float(len(y) / (len(classes) * n)) for c, n in zip(classes, contagens)}
 
 
-def avaliar(model, scaler, classes, limiar, testes):
-    def prever(X):
-        return predicoes(model.predict(pl.apply_scaler(scaler, X, SCALER), verbose=0), classes)
-
+def metricas_de_saidas(saidas, classes, limiar):
+    """Metricas a partir das probabilidades ja calculadas. saidas = {'teste_v3':
+    (probs, y, rms), 'take02': (probs, y, rms), 'sem_acorde': (probs, tipo, rms)}.
+    Serve para qualquer modelo: Keras, a media de varias seeds ou o TFLite."""
     m = {'limiar': limiar}
-    t = testes['teste_v3']
-    pred, conf = prever(t['X'])
-    m['teste_v3'] = dict(zip(('acuracia', 'n_janelas'), acuracia(pred, t['y'], fontes.ACORDES)))
-    m['teste_v3'].update(aceitos(pred, conf, t['rms'], t['y'], limiar, fontes.ACORDES))
-    m['teste_v3']['confusao'] = confusao(pred, t['y'])
+    probs, y, rms = saidas['teste_v3']
+    pred, conf = predicoes(probs, classes)
+    m['teste_v3'] = dict(zip(('acuracia', 'n_janelas'), acuracia(pred, y, fontes.ACORDES)))
+    m['teste_v3'].update(aceitos(pred, conf, rms, y, limiar, fontes.ACORDES))
+    m['teste_v3']['confusao'] = confusao(pred, y)
 
-    t = testes['take02']
-    pred, conf = prever(t['X'])
-    m['take02'] = dict(zip(('acuracia', 'n_janelas'), acuracia(pred, t['y'], fontes.ACORDES)))
-    m['take02'].update(aceitos(pred, conf, t['rms'], t['y'], limiar, fontes.ACORDES))
-    m['take02']['acuracia_extras'], m['take02']['n_janelas_extras'] = acuracia(pred, t['y'], fontes.ACORDES_EXTRAS)
-    m['take02']['confusao'] = confusao(pred, t['y'])
+    probs, y, rms = saidas['take02']
+    pred, conf = predicoes(probs, classes)
+    m['take02'] = dict(zip(('acuracia', 'n_janelas'), acuracia(pred, y, fontes.ACORDES)))
+    m['take02'].update(aceitos(pred, conf, rms, y, limiar, fontes.ACORDES))
+    m['take02']['acuracia_extras'], m['take02']['n_janelas_extras'] = acuracia(pred, y, fontes.ACORDES_EXTRAS)
+    m['take02']['confusao'] = confusao(pred, y)
     m['take02']['pares'] = confusao_pares(m['take02']['confusao'])
 
-    t = testes['sem_acorde']
-    pred, conf = prever(t['X'])
-    m['sem_acorde'] = falso_aceite(pred, conf, t['rms'], t['tipo'], limiar)
+    probs, tipo, rms = saidas['sem_acorde']
+    pred, conf = predicoes(probs, classes)
+    m['sem_acorde'] = falso_aceite(pred, conf, rms, tipo, limiar)
     return m
+
+
+def _rotulo_do_teste(nome):
+    return 'tipo' if nome == 'sem_acorde' else 'y'
+
+
+def _probs_keras(model, scaler, X):
+    return model.predict(pl.apply_scaler(scaler, X, SCALER), verbose=0)
+
+
+def avaliar(model, scaler, classes, limiar, testes):
+    saidas = {k: (_probs_keras(model, scaler, t['X']), t[_rotulo_do_teste(k)], t['rms']) for k, t in testes.items()}
+    return metricas_de_saidas(saidas, classes, limiar)
 
 
 def curva_limiar(model, scaler, classes, testes):
@@ -347,7 +361,33 @@ def montar_receita_atual():
             'treino': d['train_files'], 'val': d['val_files'], 'none_treino': [], 'none_val': []}
 
 
-def treinar(nome, seed, testes, dados_cache):
+def sufixo(feature, n_aug):
+    """Pedaco do nome que diz a feature e o augmentation, quando nao sao os
+    padroes (chroma sem augmentation): B11vs_stft8192_aug2."""
+    s = '' if feature == 'chroma' else '_' + feature.replace('chroma_', '')
+    return s + (f'_aug{n_aug}' if n_aug else '')
+
+
+def _features_aug(pares, seed, n_aug):
+    """n_aug versoes aumentadas de cada janela de acorde do treino (ruido,
+    ganho, passa-banda e deslocamento: experiments/augment.py, o mesmo aug2
+    da Parte 3 e do modelo do celular). Dependem da seed, entao o cache tambem."""
+    from experiments.data import transform_train_aug
+    chave = np.array([f'{fontes.caminho_relativo(p)}|{a}' for p, a in pares])
+    digest = hashlib.md5('\n'.join(chave).encode()).hexdigest()[:10]
+    caminho = os.path.join(CACHE, f'duas_fontes_{FEATURE}_aug{n_aug}_s{seed}_{digest}.npz')
+    if os.path.exists(caminho):
+        d = np.load(caminho, allow_pickle=False)
+        if np.array_equal(d['chave'], chave):
+            return d['X'], d['y']
+    print(f'  extraindo {n_aug} versoes aumentadas de {len(pares)} arquivos...', flush=True)
+    X, y, _, _, _ = pl.build_features(pares, FEATURE, transform_train_aug, n_aug, seed)
+    os.makedirs(CACHE, exist_ok=True)
+    np.savez_compressed(caminho, X=X, y=y, chave=chave)
+    return X, y
+
+
+def treinar(nome, seed, testes, dados_cache, n_aug=0):
     if nome == 'R':
         fontes_usadas, acordes, com_peso = {'dataset/'}, fontes.ACORDES, False
     elif nome in VARIANTES:
@@ -356,8 +396,9 @@ def treinar(nome, seed, testes, dados_cache):
         com_peso = com_peso if peso is None else peso
     else:
         fontes_usadas, acordes, com_peso = MODELOS[nome]
-    pasta = os.path.join(RESULTADOS, f'{nome}_s{seed}')
-    print(f'=== {nome} seed {seed} ===', flush=True)
+    nome_saida = nome + sufixo(FEATURE, n_aug)
+    pasta = os.path.join(RESULTADOS, f'{nome_saida}_s{seed}')
+    print(f'=== {nome_saida} seed {seed} ===', flush=True)
     if nome not in dados_cache:
         if nome == 'R':
             d, partes = montar_receita_atual()
@@ -374,13 +415,19 @@ def treinar(nome, seed, testes, dados_cache):
     import keras
     keras.backend.clear_session()
     pl.set_seeds(seed)
+    X_bruto, y_bruto = d['X_treino'], d['y_treino']
+    n_aumentadas = 0
+    if n_aug:  # so as janelas de acorde do treino; validacao e testes ficam limpos
+        Xa, ya = _features_aug(partes['treino'], seed, n_aug)
+        X_bruto, y_bruto, n_aumentadas = np.concatenate([X_bruto, Xa]), np.concatenate([y_bruto, ya]), len(Xa)
+
     rotulos = list(acordes) + [pl.NONE_LABEL]
-    encoder, y_treino, y_val = pl.encode_labels(rotulos, d['y_treino'], d['y_val'])
+    encoder, y_treino, y_val = pl.encode_labels(rotulos, y_bruto, d['y_val'])
     classes = np.array(encoder.classes_)
-    X_treino, scaler = pl.fit_scaler(d['X_treino'], SCALER)
+    X_treino, scaler = pl.fit_scaler(X_bruto, SCALER)
     d['X_val_f'] = pl.apply_scaler(scaler, d['X_val'], SCALER)
 
-    pesos = pesos_por_classe(d['y_treino']) if com_peso else None
+    pesos = pesos_por_classe(y_bruto) if com_peso else None
     class_weight = {i: pesos[str(c)] for i, c in enumerate(classes)} if pesos else None
 
     model = pl.build_model(ARCH, X_treino.shape[1:], len(classes))
@@ -395,7 +442,8 @@ def treinar(nome, seed, testes, dados_cache):
         metricas['curva_limiar'] = curva_limiar(model, scaler, classes, testes)
     metricas.update({
         'take02_no_treino': nome in FINAIS,
-        'modelo': nome, 'seed': seed, 'fontes': sorted(fontes_usadas), 'classes': [str(c) for c in classes],
+        'modelo': nome_saida, 'seed': seed, 'fontes': sorted(fontes_usadas), 'classes': [str(c) for c in classes],
+        'feature': FEATURE, 'n_aug': n_aug, 'janelas_aumentadas': n_aumentadas,
         'peso_por_classe': pesos,
         'arquivos': {k: len(partes[k]) for k in ('treino', 'val', 'none_treino', 'none_val')},
         'janelas': {k: d[k] for k in ('n_acordes_treino', 'n_sinteticos_treino', 'n_gravados_treino',
@@ -405,7 +453,7 @@ def treinar(nome, seed, testes, dados_cache):
     })
     config = pl.make_model_config(FEATURE, SCALER, ARCH, classes, True, limiar,
                                   extra={'seed': seed, 'trained_by': 'scripts/comparar_modelos.py',
-                                         'modelo': nome})
+                                         'modelo': nome_saida, 'n_aug': n_aug})
     pl.save_model_bundle(model, encoder, scaler, config, pasta, metrics=metricas)
     print(f'  v3={metricas["teste_v3"]["acuracia"]:.4f} take02={metricas["take02"]["acuracia"]:.4f} '
           f'limiar={limiar}', flush=True)
@@ -418,10 +466,91 @@ def avaliar_modelo_atual(testes):
     metricas = avaliar(model, scaler, encoder.classes_, config['confidence_threshold'], testes)
     metricas.update({'modelo': '0', 'seed': config.get('seed'), 'classes': [str(c) for c in encoder.classes_],
                      'origem': 'trained_model/ (so avaliado)'})
-    pasta = os.path.join(RESULTADOS, '0')
+    _salvar_metricas('0', metricas)
+
+
+def _salvar_metricas(nome, metricas):
+    pasta = os.path.join(RESULTADOS, nome)
     os.makedirs(pasta, exist_ok=True)
     with open(os.path.join(pasta, 'metrics.json'), 'w', encoding='utf-8') as f:
         json.dump(metricas, f, indent=2, ensure_ascii=False)
+
+
+EXPORT = os.path.join(fontes.ROOT_DIR, 'export')
+
+
+def avaliar_tflite(partes, low_volume_so_v3=False):
+    """Avalia o modelo que esta no celular (export/chord_model.tflite), que
+    recebe o audio bruto da janela e tem a feature embutida. As janelas sao as
+    mesmas dos outros modelos (pipeline.make_windowed_segments)."""
+    import tensorflow as tf
+    interp = tf.lite.Interpreter(model_path=os.path.join(EXPORT, 'chord_model.tflite'))
+    interp.allocate_tensors()
+    entrada, saida = interp.get_input_details()[0]['index'], interp.get_output_details()[0]['index']
+    with open(os.path.join(EXPORT, 'model_info.json'), encoding='utf-8') as f:
+        info = json.load(f)
+    with open(os.path.join(EXPORT, 'labels.json'), encoding='utf-8') as f:
+        classes = json.load(f)
+
+    def prob(janela):
+        interp.set_tensor(entrada, np.asarray(janela, dtype=np.float32)[np.newaxis])
+        interp.invoke()
+        return interp.get_tensor(saida)[0]
+
+    def de_arquivos(pares):
+        probs, rotulos, rms = [], [], []
+        for caminho, rotulo in pares:
+            for janela in pl.make_windowed_segments(caminho):
+                probs.append(prob(janela))
+                rotulos.append(rotulo)
+                rms.append(pl.rms(janela))
+        return np.array(probs), np.array(rotulos), np.array(rms)
+
+    gravados = [(c, _tipo_gravado(c)) for c in partes['none_teste']]
+    origem = partes['teste_v3'] if low_volume_so_v3 else partes['teste_v3'] + partes['teste_proprio']
+    base = [p for p in origem if p[1] in fontes.ACORDES]
+    sint = [pl.make_negative_audio(k, s) for k, s in pl.negative_specs('test', base)]
+    tipos_sint = [k for k, _ in pl.negative_specs('test', base)]
+    pg, tg, rg = de_arquivos(gravados)
+    saidas = {
+        'teste_v3': de_arquivos(partes['teste_v3']),
+        'take02': de_arquivos(partes['teste_proprio']),
+        'sem_acorde': (np.concatenate([pg, np.array([prob(a) for a in sint])]),
+                       np.concatenate([tg, np.array(tipos_sint)]),
+                       np.concatenate([rg, np.array([pl.rms(a) for a in sint])])),
+    }
+    metricas = metricas_de_saidas(saidas, classes, info['confidence_threshold'])
+    metricas.update({'modelo': '0c', 'seed': info.get('seed'), 'classes': classes,
+                     'origem': f'export/chord_model.tflite ({info.get("model_version")}), o modelo do celular'})
+    _salvar_metricas('0c', metricas)
+
+
+def avaliar_ensemble(nome, testes):
+    """Media das probabilidades das seeds ja treinadas de um modelo (cada uma
+    com o seu scaler). Nao treina nada. O limiar e a mediana dos limiares das
+    seeds; serve so de referencia."""
+    pastas = sorted(p for p in os.listdir(RESULTADOS) if p.startswith(f'{nome}_s') and p[len(nome) + 2:].isdigit())
+    if not pastas:
+        raise SystemExit(f'nenhuma seed de {nome} em {RESULTADOS}')
+    somas, classes, limiares, info = None, None, [], None
+    for pasta in pastas:
+        model, encoder, scaler, config = pl.load_model_bundle(os.path.join(RESULTADOS, pasta))
+        if config['feature'] != FEATURE:
+            raise SystemExit(f'{pasta} usa {config["feature"]}; rode com --feature {config["feature"]}')
+        if classes is not None and list(encoder.classes_) != list(classes):
+            raise SystemExit(f'{pasta} tem outras classes')
+        classes = encoder.classes_
+        limiares.append(config['confidence_threshold'])
+        probs = {k: _probs_keras(model, scaler, t['X']) for k, t in testes.items()}
+        somas = probs if somas is None else {k: somas[k] + probs[k] for k in somas}
+        with open(os.path.join(RESULTADOS, pasta, 'metrics.json'), encoding='utf-8') as f:
+            info = json.load(f)
+    saidas = {k: (somas[k] / len(pastas), t[_rotulo_do_teste(k)], t['rms']) for k, t in testes.items()}
+    metricas = metricas_de_saidas(saidas, classes, float(np.median(limiares)))
+    metricas.update({'modelo': f'{nome}_ens', 'seed': None, 'seeds': [int(p.rsplit('_s', 1)[1]) for p in pastas],
+                     'classes': [str(c) for c in classes], 'take02_no_treino': info.get('take02_no_treino', False),
+                     'origem': f'media das probabilidades de {", ".join(pastas)}'})
+    _salvar_metricas(f'{nome}_ens', metricas)
 
 
 # ---------------------------------------------------------------------------
@@ -464,11 +593,14 @@ def resumo(metricas):
               'Média das seeds, com o menor e o maior entre parênteses. O modelo 0 é um só (não tem seed).', '',
               '| Modelo | Seeds | ' + ' | '.join(c for c, _ in colunas) + ' | Limiar |',
               '|---|---|' + '---|' * len(colunas) + '---|']
-    for nome in ORDEM:
+    for nome in ORDEM + sorted(k for k in metricas if k not in ORDEM):
         ms = metricas.get(nome)
         if not ms:
             continue
-        seeds = ', '.join(str(m['seed']) for m in ms) if nome != '0' else '-'
+        if ms[0].get('seeds'):
+            seeds = 'média de ' + ', '.join(str(s) for s in ms[0]['seeds'])
+        else:
+            seeds = '-' if nome in ('0', '0c') else ', '.join(str(m['seed']) for m in ms)
         limiares = sorted({m['limiar'] for m in ms})
         linhas.append(f'| {nome} | {seeds} | ' + ' | '.join(_celula([f(m) for m in ms]) for _, f in colunas)
                       + f' | {", ".join(str(x) for x in limiares)} |')
@@ -503,29 +635,46 @@ def resumo(metricas):
 
 
 def main(argv=None):
+    global FEATURE
     parser = argparse.ArgumentParser(description='Treina e compara os modelos 0, A, B8 e B11.')
-    parser.add_argument('--modelos', nargs='+', default=ORDEM, choices=ORDEM)
+    parser.add_argument('--modelos', nargs='+', default=[], choices=ORDEM)
     parser.add_argument('--seeds', nargs='+', type=int, default=SEEDS)
+    parser.add_argument('--feature', default='chroma', choices=sorted(pl.EXTRACTORS),
+                        help='chroma = a do servidor (trained_model/); chroma_stft8192 = a do celular (TFLite)')
+    parser.add_argument('--aug', type=int, default=0, choices=[0, 1, 2],
+                        help='versoes aumentadas por janela de treino (2 = o aug2 do modelo do celular)')
+    parser.add_argument('--ensemble', nargs='+', default=[], metavar='MODELO',
+                        help='avalia a media das seeds ja treinadas (ex.: B11vs), sem treinar')
     parser.add_argument('--so-resumo', action='store_true')
     args = parser.parse_args(argv)
+    FEATURE = args.feature
+    if not (args.modelos or args.ensemble or args.so_resumo):
+        args.modelos = ORDEM
 
     if not args.so_resumo:
         testes = montar_testes(partes_de_teste())
         testes_por_modelo = {}
         dados_cache = {}
+        for nome in args.ensemble:
+            avaliar_ensemble(nome + sufixo(FEATURE, args.aug), testes)
         for nome in args.modelos:
             if nome == '0':
                 if not os.path.exists(os.path.join(RESULTADOS, '0', 'metrics.json')):
                     avaliar_modelo_atual(testes)
                 continue
+            if nome == '0c':
+                if not os.path.exists(os.path.join(RESULTADOS, '0c', 'metrics.json')):
+                    avaliar_tflite(partes_de_teste())
+                continue
             for seed in args.seeds:
-                if os.path.exists(os.path.join(RESULTADOS, f'{nome}_s{seed}', 'metrics.json')):
-                    print(f'[pula] {nome}_s{seed}', flush=True)
+                nome_saida = nome + sufixo(FEATURE, args.aug)
+                if os.path.exists(os.path.join(RESULTADOS, f'{nome_saida}_s{seed}', 'metrics.json')):
+                    print(f'[pula] {nome_saida}_s{seed}', flush=True)
                     continue
                 if nome in FINAIS and 'final' not in testes_por_modelo:
                     testes_por_modelo['final'] = montar_testes(partes_de_teste(), low_volume_so_v3=True)
                 treinar(nome, seed, testes_por_modelo.get('final' if nome in FINAIS else nome, testes),
-                        dados_cache)
+                        dados_cache, n_aug=args.aug)
 
     texto = resumo(_ler_metricas())
     os.makedirs(RESULTADOS, exist_ok=True)

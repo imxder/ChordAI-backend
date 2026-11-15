@@ -93,6 +93,28 @@ def test_negativos_de_afinacao_seguem_o_split_dos_sinteticos():
     assert not set(pl.synth_negative_ids('train', n=cm.N_AFINACAO)) & set(pl.synth_negative_ids('test', n=cm.N_AFINACAO))
 
 
+def test_sufixo_so_aparece_fora_do_padrao():
+    assert cm.sufixo('chroma', 0) == ''
+    assert cm.sufixo('chroma_stft8192', 0) == '_stft8192'
+    assert cm.sufixo('chroma_stft8192', 2) == '_stft8192_aug2'
+    assert cm.sufixo('chroma', 2) == '_aug2'
+
+
+def test_metricas_de_saidas_funciona_com_probabilidades_prontas():
+    classes = ['C', 'D', '_none']
+    um = lambda i: np.eye(3)[i] * 0.9 + 0.1 / 3
+    forte = np.full(2, FORTE)
+    saidas = {
+        'teste_v3': (np.array([um(0), um(1)]), np.array(['C', 'C']), forte),
+        'take02': (np.array([um(0), um(1)]), np.array(['C', 'D']), forte),
+        'sem_acorde': (np.array([um(2), um(0)]), np.array(['noise', 'gravado_afinando']), forte),
+    }
+    m = cm.metricas_de_saidas(saidas, classes, 0.5)
+    assert m['teste_v3']['acuracia'] == 0.5 and m['teste_v3']['n_janelas'] == 2
+    assert m['take02']['acuracia'] == 1.0 and m['take02']['acuracia_extras'] == 1.0
+    assert m['sem_acorde']['gravado'] == 1.0 and m['sem_acorde']['sintetico'] == 0.0
+
+
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take04_003.wav') == 'gravado_abafadas'
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take06_012.wav') == 'gravado_afinando'
