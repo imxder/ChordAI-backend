@@ -8,7 +8,7 @@ Gravo no fim de semana de 14 e 15/11/2026 pra ter dados meus ao lado do [Guitar 
 - **Sem efeito nenhum** na faixa: nada de EQ, compressor, reverb, chorus ou drive. Eles mudam o chroma, que é o que o modelo olha.
 - **Volume:** os picos entre −12 e −6 dB no medidor do Ableton. Nunca no vermelho.
 - **Preencher `data/sessoes.csv`** com a data, o cômodo e o microfone de cada sessão. Sem o microfone preenchido, o script de corte para e avisa.
-- **Nome de cada take:** `<acorde>_<instrumento>_<sessao>_take<NN>.wav`, por exemplo `Am_violao_s1_take01.wav`. Instrumento e sessão em minúsculas, sem acento. "Sem acorde" usa `none` no lugar do acorde.
+- **Nome de cada take:** `<acorde>_<instrumento>_<sessao>_take<NN>.wav` (ou `.m4a`, do iPhone), por exemplo `Am_violao_s1_take01.wav`. Instrumento e sessão em minúsculas, sem acento. "Sem acorde" usa `none` no lugar do acorde.
 
 ## Taxa de amostragem
 
@@ -91,6 +91,18 @@ Arquivo → Exportar Áudio/Vídeo:
 - **Dither:** nenhum.
 
 Um arquivo por take, direto na pasta `gravacoes/` (ela não vai pro Git).
+
+Antes de exportar, confiro se o **Warp** do clipe está desligado. Com o Warp ligado, o Ableton estica o áudio no tempo sem mudar a afinação: o primeiro take saiu com o dobro da duração (64 s em vez de 32 s), o som ficou estranho e o script errou as batidas. Depois de exportar, confiro se a duração bate com a do take gravado.
+
+## Gravar no iPhone
+
+O `.m4a` que o Gravador exporta vai direto pro script, sem passar pelo Ableton. Renomeio no padrão (`C_violao_s1_take01.m4a`) e rodo o script apontando pro arquivo, onde ele estiver:
+
+```bash
+python -m scripts.cortar_takes ~/Downloads/C_violao_s1_take01.m4a --conferir
+```
+
+O script converte com o `afconvert` do macOS para `gravacoes/<take>.wav` (mesma taxa de amostragem, 24 bits) e corta a partir desse `.wav`. O `.m4a` não é alterado. No `--conferir`, a conversão vai para uma pasta temporária e nada fica no projeto.
 
 ## Depois de cada take
 
