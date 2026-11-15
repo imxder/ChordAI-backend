@@ -79,13 +79,19 @@ MODELOS = {
 # Fd = o Fc sem os take02 no treino (eles continuam de teste, inclusive dos
 # acordes extras). Colocar os take02 no treino custou ~1,5 ponto no Test do v3.
 # F9 = o Fd so com o A de acorde extra (8 + A), mesma receita.
-ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa', 'Fc', 'Fd', 'F9']
+# V3 = so os acordes do v3 (nenhum acorde meu) + negativos sinteticos;
+# V3N = o V3 mais os meus audios de "sem acorde" gravados. A diferenca entre os
+# dois e so o sem acorde gravado. Os take02 ficam de teste nos dois.
+SO_V3 = ('V3', 'V3N')
+ORDEM = ['0', '0c', 'R', 'V3', 'V3N', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa', 'Fc',
+         'Fd', 'F9']
 PESO_PROPRIO = {'B8vp': 0.5, 'Fc': 0.5, 'Fd': 0.5, 'F9': 0.5}
 FINAIS = ('F', 'Fa', 'Fc')  # treinam com os take02
 COM_AFINACAO = ('Fa', 'Fc', 'Fd', 'F9')
 AFINACAO_CORRIGIDA = ('B11vsaf',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
-VARIANTES = {'B8v': ('B8', True, None), 'B8vp': ('B8', True, None), 'B11v': ('B11', True, None),
+VARIANTES = {'V3': ('B8', True, None), 'V3N': ('B8', True, None),
+             'B8v': ('B8', True, None), 'B8vp': ('B8', True, None), 'B11v': ('B11', True, None),
              'B11vs': ('B11', True, False),
              'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False),
              'Fc': ('B11', True, False), 'Fd': ('B11', True, False), 'F9': ('B9', True, False)}
@@ -121,6 +127,9 @@ def _negativos_sinteticos(split, pares):
 
 
 def _gravados(caminhos):
+    if not caminhos:  # sem sem-acorde gravado (modelo V3): nenhuma janela, no formato das features
+        return (np.zeros((0, pl.N_FEATURES[FEATURE], pl.MAX_PAD_LEN)), np.array([]), np.array([]),
+                np.array([], dtype=int))
     return _features([(c, pl.NONE_LABEL) for c in caminhos])
 
 
@@ -414,6 +423,17 @@ def corrigir_afinacao(partes, linhas=None):
     return dict(partes, treino=trocar(partes['treino']), val=trocar(partes['val'])), correcao
 
 
+def so_v3(partes, com_none):
+    """Tira do treino e da validacao os acordes das minhas gravacoes (fica so o
+    v3). com_none=False tira tambem o meu sem acorde gravado. Os testes
+    (Test do v3, take02, take04 e take06) ficam como estao."""
+    de_fora = lambda pares: [p for p in pares if not fontes.caminho_relativo(p[0]).startswith('dataset_proprio/')]
+    out = dict(partes, treino=de_fora(partes['treino']), val=de_fora(partes['val']))
+    if not com_none:
+        out.update(none_treino=[], none_val=[])
+    return out
+
+
 def validacao_sorteada(partes):
     """Junta treino e validacao dos acordes e sorteia 15% por arquivo
     (estratificado por acorde), como o train_model.py. Os testes nao entram.
@@ -486,6 +506,8 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
             dados_cache[nome] = (partes, d)
         else:
             partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
+            if nome in SO_V3:
+                partes = so_v3(partes, com_none=nome == 'V3N')
             if nome in FINAIS:  # o modelo final treina tambem com os take02
                 partes = dict(partes, treino=partes['treino'] + partes['teste_proprio'])
             if nome in VARIANTES and VARIANTES[nome][1]:

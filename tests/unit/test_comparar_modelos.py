@@ -164,6 +164,29 @@ def test_sessao_nova_marca_so_os_cortes_da_s1_e_da_g1():
     assert cm.sessao_nova(pares).tolist() == [True, True, False, False]
 
 
+def test_so_v3_tira_os_meus_acordes_e_mantem_os_testes():
+    linhas = fontes.ler_sources()
+    if not linhas:
+        pytest.skip('sem data/sources.csv')
+    p = cm.dividir_treino.dividir(linhas, {'proprio', 'kaggle_v3'}, fontes.ACORDES)
+    meu = lambda pares: [c for c, _ in pares if 'dataset_proprio' in c.replace('\\', '/')]
+    com = cm.so_v3(p, com_none=True)
+    assert not meu(com['treino']) and not meu(com['val']) and len(com['treino']) > 1000
+    assert com['none_treino'] == p['none_treino'] and com['none_val'] == p['none_val']
+    sem = cm.so_v3(p, com_none=False)
+    assert sem['none_treino'] == [] and sem['none_val'] == []
+    for k in ('teste_v3', 'teste_proprio', 'none_teste'):
+        assert com[k] == p[k] == sem[k]
+
+
+def test_sem_acorde_gravado_vazio_tem_o_formato_das_features(monkeypatch):
+    monkeypatch.setattr(cm, 'FEATURE', 'chroma')
+    X, y, rms, fidx = cm._gravados([])
+    assert X.shape == (0, 12, pl.MAX_PAD_LEN) and len(y) == len(rms) == len(fidx) == 0
+    juntos = np.concatenate([np.zeros((3, 12, pl.MAX_PAD_LEN)), X])  # o que montar_treino faz
+    assert juntos.shape == (3, 12, pl.MAX_PAD_LEN)
+
+
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take04_003.wav') == 'gravado_abafadas'
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take06_012.wav') == 'gravado_afinando'
