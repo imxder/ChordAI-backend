@@ -1759,45 +1759,471 @@ dataset_kaggle/Training/G/G_eletricguitar_Mari_1.wav,G,kaggle_v3,eletricguitar_M
 dataset_kaggle/Training/G/G_eletricguitar_Mari_2.wav,G,kaggle_v3,eletricguitar_Mari,eletricguitar_Mari,G_eletricguitar_Mari_2,desconhecido,treino
 dataset_kaggle/Training/G/G_eletricguitar_Mari_3.wav,G,kaggle_v3,eletricguitar_Mari,eletricguitar_Mari,G_eletricguitar_Mari_3,desconhecido,treino
 dataset_kaggle/Training/G/G_eletricguitar_Mari_4.wav,G,kaggle_v3,eletricguitar_Mari,eletricguitar_Mari,G_eletricguitar_Mari_4,desconhecido,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_001.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_002.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_003.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_004.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_005.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_006.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_007.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take01_008.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_001.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_002.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_003.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_004.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_005.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_006.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_007.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_jazzmaster_g1_take02_008.wav,A,proprio,jazzmaster,g1,A_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/A/A_violao_s1_take01_001.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_002.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_003.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_004.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_005.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_006.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_007.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take01_008.wav,A,proprio,violao,s1,A_violao_s1_take01,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_001.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_002.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_003.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_004.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_005.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_006.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_007.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
+dataset_proprio/A/A_violao_s1_take02_008.wav,A,proprio,violao,s1,A_violao_s1_take02,iphone11,treino
 dataset_proprio/Am/Am_Alex_Acoustic_Mic.wav,Am,proprio,violao,antiga,Am_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/Am/Am_Alex_Acoustic_Mic_2.wav,Am,proprio,violao,antiga,Am_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/Am/Am_Alex_Acoustic_Plugged.wav,Am,proprio,violao,antiga,Am_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/Am/Am_Alex_Acoustic_Plugged_2.wav,Am,proprio,violao,antiga,Am_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/Am/Am_Alex_Electric_Plugged.wav,Am,proprio,guitarra,antiga,Am_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/Am/Am_Alex_Electric_Plugged_2.wav,Am,proprio,guitarra,antiga,Am_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_001.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_002.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_003.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_004.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_005.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_006.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_007.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take01_008.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_001.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_002.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_003.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_004.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_005.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_006.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_007.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_jazzmaster_g1_take02_008.wav,Am,proprio,jazzmaster,g1,Am_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Am/Am_violao_s1_take01_001.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_002.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_003.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_004.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_005.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_006.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_007.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take01_008.wav,Am,proprio,violao,s1,Am_violao_s1_take01,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_001.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_002.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_003.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_004.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_005.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_006.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_007.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
+dataset_proprio/Am/Am_violao_s1_take02_008.wav,Am,proprio,violao,s1,Am_violao_s1_take02,iphone11,treino
 dataset_proprio/Bb/Bb_Alex_Acoustic_Mic.wav,Bb,proprio,violao,antiga,Bb_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/Bb/Bb_Alex_Acoustic_Mic_2.wav,Bb,proprio,violao,antiga,Bb_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/Bb/Bb_Alex_Acoustic_Plugged.wav,Bb,proprio,violao,antiga,Bb_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/Bb/Bb_Alex_Acoustic_Plugged_2.wav,Bb,proprio,violao,antiga,Bb_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/Bb/Bb_Alex_Electric_Plugged.wav,Bb,proprio,guitarra,antiga,Bb_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/Bb/Bb_Alex_Electric_Plugged_2.wav,Bb,proprio,guitarra,antiga,Bb_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_001.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_002.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_003.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_004.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_005.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_006.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_007.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take01_008.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_001.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_002.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_003.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_004.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_005.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_006.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_007.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_jazzmaster_g1_take02_008.wav,Bb,proprio,jazzmaster,g1,Bb_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_001.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_002.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_003.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_004.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_005.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_006.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_007.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take01_008.wav,Bb,proprio,violao,s1,Bb_violao_s1_take01,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_001.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_002.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_003.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_004.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_005.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_006.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_007.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bb/Bb_violao_s1_take02_008.wav,Bb,proprio,violao,s1,Bb_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_001.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_002.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_003.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_004.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_005.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_006.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_007.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take01_008.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_001.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_002.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_003.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_004.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_005.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_006.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_007.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_jazzmaster_g1_take02_008.wav,Bdim,proprio,jazzmaster,g1,Bdim_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_001.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_002.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_003.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_004.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_005.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_006.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_007.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take01_008.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take01,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_001.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_002.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_003.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_004.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_005.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_006.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_007.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
+dataset_proprio/Bdim/Bdim_violao_s1_take02_008.wav,Bdim,proprio,violao,s1,Bdim_violao_s1_take02,iphone11,treino
 dataset_proprio/C/C_Alex_Acoustic_Mic.wav,C,proprio,violao,antiga,C_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/C/C_Alex_Acoustic_Mic_2.wav,C,proprio,violao,antiga,C_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/C/C_Alex_Acoustic_Plugged.wav,C,proprio,violao,antiga,C_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/C/C_Alex_Acoustic_Plugged_2.wav,C,proprio,violao,antiga,C_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/C/C_Alex_Electric_Plugged.wav,C,proprio,guitarra,antiga,C_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/C/C_Alex_Electric_Plugged_2.wav,C,proprio,guitarra,antiga,C_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_001.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_002.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_003.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_004.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_005.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_006.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_007.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take01_008.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_001.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_002.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_003.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_004.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_005.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_006.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_007.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_jazzmaster_g1_take02_008.wav,C,proprio,jazzmaster,g1,C_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/C/C_violao_s1_take01_001.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_002.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_003.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_004.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_005.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_006.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_007.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take01_008.wav,C,proprio,violao,s1,C_violao_s1_take01,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_001.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_002.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_003.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_004.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_005.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_006.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_007.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/C/C_violao_s1_take02_008.wav,C,proprio,violao,s1,C_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_001.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_002.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_003.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_004.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_005.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_006.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_007.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take01_008.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_001.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_002.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_003.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_004.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_005.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_006.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_007.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_jazzmaster_g1_take02_008.wav,D,proprio,jazzmaster,g1,D_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/D/D_violao_s1_take01_001.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_002.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_003.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_004.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_005.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_006.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_007.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take01_008.wav,D,proprio,violao,s1,D_violao_s1_take01,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_001.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_002.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_003.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_004.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_005.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_006.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_007.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
+dataset_proprio/D/D_violao_s1_take02_008.wav,D,proprio,violao,s1,D_violao_s1_take02,iphone11,treino
 dataset_proprio/Dm/Dm_Alex_Acoustic_Mic.wav,Dm,proprio,violao,antiga,Dm_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/Dm/Dm_Alex_Acoustic_Mic_2.wav,Dm,proprio,violao,antiga,Dm_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/Dm/Dm_Alex_Acoustic_Plugged.wav,Dm,proprio,violao,antiga,Dm_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/Dm/Dm_Alex_Acoustic_Plugged_2.wav,Dm,proprio,violao,antiga,Dm_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/Dm/Dm_Alex_Electric_Plugged.wav,Dm,proprio,guitarra,antiga,Dm_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/Dm/Dm_Alex_Electric_Plugged_2.wav,Dm,proprio,guitarra,antiga,Dm_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_001.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_002.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_003.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_004.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_005.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_006.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_007.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take01_008.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_001.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_002.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_003.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_004.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_005.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_006.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_007.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_jazzmaster_g1_take02_008.wav,Dm,proprio,jazzmaster,g1,Dm_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_001.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_002.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_003.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_004.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_005.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_006.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_007.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take01_008.wav,Dm,proprio,violao,s1,Dm_violao_s1_take01,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_001.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_002.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_003.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_004.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_005.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_006.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_007.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/Dm/Dm_violao_s1_take02_008.wav,Dm,proprio,violao,s1,Dm_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_001.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_002.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_003.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_004.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_005.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_006.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_007.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take01_008.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_001.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_002.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_003.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_004.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_005.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_006.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_007.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_jazzmaster_g1_take02_008.wav,E,proprio,jazzmaster,g1,E_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/E/E_violao_s1_take01_001.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_002.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_003.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_004.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_005.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_006.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_007.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take01_008.wav,E,proprio,violao,s1,E_violao_s1_take01,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_001.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_002.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_003.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_004.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_005.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_006.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_007.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
+dataset_proprio/E/E_violao_s1_take02_008.wav,E,proprio,violao,s1,E_violao_s1_take02,iphone11,treino
 dataset_proprio/Em/Em_Alex_Acoustic_Mic.wav,Em,proprio,violao,antiga,Em_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/Em/Em_Alex_Acoustic_Mic_2.wav,Em,proprio,violao,antiga,Em_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/Em/Em_Alex_Acoustic_Plugged.wav,Em,proprio,violao,antiga,Em_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/Em/Em_Alex_Acoustic_Plugged_2.wav,Em,proprio,violao,antiga,Em_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/Em/Em_Alex_Electric_Plugged.wav,Em,proprio,guitarra,antiga,Em_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/Em/Em_Alex_Electric_Plugged_2.wav,Em,proprio,guitarra,antiga,Em_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_001.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_002.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_003.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_004.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_005.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_006.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_007.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take01_008.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_001.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_002.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_003.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_004.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_005.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_006.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_007.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_jazzmaster_g1_take02_008.wav,Em,proprio,jazzmaster,g1,Em_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/Em/Em_violao_s1_take01_001.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_002.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_003.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_004.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_005.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_006.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_007.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take01_008.wav,Em,proprio,violao,s1,Em_violao_s1_take01,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_001.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_002.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_003.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_004.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_005.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_006.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_007.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
+dataset_proprio/Em/Em_violao_s1_take02_008.wav,Em,proprio,violao,s1,Em_violao_s1_take02,iphone11,treino
 dataset_proprio/F/F_Alex_Acoustic_Mic.wav,F,proprio,violao,antiga,F_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/F/F_Alex_Acoustic_Mic_2.wav,F,proprio,violao,antiga,F_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/F/F_Alex_Acoustic_Plugged.wav,F,proprio,violao,antiga,F_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/F/F_Alex_Acoustic_Plugged_2.wav,F,proprio,violao,antiga,F_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/F/F_Alex_Electric_Plugged.wav,F,proprio,guitarra,antiga,F_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/F/F_Alex_Electric_Plugged_2.wav,F,proprio,guitarra,antiga,F_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_001.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_002.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_003.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_004.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_005.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_006.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_007.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take01_008.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_001.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_002.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_003.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_004.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_005.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_006.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_007.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_jazzmaster_g1_take02_008.wav,F,proprio,jazzmaster,g1,F_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/F/F_violao_s1_take01_001.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_002.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_003.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_004.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_005.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_006.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_007.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take01_008.wav,F,proprio,violao,s1,F_violao_s1_take01,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_001.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_002.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_003.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_004.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_005.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_006.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_007.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
+dataset_proprio/F/F_violao_s1_take02_008.wav,F,proprio,violao,s1,F_violao_s1_take02,iphone11,treino
 dataset_proprio/G/G_Alex_Acoustic_Mic.wav,G,proprio,violao,antiga,G_Alex_Acoustic_Mic,microfone,treino
 dataset_proprio/G/G_Alex_Acoustic_Mic_2.wav,G,proprio,violao,antiga,G_Alex_Acoustic_Mic_2,microfone,treino
 dataset_proprio/G/G_Alex_Acoustic_Plugged.wav,G,proprio,violao,antiga,G_Alex_Acoustic_Plugged,plugado,treino
 dataset_proprio/G/G_Alex_Acoustic_Plugged_2.wav,G,proprio,violao,antiga,G_Alex_Acoustic_Plugged_2,plugado,treino
 dataset_proprio/G/G_Alex_Electric_Plugged.wav,G,proprio,guitarra,antiga,G_Alex_Electric_Plugged,plugado,treino
 dataset_proprio/G/G_Alex_Electric_Plugged_2.wav,G,proprio,guitarra,antiga,G_Alex_Electric_Plugged_2,plugado,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_001.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_002.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_003.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_004.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_005.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_006.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_007.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take01_008.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take01,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_001.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_002.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_003.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_004.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_005.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_006.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_007.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_jazzmaster_g1_take02_008.wav,G,proprio,jazzmaster,g1,G_jazzmaster_g1_take02,iphone11 e gt1,treino
+dataset_proprio/G/G_violao_s1_take01_001.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_002.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_003.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_004.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_005.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_006.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_007.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take01_008.wav,G,proprio,violao,s1,G_violao_s1_take01,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_001.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_002.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_003.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_004.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_005.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_006.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_007.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/G/G_violao_s1_take02_008.wav,G,proprio,violao,s1,G_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_001.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_002.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_003.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_004.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_005.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_006.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_007.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_008.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_009.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_010.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_011.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_012.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take01_013.wav,_none,proprio,violao,s1,none_violao_s1_take01,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_001.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_002.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_003.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_004.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_005.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_006.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_007.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_008.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_009.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_010.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_011.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_012.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take02_013.wav,_none,proprio,violao,s1,none_violao_s1_take02,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_001.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_002.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_003.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_004.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_005.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_006.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_007.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_008.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_009.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_010.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_011.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take03_012.wav,_none,proprio,violao,s1,none_violao_s1_take03,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_001.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_002.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_003.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_004.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_005.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_006.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_007.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_008.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_009.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_010.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_011.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take04_012.wav,_none,proprio,violao,s1,none_violao_s1_take04,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_001.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_002.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_003.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_004.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_005.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_006.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_007.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_008.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_009.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_010.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_011.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take05_012.wav,_none,proprio,violao,s1,none_violao_s1_take05,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_001.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_002.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_003.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_004.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_005.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_006.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_007.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_008.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_009.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_010.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_011.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
+dataset_proprio/_none/none_violao_s1_take06_012.wav,_none,proprio,violao,s1,none_violao_s1_take06,iphone11,treino
