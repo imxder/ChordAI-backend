@@ -19,6 +19,13 @@ dinamica, so ops nativas), avaliacao no teste completo / degradado / negativos c
 interpretador TFLite e os arquivos para o app em export/.
 
 Uso:  python export/build_tflite.py
+      python export/build_tflite.py --duas-fontes Fc_stft8192_aug2
+
+--duas-fontes GRUPO: exporta um modelo de experiments/results_duas_fontes/ (o treino com
+o v3 e o meu dataset, scripts/comparar_modelos.py). Nesse caso a seed sai da acuracia de
+validacao gravada no metrics.json de cada seed, o limiar e o calibrado no treino
+(model_config.json) e a avaliacao e no Test do v3 (dataset_kaggle/Test), porque esses
+modelos treinaram com o Training inteiro e o teste sorteado do dataset/ nao serve.
 """
 import json
 import os
@@ -50,6 +57,22 @@ MIN_CLASS_AGREEMENT = 0.995
 MAX_INT8_DROP_PP = 0.5
 MAX_FALSE_ACCEPT = 0.025  # item 0 da Parte 7b: acima disso, parar
 MODEL_VERSION = 'c1-chroma_stft8192-aug2-gapbn-none-s{seed}'
+DUAS_FONTES_DIR = os.path.join(ROOT, 'experiments', 'results_duas_fontes')
+DUAS_FONTES = None  # nome do grupo em results_duas_fontes/ (--duas-fontes); None = o C1 de sempre
+
+
+def _metrics_duas_fontes(seed):
+    with open(os.path.join(DUAS_FONTES_DIR, f'{DUAS_FONTES}_s{seed}', 'metrics.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
+def _test_files():
+    """Arquivos de teste: o 20% sorteado do dataset/ (C1) ou o Test do v3 (--duas-fontes)."""
+    if DUAS_FONTES is None:
+        _, test_files, _ = pl.load_split()
+        return test_files
+    from scripts import dividir_treino, fontes
+    return dividir_treino.dividir(fontes.ler_sources(), {'kaggle_v3'}, fontes.ACORDES)['teste_v3']
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +81,8 @@ MODEL_VERSION = 'c1-chroma_stft8192-aug2-gapbn-none-s{seed}'
 def choose_seed():
     """Acuracia nos acordes (argmax, todas as janelas de acorde da validacao) de cada seed;
     escolhe a maior (empate: menor best_val_loss). O teste nao participa."""
+    if DUAS_FONTES is not None:
+        return _choose_seed_duas_fontes()
     train_files, _, _ = pl.load_split()
     _, val_files = pl.split_train_val(train_files)
     feature = json.load(open(os.path.join(RESULTS_DIR, f'{SOURCE_GROUP}_s{CANDIDATE_SEEDS[0]}', pl.CONFIG_FILENAME),
@@ -89,10 +114,53 @@ def choose_seed():
     }
 
 
+def _choose_seed_duas_fontes():
+    rows = []
+    for seed in CANDIDATE_SEEDS:
+        m = _metrics_duas_fontes(seed)
+        rows.append({'seed': seed, 'val_accuracy_chords': m['val_acuracia_acordes'],
+                     'best_val_loss': m['best_val_loss'], 'val_threshold': m['limiar'],
+                     'val_at_threshold': m['validacao_no_limiar']})
+    best = max(rows, key=lambda r: (r['val_accuracy_chords'], -r['best_val_loss']))
+    for r in rows:
+        print(f"[seed] {r['seed']}: validacao acc {r['val_accuracy_chords'] * 100:.2f}% | val_loss "
+              f"{r['best_val_loss']:.4f} | limiar {r['val_threshold']:.2f}" + ('  <- escolhida' if r is best else ''))
+    return best['seed'], {
+        'chosen_seed': best['seed'],
+        'criterion': 'maior acuracia nos acordes na VALIDACAO (argmax, janelas de acorde dos 15% de arquivos '
+                     'sorteados para validacao em scripts/comparar_modelos.py); empate -> menor best_val_loss. '
+                     'O teste nao participa da escolha.',
+        'candidates': rows,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Modelo de origem
 # ---------------------------------------------------------------------------
+def _load_source_duas_fontes(seed):
+    source_run = f'{DUAS_FONTES}_s{seed}'
+    source_dir = os.path.join(DUAS_FONTES_DIR, source_run)
+    cfg = json.load(open(os.path.join(source_dir, pl.CONFIG_FILENAME), encoding='utf-8'))
+    assert cfg['seed'] == seed
+    m = _metrics_duas_fontes(seed)
+    per_seed = {'seed': seed, 'limiar': cfg['confidence_threshold'], 'validacao': m['validacao_no_limiar'],
+                'teste': {'false_accept': m['sem_acorde']['sintetico']}}
+    cfg = dict(cfg, threshold_source=f'calibrado na validacao no treino (seed {seed}), criterio da Parte 5 '
+                                     f'(scripts/comparar_modelos.py)',
+               source_experiment=f'experiments/results_duas_fontes/{source_run}',
+               model_version=f'{DUAS_FONTES.lower()}-s{seed}')
+    pl.validate_config(cfg)
+    model = tf.keras.models.load_model(os.path.join(source_dir, 'model.h5'), compile=False)
+    encoder = joblib.load(os.path.join(source_dir, 'encoder.joblib'))
+    scaler = joblib.load(os.path.join(source_dir, 'scaler.joblib'))
+    assert cfg['scaler'] == 'feature' and cfg['feature'] in pl.CHROMA_STFT_N_FFT_BY_FEATURE
+    assert list(encoder.classes_) == cfg['classes']
+    return model, encoder, scaler, cfg, per_seed
+
+
 def load_source(seed):
+    if DUAS_FONTES is not None:
+        return _load_source_duas_fontes(seed)
     source_run = f'{SOURCE_GROUP}_s{seed}'
     source_dir = os.path.join(RESULTS_DIR, source_run)
     cfg = json.load(open(os.path.join(source_dir, pl.CONFIG_FILENAME), encoding='utf-8'))
@@ -173,7 +241,7 @@ class EndToEnd(tf.Module):
 # Dados de teste (audio bruto, como o app recebe)
 # ---------------------------------------------------------------------------
 def load_test_audio():
-    _, test_files, _ = pl.load_split()
+    test_files = _test_files()
     clean, degraded, labels, rms_clean = [], [], [], []
     for fidx, (path, label) in enumerate(test_files):
         for widx, seg in enumerate(pl.make_windowed_segments(path)):
@@ -372,11 +440,19 @@ def save_app_files(f32, i8, cfg, data, per_seed, probs_f32_clean):
     return expected
 
 
-def main():
+def main(argv=None):
+    import argparse
+    global DUAS_FONTES
+    parser = argparse.ArgumentParser(description='Exporta o modelo para TFLite com a feature embutida.')
+    parser.add_argument('--duas-fontes', metavar='GRUPO',
+                        help='grupo em experiments/results_duas_fontes/ (ex.: Fc_stft8192_aug2)')
+    DUAS_FONTES = parser.parse_args(argv).duas_fontes
     out = {}
     seed, out['seed_selection'] = choose_seed()
     model, encoder, scaler, cfg, per_seed = load_source(seed)
-    source_run = f'{SOURCE_GROUP}_s{seed}'
+    source_run = f'{DUAS_FONTES or SOURCE_GROUP}_s{seed}'
+    out['test_set'] = ('Test do v3 (dataset_kaggle/Test, 8 acordes)' if DUAS_FONTES
+                       else '20% sorteado do dataset/ (pipeline.load_split)')
     feature, classes, threshold = cfg['feature'], cfg['classes'], cfg['confidence_threshold']
     print(f'modelo: {source_run} | feature {feature} | classes {classes} | limiar {threshold}')
     fa = per_seed['teste']['false_accept']

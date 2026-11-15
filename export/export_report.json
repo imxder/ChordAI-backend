@@ -1,52 +1,52 @@
 {
   "seed_selection": {
-    "chosen_seed": 44,
-    "criterion": "maior acuracia nos acordes na VALIDACAO (argmax, todas as janelas de acorde dos 15% de arquivos de validacao); empate -> menor best_val_loss. O teste nao participa da escolha.",
-    "n_val_chord_windows": 985,
+    "chosen_seed": 43,
+    "criterion": "maior acuracia nos acordes na VALIDACAO (argmax, janelas de acorde dos 15% de arquivos sorteados para validacao em scripts/comparar_modelos.py); empate -> menor best_val_loss. O teste nao participa da escolha.",
     "candidates": [
       {
         "seed": 42,
-        "val_accuracy_chords": 0.9461928934010152,
-        "best_val_loss": 0.1666848063468933,
-        "val_threshold": 0.5,
+        "val_accuracy_chords": 0.9587542087542088,
+        "best_val_loss": 0.19920076429843903,
+        "val_threshold": 0.4,
         "val_at_threshold": {
-          "coverage": 0.9788135593220338,
-          "accuracy": 0.9837662337662337,
-          "useful": 0.9629237288135594,
-          "false_accept": 0.0
+          "threshold": 0.4,
+          "coverage": 0.993859649122807,
+          "accuracy": 0.9814651368049426,
+          "false_accept": 0.0365296803652968
         }
       },
       {
         "seed": 43,
-        "val_accuracy_chords": 0.950253807106599,
-        "best_val_loss": 0.15454508364200592,
-        "val_threshold": 0.5,
+        "val_accuracy_chords": 0.9595959595959596,
+        "best_val_loss": 0.18645748496055603,
+        "val_threshold": 0.3,
         "val_at_threshold": {
-          "coverage": 0.9777542372881356,
-          "accuracy": 0.9869989165763814,
-          "useful": 0.965042372881356,
-          "false_accept": 0.0
+          "threshold": 0.3,
+          "coverage": 0.9964912280701754,
+          "accuracy": 0.9806338028169014,
+          "false_accept": 0.045662100456621
         }
       },
       {
         "seed": 44,
-        "val_accuracy_chords": 0.9583756345177665,
-        "best_val_loss": 0.15003575384616852,
-        "val_threshold": 0.5,
+        "val_accuracy_chords": 0.9553872053872053,
+        "best_val_loss": 0.20435699820518494,
+        "val_threshold": 0.45,
         "val_at_threshold": {
-          "coverage": 0.9851694915254238,
-          "accuracy": 0.9849462365591398,
-          "useful": 0.9703389830508474,
-          "false_accept": 0.0
+          "threshold": 0.45,
+          "coverage": 0.9868421052631579,
+          "accuracy": 0.984,
+          "false_accept": 0.0319634703196347
         }
       }
     ]
   },
+  "test_set": "Test do v3 (dataset_kaggle/Test, 8 acordes)",
   "equivalence": {
     "n_windows": 200,
-    "feature_abs_err_max": 1.0132789611816406e-06,
-    "feature_abs_err_mean": 3.098318401839606e-08,
-    "prob_abs_err_max": 7.152557373046875e-07,
+    "feature_abs_err_max": 1.0728836059570312e-06,
+    "feature_abs_err_mean": 3.250319124958878e-08,
+    "prob_abs_err_max": 8.046627044677734e-07,
     "class_agreement": 1.0,
     "ok": true
   },
@@ -76,7 +76,7 @@
     "STRIDED_SLICE",
     "SUB"
   ],
-  "size_kb_float32": 419.4,
+  "size_kb_float32": 420.9,
   "ops_int8": [
     "ABS",
     "ADD",
@@ -103,7 +103,7 @@
     "STRIDED_SLICE",
     "SUB"
   ],
-  "size_kb_int8": 288.8,
+  "size_kb_int8": 289.2,
   "int8_quantized_tensors": [
     {
       "name": "sequential_1/batch_normalization_1/batchnorm/mul_1;sequential_1/conv1d_1/convolution/Squeeze;sequential_1/conv1d_1/BiasAdd;sequential_1/conv1d_1/Squeeze;sequential_1/batch_normalization_1/batchnorm/mul;sequential_1/conv1d_1/convolution",
@@ -133,7 +133,7 @@
     {
       "name": "sequential_1/dense_1_2/MatMul",
       "shape": [
-        9,
+        12,
         128
       ]
     }
@@ -141,85 +141,91 @@
   "int8_touched_window_or_chroma": false,
   "metrics": {
     "keras": {
-      "accuracy_chords": 0.9533980582524272,
-      "accuracy_degraded": 0.9436893203883495,
-      "none_recall": 0.968609865470852,
-      "coverage": 0.9892255892255892,
-      "accuracy_accepted": 0.9754935330156569,
-      "coverage_degraded": 0.9850238257317904,
-      "accuracy_accepted_degraded": 0.9682100898410505,
-      "false_accept": 0.02242152466367713
+      "accuracy_chords": 0.8640583554376657,
+      "accuracy_degraded": 0.8620689655172413,
+      "none_recall": 0.9868421052631579,
+      "coverage": 0.9641131815044859,
+      "accuracy_accepted": 0.9119541875447388,
+      "coverage_degraded": 0.9750346740638003,
+      "accuracy_accepted_degraded": 0.9018492176386913,
+      "false_accept": 0.013157894736842105
     },
     "float32": {
-      "accuracy_chords": 0.9533980582524272,
-      "accuracy_degraded": 0.9436893203883495,
-      "none_recall": 0.968609865470852,
-      "coverage": 0.9892255892255892,
-      "accuracy_accepted": 0.9754935330156569,
-      "coverage_degraded": 0.9850238257317904,
-      "accuracy_accepted_degraded": 0.9682100898410505,
-      "false_accept": 0.02242152466367713
+      "accuracy_chords": 0.8640583554376657,
+      "accuracy_degraded": 0.8620689655172413,
+      "none_recall": 0.9868421052631579,
+      "coverage": 0.9641131815044859,
+      "accuracy_accepted": 0.9119541875447388,
+      "coverage_degraded": 0.9750346740638003,
+      "accuracy_accepted_degraded": 0.9018492176386913,
+      "false_accept": 0.013157894736842105
     },
     "int8": {
-      "accuracy_chords": 0.9527508090614887,
-      "accuracy_degraded": 0.943042071197411,
-      "none_recall": 0.9730941704035875,
-      "coverage": 0.9878787878787879,
-      "accuracy_accepted": 0.9761417859577369,
-      "coverage_degraded": 0.9850238257317904,
-      "accuracy_accepted_degraded": 0.9689011748445059,
-      "false_accept": 0.02242152466367713
+      "accuracy_chords": 0.8640583554376657,
+      "accuracy_degraded": 0.8620689655172413,
+      "none_recall": 0.9868421052631579,
+      "coverage": 0.9634230503795721,
+      "accuracy_accepted": 0.9126074498567335,
+      "coverage_degraded": 0.9750346740638003,
+      "accuracy_accepted_degraded": 0.9018492176386913,
+      "false_accept": 0.013157894736842105
     }
   },
   "latency_ms_tflite_1thread": {
-    "float32": 9.02,
-    "int8": 9.0
+    "float32": 8.7,
+    "int8": 8.71
   },
   "int8_drop_pp": {
-    "accuracy_chords": 0.065,
-    "accuracy_degraded": 0.065,
+    "accuracy_chords": 0.0,
+    "accuracy_degraded": 0.0,
     "exceeds_limit": false
   },
   "agreement_with_keras": {
     "float32": 1.0,
-    "int8": 0.9993527508090615
+    "int8": 0.9986737400530504
   },
   "example": {
     "float32": {
       "probabilities": {
-        "Am": 0.08136387169361115,
-        "Bb": 1.7077330483061814e-07,
-        "Bdim": 1.2745993444696069e-05,
-        "C": 0.9119327068328857,
-        "Dm": 2.9880116159120007e-09,
-        "Em": 0.006685443222522736,
-        "F": 3.5439848034002353e-06,
-        "G": 1.536132998580797e-08,
-        "_none": 1.5665517594243283e-06
+        "A": 2.1548099385652553e-21,
+        "Am": 3.087770664933487e-06,
+        "Bb": 2.3613797583976748e-09,
+        "Bdim": 8.215154778667966e-09,
+        "C": 0.9416820406913757,
+        "D": 9.029032820598222e-29,
+        "Dm": 4.3569381436014964e-10,
+        "E": 1.0540533850648073e-25,
+        "Em": 2.840634949485832e-10,
+        "F": 0.05831427499651909,
+        "G": 8.66172555902267e-08,
+        "_none": 4.903496346742031e-07
       },
       "top_class": "C",
-      "top_confidence": 0.9119327068328857
+      "top_confidence": 0.9416820406913757
     },
     "int8_dynamic": {
       "probabilities": {
-        "Am": 0.07981323450803757,
-        "Bb": 1.642313236516202e-07,
-        "Bdim": 1.3334287359612063e-05,
-        "C": 0.9130966663360596,
-        "Dm": 2.840973678530645e-09,
-        "Em": 0.007071674335747957,
-        "F": 3.4116555980290286e-06,
-        "G": 1.5190526170272278e-08,
-        "_none": 1.4935707213226124e-06
+        "A": 3.0076426416818384e-21,
+        "Am": 3.51957146449422e-06,
+        "Bb": 2.6959163790252205e-09,
+        "Bdim": 9.474723228208859e-09,
+        "C": 0.9416065812110901,
+        "D": 1.4487864580845098e-28,
+        "Dm": 4.941315689954706e-10,
+        "E": 1.538625247681688e-25,
+        "Em": 3.446694041286946e-10,
+        "F": 0.05838928744196892,
+        "G": 9.340332240981297e-08,
+        "_none": 4.701716420640878e-07
       },
       "top_class": "C",
-      "top_confidence": 0.9130966663360596
+      "top_confidence": 0.9416065812110901
     }
   },
   "source": {
-    "run": "aug2_chroma_stft8192_scalerfeat_gapbn_none_s44",
-    "seed": 44,
-    "threshold": 0.5,
+    "run": "Fd_stft8192_aug2_s43",
+    "seed": 43,
+    "threshold": 0.3,
     "versions": {
       "tensorflow": "2.21.0",
       "librosa": "1.0.0",

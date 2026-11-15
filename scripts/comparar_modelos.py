@@ -71,15 +71,21 @@ MODELOS = {
 # e nao compensa isso, a chroma_cqt do servidor estima a afinacao e compensa).
 # B8vp = B8v com peso menor (PESO_PROPRIO) nas janelas de acorde das minhas
 # sessoes novas, para ver se o modelo estava se especializando no meu violao.
-ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa']
-PESO_PROPRIO = {'B8vp': 0.5}
-FINAIS = ('F', 'Fa')  # treinam com os take02
-COM_AFINACAO = ('Fa',)
+# Fc = o modelo final para o celular: 11 acordes, validacao sorteada, sem peso
+# por classe, peso 0,5 nos meus cortes, com os take02 e a afinacao sintetica no
+# treino. Rodar com --feature chroma_stft8192 --aug 2 (a receita do celular).
+# Fd = o Fc sem os take02 no treino (eles continuam de teste, inclusive dos
+# acordes extras). Colocar os take02 no treino custou ~1,5 ponto no Test do v3.
+ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa', 'Fc', 'Fd']
+PESO_PROPRIO = {'B8vp': 0.5, 'Fc': 0.5, 'Fd': 0.5}
+FINAIS = ('F', 'Fa', 'Fc')  # treinam com os take02
+COM_AFINACAO = ('Fa', 'Fc', 'Fd')
 AFINACAO_CORRIGIDA = ('B11vsaf',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
 VARIANTES = {'B8v': ('B8', True, None), 'B8vp': ('B8', True, None), 'B11v': ('B11', True, None),
              'B11vs': ('B11', True, False),
-             'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False)}
+             'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False),
+             'Fc': ('B11', True, False), 'Fd': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -343,12 +349,17 @@ def curva_limiar(model, scaler, classes, testes):
 # ---------------------------------------------------------------------------
 def calibrar_limiar(model, d, classes):
     """Igual ao train_model.py: janelas de acorde da validacao (sem as de
-    silencio) contra os negativos da validacao, criterio da Parte 5."""
+    silencio) contra os negativos da validacao, criterio da Parte 5. Devolve o
+    limiar, a linha da curva nesse limiar e a acuracia (argmax) nas janelas de
+    acorde da validacao, que o export/build_tflite.py usa para escolher a seed."""
     n = d['n_acordes_val']
     probs = model.predict(d['X_val_f'], verbose=0)
     gate = d['rms_val'][:n] >= pl.SILENCE_THRESHOLD
     linhas = pl.threshold_curve(probs[:n][gate], d['y_val'][:n][gate], probs[n:], classes)
-    return pl.choose_threshold(linhas)
+    limiar = pl.choose_threshold(linhas)
+    linha = next(r for r in linhas if r['threshold'] == limiar)
+    acc_val = float(np.mean(np.asarray(classes)[probs[:n].argmax(1)] == d['y_val'][:n]))
+    return limiar, linha, acc_val
 
 
 AFINADOS = os.path.join(CACHE, 'afinados')
@@ -507,7 +518,7 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
                      callbacks=pl.training_callbacks(), class_weight=class_weight,
                      sample_weight=sample_weight, verbose=2)
     segundos = time.time() - t0
-    limiar = calibrar_limiar(model, d, classes)
+    limiar, linha_val, acc_val = calibrar_limiar(model, d, classes)
 
     metricas = avaliar(model, scaler, classes, limiar, testes)
     if nome in FINAIS:
@@ -524,6 +535,8 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
         'pessoas_val_v3': partes.get('pessoas_val_v3', []),
         'correcao_afinacao_cents': partes.get('correcao_cents'),
         'epocas': len(hist.history['loss']), 'segundos_treino': round(segundos, 1),
+        'val_acuracia_acordes': acc_val, 'best_val_loss': float(min(hist.history['val_loss'])),
+        'validacao_no_limiar': linha_val,
     })
     config = pl.make_model_config(FEATURE, SCALER, ARCH, classes, True, limiar,
                                   extra={'seed': seed, 'trained_by': 'scripts/comparar_modelos.py',

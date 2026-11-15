@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "feature": "chroma_stft8192",
+  "scaler": "feature",
+  "arch": "gap_bn",
+  "classes": [
+    "A",
+    "Am",
+    "Bb",
+    "Bdim",
+    "C",
+    "D",
+    "Dm",
+    "E",
+    "Em",
+    "F",
+    "G",
+    "_none"
+  ],
+  "with_none": true,
+  "none_label": "_none",
+  "confidence_threshold": 0.4,
+  "sample_rate": 22050,
+  "window_seconds": 1.5,
+  "hop_length": 512,
+  "n_frames": 65,
+  "n_features": 12,
+  "n_mfcc": null,
+  "files": {
+    "model": "model.h5",
+    "encoder": "encoder.joblib",
+    "scaler": "scaler.joblib"
+  },
+  "seed": 42,
+  "trained_by": "scripts/comparar_modelos.py",
+  "modelo": "Fd_stft8192_aug2",
+  "n_aug": 2
+}
