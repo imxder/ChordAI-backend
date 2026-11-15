@@ -66,6 +66,18 @@ def test_peso_por_classe_compensa_a_classe_pequena():
     assert 90 * pesos['C'] == pytest.approx(10 * pesos['D'])
 
 
+def test_validacao_sorteada_mantem_o_teste_fora_e_nao_perde_arquivos():
+    linhas = fontes.ler_sources()
+    if not linhas:
+        pytest.skip('sem data/sources.csv')
+    p = cm.dividir_treino.dividir(linhas, {'proprio', 'kaggle_v3'}, fontes.ACORDES)
+    q = cm.validacao_sorteada(p)
+    assert sorted(q['treino'] + q['val']) == sorted(p['treino'] + p['val'])
+    assert not set(q['treino']) & set(q['val'])
+    assert q['teste_v3'] == p['teste_v3'] and q['teste_proprio'] == p['teste_proprio']
+    assert abs(len(q['val']) / (len(q['treino']) + len(q['val'])) - 0.15) < 0.01
+
+
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take04_003.wav') == 'gravado_abafadas'
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take06_012.wav') == 'gravado_afinando'

@@ -55,7 +55,10 @@ MODELOS = {
 # R = a receita do modelo atual retreinada (so dataset/, split sorteado por
 # arquivo, como o train_model.py), para ter 3 seeds dela no Test do v3 e nao
 # comparar com uma seed so.
-ORDEM = ['0', 'R', 'A', 'B8', 'B11']
+# B8v = os mesmos dados do B8, mas com a validacao sorteada por arquivo (15%,
+# como o train_model.py), em vez de separada por pessoa. Serve para saber se a
+# diferenca do B8 para o R vem do jeito de validar.
+ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11']
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -247,6 +250,14 @@ def calibrar_limiar(model, d, classes):
     return pl.choose_threshold(linhas)
 
 
+def validacao_sorteada(partes):
+    """Junta treino e validacao dos acordes e sorteia 15% por arquivo
+    (estratificado por acorde), como o train_model.py. Os testes nao entram.
+    O sem acorde gravado fica como esta."""
+    treino, val = pl.split_train_val(sorted(partes['treino'] + partes['val']))
+    return dict(partes, treino=treino, val=val, pessoas_val_v3=[])
+
+
 def montar_receita_atual():
     """Treino e validacao do jeito do train_model.py: dataset/ sorteado 80/20
     por arquivo e 15% do treino para validacao, com os negativos sinteticos.
@@ -270,6 +281,8 @@ def montar_receita_atual():
 def treinar(nome, seed, testes, dados_cache):
     if nome == 'R':
         fontes_usadas, acordes, com_peso = {'dataset/'}, fontes.ACORDES, False
+    elif nome == 'B8v':
+        fontes_usadas, acordes, com_peso = MODELOS['B8']
     else:
         fontes_usadas, acordes, com_peso = MODELOS[nome]
     pasta = os.path.join(RESULTADOS, f'{nome}_s{seed}')
@@ -280,6 +293,8 @@ def treinar(nome, seed, testes, dados_cache):
             dados_cache[nome] = (partes, d)
         else:
             partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
+            if nome == 'B8v':
+                partes = validacao_sorteada(partes)
             dados_cache[nome] = (partes, montar_treino(partes))
     partes, d = dados_cache[nome]
 
