@@ -63,10 +63,14 @@ MODELOS = {
 # F = o modelo final candidato: B11vs treinado com tudo, inclusive os take02.
 # Os take02 deixam de ser teste, entao a coluna take02 do F nao vale; a prova
 # dele e o Test do v3 e o sem acorde gravado (take04 e take06).
-ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F']
+# Fa = o F com negativos sinteticos de afinacao no treino (o teste de afinacao
+# continua sendo o take06 real, que nao entra no treino).
+ORDEM = ['0', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F', 'Fa']
+FINAIS = ('F', 'Fa')  # treinam com os take02
+COM_AFINACAO = ('Fa',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
 VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False),
-             'F': ('B11', True, False)}
+             'F': ('B11', True, False), 'Fa': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -102,15 +106,49 @@ def _gravados(caminhos):
     return _features([(c, pl.NONE_LABEL) for c in caminhos])
 
 
-def montar_treino(partes):
+CORDAS_HZ = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63]  # as 6 cordas soltas do violao
+N_AFINACAO = pl.N_SYNTH_NEGATIVES  # por conjunto, como os outros tipos sinteticos
+
+
+def audio_afinando(i):
+    """Uma corda soando enquanto a tarraxa gira: a nota comeca desafinada (ate
+    150 cents) e vai ate a afinacao certa em 0,5 a 1,5 s; varios harmonicos,
+    decaimento e um pouco de ruido. Uma corda so, sem formar acorde, mas com as
+    mesmas classes de altura que um acorde tem, que e o que confunde o modelo.
+    Determinista: o mesmo i gera sempre o mesmo audio."""
+    rng = np.random.default_rng([7, int(i)])
+    n = int(pl.SAMPLE_RATE * pl.WINDOW_SECONDS)
+    t = np.arange(n) / pl.SAMPLE_RATE
+    alvo = float(rng.choice(CORDAS_HZ))
+    cents = rng.uniform(-150, 150) * np.clip(1 - t / rng.uniform(0.5, 1.5), 0, 1)
+    fase = 2 * np.pi * np.cumsum(alvo * 2 ** (cents / 1200)) / pl.SAMPLE_RATE
+    x = sum(np.sin(h * fase + rng.uniform(0, 2 * np.pi)) / h ** rng.uniform(0.8, 1.5)
+            for h in range(1, int(rng.integers(4, 10)) + 1))
+    x = x * np.exp(-t / rng.uniform(0.6, 3.0))
+    x = x + pl.pink_noise(n, rng) * rng.uniform(0.0, 0.05) * np.std(x)
+    return np.clip(pl._set_rms(x, rng.uniform(0.01, 0.1)), -1.0, 1.0).astype(np.float32)
+
+
+def negativos_afinacao(split):
+    """Features (e rms) dos negativos de afinacao de um conjunto ('train', 'val'
+    ou 'test'); os ids seguem as proporcoes do split dos outros sinteticos."""
+    audios = [audio_afinando(i) for i in pl.synth_negative_ids(split, n=N_AFINACAO)]
+    return np.array([pl.EXTRACTORS[FEATURE](a) for a in audios]), np.array([pl.rms(a) for a in audios])
+
+
+def montar_treino(partes, afinacao=False):
     """Treino e validacao de um modelo: janelas de acorde + _none (sinteticos +
     meus sem acorde gravados). Devolve dict com X/y/rms de 'treino' e 'val' e
-    quantas janelas de acorde vem antes dos negativos na validacao."""
+    quantas janelas de acorde vem antes dos negativos na validacao. afinacao:
+    acrescenta os negativos sinteticos de afinacao ao _none."""
     out = {}
     for nome, split, none in (('treino', 'train', 'none_treino'), ('val', 'val', 'none_val')):
         X, y, rms, _ = _features(partes[nome])
         Xs, _, rms_s = _negativos_sinteticos(split, partes[nome])
         Xg, _, rms_g, _ = _gravados(partes[none])
+        if afinacao:
+            Xa, rms_a = negativos_afinacao(split)
+            Xs, rms_s = np.concatenate([Xs, Xa]), np.concatenate([rms_s, rms_a])
         out[f'n_acordes_{nome}'] = len(X)
         out[f'n_sinteticos_{nome}'] = len(Xs)
         out[f'n_gravados_{nome}'] = len(Xg)
@@ -326,11 +364,11 @@ def treinar(nome, seed, testes, dados_cache):
             dados_cache[nome] = (partes, d)
         else:
             partes = dividir_treino.dividir(fontes.ler_sources(), fontes_usadas, acordes)
-            if nome == 'F':  # o modelo final treina tambem com os take02
+            if nome in FINAIS:  # o modelo final treina tambem com os take02
                 partes = dict(partes, treino=partes['treino'] + partes['teste_proprio'])
             if nome in VARIANTES and VARIANTES[nome][1]:
                 partes = validacao_sorteada(partes)
-            dados_cache[nome] = (partes, montar_treino(partes))
+            dados_cache[nome] = (partes, montar_treino(partes, afinacao=nome in COM_AFINACAO))
     partes, d = dados_cache[nome]
 
     import keras
@@ -353,10 +391,10 @@ def treinar(nome, seed, testes, dados_cache):
     limiar = calibrar_limiar(model, d, classes)
 
     metricas = avaliar(model, scaler, classes, limiar, testes)
-    if nome == 'F':
+    if nome in FINAIS:
         metricas['curva_limiar'] = curva_limiar(model, scaler, classes, testes)
     metricas.update({
-        'take02_no_treino': nome == 'F',
+        'take02_no_treino': nome in FINAIS,
         'modelo': nome, 'seed': seed, 'fontes': sorted(fontes_usadas), 'classes': [str(c) for c in classes],
         'peso_por_classe': pesos,
         'arquivos': {k: len(partes[k]) for k in ('treino', 'val', 'none_treino', 'none_val')},
@@ -484,9 +522,10 @@ def main(argv=None):
                 if os.path.exists(os.path.join(RESULTADOS, f'{nome}_s{seed}', 'metrics.json')):
                     print(f'[pula] {nome}_s{seed}', flush=True)
                     continue
-                if nome == 'F' and 'F' not in testes_por_modelo:
-                    testes_por_modelo['F'] = montar_testes(partes_de_teste(), low_volume_so_v3=True)
-                treinar(nome, seed, testes_por_modelo.get(nome, testes), dados_cache)
+                if nome in FINAIS and 'final' not in testes_por_modelo:
+                    testes_por_modelo['final'] = montar_testes(partes_de_teste(), low_volume_so_v3=True)
+                treinar(nome, seed, testes_por_modelo.get('final' if nome in FINAIS else nome, testes),
+                        dados_cache)
 
     texto = resumo(_ler_metricas())
     os.makedirs(RESULTADOS, exist_ok=True)

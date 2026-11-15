@@ -78,6 +78,21 @@ def test_validacao_sorteada_mantem_o_teste_fora_e_nao_perde_arquivos():
     assert abs(len(q['val']) / (len(q['treino']) + len(q['val'])) - 0.15) < 0.01
 
 
+def test_audio_de_afinacao_e_determinista_e_valido():
+    a, b = cm.audio_afinando(3), cm.audio_afinando(3)
+    assert np.array_equal(a, b) and not np.array_equal(a, cm.audio_afinando(4))
+    assert len(a) == int(pl.SAMPLE_RATE * pl.WINDOW_SECONDS) and np.isfinite(a).all()
+    assert np.abs(a).max() <= 1.0 and 0.009 <= pl.rms(a) <= 0.101  # passa do filtro de silencio
+
+
+def test_negativos_de_afinacao_seguem_o_split_dos_sinteticos():
+    X, rms = cm.negativos_afinacao('val')
+    assert len(X) == len(pl.synth_negative_ids('val', n=cm.N_AFINACAO)) == len(rms)
+    assert X.shape[1:] == (12, pl.MAX_PAD_LEN) and (rms >= pl.SILENCE_THRESHOLD).all()
+    # nenhum id vai pro treino e pro teste ao mesmo tempo
+    assert not set(pl.synth_negative_ids('train', n=cm.N_AFINACAO)) & set(pl.synth_negative_ids('test', n=cm.N_AFINACAO))
+
+
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take04_003.wav') == 'gravado_abafadas'
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take06_012.wav') == 'gravado_afinando'
