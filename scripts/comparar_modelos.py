@@ -69,12 +69,16 @@ MODELOS = {
 # B11vsaf = B11vs com os cortes da s1 e da g1 levados ao La 440 no treino (as
 # sessoes novas ficaram ~10 cents abaixo; a chroma_stft do celular usa tuning=0
 # e nao compensa isso, a chroma_cqt do servidor estima a afinacao e compensa).
-ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa']
+# B8vp = B8v com peso menor (PESO_PROPRIO) nas janelas de acorde das minhas
+# sessoes novas, para ver se o modelo estava se especializando no meu violao.
+ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B8vp', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa']
+PESO_PROPRIO = {'B8vp': 0.5}
 FINAIS = ('F', 'Fa')  # treinam com os take02
 COM_AFINACAO = ('Fa',)
 AFINACAO_CORRIGIDA = ('B11vsaf',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
-VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False),
+VARIANTES = {'B8v': ('B8', True, None), 'B8vp': ('B8', True, None), 'B11v': ('B11', True, None),
+             'B11vs': ('B11', True, False),
              'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
@@ -148,7 +152,8 @@ def montar_treino(partes, afinacao=False):
     acrescenta os negativos sinteticos de afinacao ao _none."""
     out = {}
     for nome, split, none in (('treino', 'train', 'none_treino'), ('val', 'val', 'none_val')):
-        X, y, rms, _ = _features(partes[nome])
+        X, y, rms, fidx = _features(partes[nome])
+        novos = sessao_nova(partes[nome])[fidx] if len(fidx) else np.zeros(0, dtype=bool)
         Xs, _, rms_s = _negativos_sinteticos(split, partes[nome])
         Xg, _, rms_g, _ = _gravados(partes[none])
         if afinacao:
@@ -160,7 +165,16 @@ def montar_treino(partes, afinacao=False):
         out[f'X_{nome}'] = np.concatenate([X, Xs, Xg])
         out[f'y_{nome}'] = np.concatenate([y, np.full(len(Xs) + len(Xg), pl.NONE_LABEL)])
         out[f'rms_{nome}'] = np.concatenate([rms, rms_s, rms_g])
+        out[f'novos_{nome}'] = np.concatenate([novos, np.zeros(len(Xs) + len(Xg), dtype=bool)])
     return out
+
+
+def sessao_nova(pares):
+    """Para cada arquivo: True se e um corte das minhas sessoes novas (s1, g1),
+    False para o v3 e para as gravacoes antigas (*_Alex_*), que ja estavam no
+    dataset/ do modelo atual."""
+    return np.array([fontes.caminho_relativo(c).startswith('dataset_proprio/') and '_Alex_' not in os.path.basename(c)
+                     for c, _ in pares], dtype=bool)
 
 
 def partes_de_teste():
@@ -428,13 +442,13 @@ def _features_aug(pares, seed, n_aug):
     caminho = os.path.join(CACHE, f'duas_fontes_{FEATURE}_aug{n_aug}_s{seed}_{digest}.npz')
     if os.path.exists(caminho):
         d = np.load(caminho, allow_pickle=False)
-        if np.array_equal(d['chave'], chave):
-            return d['X'], d['y']
+        if np.array_equal(d['chave'], chave) and 'fidx' in d:
+            return d['X'], d['y'], d['fidx']
     print(f'  extraindo {n_aug} versoes aumentadas de {len(pares)} arquivos...', flush=True)
-    X, y, _, _, _ = pl.build_features(pares, FEATURE, transform_train_aug, n_aug, seed)
+    X, y, _, fidx, _ = pl.build_features(pares, FEATURE, transform_train_aug, n_aug, seed)
     os.makedirs(CACHE, exist_ok=True)
-    np.savez_compressed(caminho, X=X, y=y, chave=chave)
-    return X, y
+    np.savez_compressed(caminho, X=X, y=y, fidx=fidx, chave=chave)
+    return X, y, fidx
 
 
 def treinar(nome, seed, testes, dados_cache, n_aug=0):
@@ -469,10 +483,14 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
     keras.backend.clear_session()
     pl.set_seeds(seed)
     X_bruto, y_bruto = d['X_treino'], d['y_treino']
+    novos = d.get('novos_treino', np.zeros(len(y_bruto), dtype=bool))
     n_aumentadas = 0
     if n_aug:  # so as janelas de acorde do treino; validacao e testes ficam limpos
-        Xa, ya = _features_aug(partes['treino'], seed, n_aug)
+        Xa, ya, fa = _features_aug(partes['treino'], seed, n_aug)
         X_bruto, y_bruto, n_aumentadas = np.concatenate([X_bruto, Xa]), np.concatenate([y_bruto, ya]), len(Xa)
+        novos = np.concatenate([novos, sessao_nova(partes['treino'])[fa]])
+    peso_proprio = PESO_PROPRIO.get(nome)
+    sample_weight = np.where(novos, peso_proprio, 1.0) if peso_proprio is not None else None
 
     rotulos = list(acordes) + [pl.NONE_LABEL]
     encoder, y_treino, y_val = pl.encode_labels(rotulos, y_bruto, d['y_val'])
@@ -486,7 +504,8 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
     model = pl.build_model(ARCH, X_treino.shape[1:], len(classes))
     t0 = time.time()
     hist = model.fit(X_treino, y_treino, epochs=200, batch_size=32, validation_data=(d['X_val_f'], y_val),
-                     callbacks=pl.training_callbacks(), class_weight=class_weight, verbose=2)
+                     callbacks=pl.training_callbacks(), class_weight=class_weight,
+                     sample_weight=sample_weight, verbose=2)
     segundos = time.time() - t0
     limiar = calibrar_limiar(model, d, classes)
 
@@ -497,6 +516,7 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
         'take02_no_treino': nome in FINAIS,
         'modelo': nome_saida, 'seed': seed, 'fontes': sorted(fontes_usadas), 'classes': [str(c) for c in classes],
         'feature': FEATURE, 'n_aug': n_aug, 'janelas_aumentadas': n_aumentadas,
+        'peso_proprio': peso_proprio, 'janelas_sessoes_novas': int(novos.sum()),
         'peso_por_classe': pesos,
         'arquivos': {k: len(partes[k]) for k in ('treino', 'val', 'none_treino', 'none_val')},
         'janelas': {k: d[k] for k in ('n_acordes_treino', 'n_sinteticos_treino', 'n_gravados_treino',

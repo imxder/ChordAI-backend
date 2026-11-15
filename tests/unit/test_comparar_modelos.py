@@ -155,6 +155,15 @@ def test_corrigir_afinacao_so_mexe_nas_sessoes_novas(tmp_path, monkeypatch):
     assert any('dataset_kaggle' in c for c in caminhos)
 
 
+def test_sessao_nova_marca_so_os_cortes_da_s1_e_da_g1():
+    raiz = fontes.ROOT_DIR
+    pares = [(os.path.join(raiz, 'dataset_proprio', 'C', 'C_violao_s1_take01_001.wav'), 'C'),
+             (os.path.join(raiz, 'dataset_proprio', 'C', 'C_jazzmaster_g1_take01_003.wav'), 'C'),
+             (os.path.join(raiz, 'dataset_proprio', 'C', 'C_Alex_Acoustic_Mic.wav'), 'C'),
+             (os.path.join(raiz, 'dataset_kaggle', 'Training', 'C', 'C_AcusticPlug1_1.wav'), 'C')]
+    assert cm.sessao_nova(pares).tolist() == [True, True, False, False]
+
+
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take04_003.wav') == 'gravado_abafadas'
     assert cm._tipo_gravado('/r/dataset_proprio/_none/none_violao_s1_take06_012.wav') == 'gravado_afinando'
