@@ -66,12 +66,16 @@ MODELOS = {
 # Fa = o F com negativos sinteticos de afinacao no treino (o teste de afinacao
 # continua sendo o take06 real, que nao entra no treino).
 # 0c = o modelo que esta no celular (export/chord_model.tflite), so avaliado.
-ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'F', 'Fa']
+# B11vsaf = B11vs com os cortes da s1 e da g1 levados ao La 440 no treino (as
+# sessoes novas ficaram ~10 cents abaixo; a chroma_stft do celular usa tuning=0
+# e nao compensa isso, a chroma_cqt do servidor estima a afinacao e compensa).
+ORDEM = ['0', '0c', 'R', 'A', 'B8', 'B8v', 'B11', 'B11v', 'B11vs', 'B11vsaf', 'F', 'Fa']
 FINAIS = ('F', 'Fa')  # treinam com os take02
 COM_AFINACAO = ('Fa',)
+AFINACAO_CORRIGIDA = ('B11vsaf',)
 # nome -> (modelo base, validacao sorteada, forca o peso por classe a)
 VARIANTES = {'B8v': ('B8', True, None), 'B11v': ('B11', True, None), 'B11vs': ('B11', True, False),
-             'F': ('B11', True, False), 'Fa': ('B11', True, False)}
+             'B11vsaf': ('B11', True, False), 'F': ('B11', True, False), 'Fa': ('B11', True, False)}
 
 # acordes que diferem por uma nota so: vale olhar a confusao entre eles
 PARES_PERIGOSOS = [('A', 'Am'), ('E', 'Em'), ('D', 'Dm')]
@@ -333,6 +337,52 @@ def calibrar_limiar(model, d, classes):
     return pl.choose_threshold(linhas)
 
 
+AFINADOS = os.path.join(CACHE, 'afinados')
+
+
+def afinacao_do_take(caminhos):
+    """Afinacao do take em cents (mediana dos cortes): negativo = abaixo do La 440."""
+    import librosa
+    cents = []
+    for c in caminhos:
+        y, sr = librosa.load(c, sr=pl.SAMPLE_RATE)
+        cents.append(100 * librosa.estimate_tuning(y=y, sr=sr))
+    return float(np.median(cents))
+
+
+def copia_afinada(caminho, cents, destino=AFINADOS):
+    """Copia do corte com a nota deslocada em `cents` (para cima se positivo),
+    em destino/. Nunca altera o original. Se a copia ja existe, so devolve o caminho."""
+    import librosa
+    import soundfile as sf
+    saida = os.path.join(destino, f'{cents:+.1f}c', os.path.basename(caminho))
+    if not os.path.exists(saida):
+        y, sr = librosa.load(caminho, sr=pl.SAMPLE_RATE)
+        os.makedirs(os.path.dirname(saida), exist_ok=True)
+        sf.write(saida, librosa.effects.pitch_shift(y, sr=sr, n_steps=cents / 100), sr)
+    return saida
+
+
+def corrigir_afinacao(partes, linhas=None):
+    """Treino e validacao com os cortes das minhas sessoes novas (as que tem
+    take: s1, g1) trazidos para o La 440, take por take. As gravacoes antigas,
+    o v3, os testes e o sem acorde ficam como estao. Devolve as partes novas e
+    a correcao aplicada em cada take (em cents)."""
+    linhas = fontes.ler_sources() if linhas is None else linhas
+    take_de = {os.path.join(fontes.ROOT_DIR, l['caminho']): l['take'] for l in linhas
+               if l['fonte'] == 'proprio' and l['sessao'] != 'antiga' and l['acorde'] != pl.NONE_LABEL}
+    por_take = {}
+    for caminho, _ in partes['treino'] + partes['val']:
+        if caminho in take_de:
+            por_take.setdefault(take_de[caminho], []).append(caminho)
+    correcao = {t: round(-afinacao_do_take(cs), 1) for t, cs in sorted(por_take.items())}
+
+    def trocar(pares):
+        return sorted((copia_afinada(c, correcao[take_de[c]]) if c in take_de else c, a) for c, a in pares)
+
+    return dict(partes, treino=trocar(partes['treino']), val=trocar(partes['val'])), correcao
+
+
 def validacao_sorteada(partes):
     """Junta treino e validacao dos acordes e sorteia 15% por arquivo
     (estratificado por acorde), como o train_model.py. Os testes nao entram.
@@ -409,6 +459,9 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
                 partes = dict(partes, treino=partes['treino'] + partes['teste_proprio'])
             if nome in VARIANTES and VARIANTES[nome][1]:
                 partes = validacao_sorteada(partes)
+            if nome in AFINACAO_CORRIGIDA:
+                partes, correcao = corrigir_afinacao(partes)
+                partes['correcao_cents'] = correcao
             dados_cache[nome] = (partes, montar_treino(partes, afinacao=nome in COM_AFINACAO))
     partes, d = dados_cache[nome]
 
@@ -449,6 +502,7 @@ def treinar(nome, seed, testes, dados_cache, n_aug=0):
         'janelas': {k: d[k] for k in ('n_acordes_treino', 'n_sinteticos_treino', 'n_gravados_treino',
                                       'n_acordes_val', 'n_sinteticos_val', 'n_gravados_val')},
         'pessoas_val_v3': partes.get('pessoas_val_v3', []),
+        'correcao_afinacao_cents': partes.get('correcao_cents'),
         'epocas': len(hist.history['loss']), 'segundos_treino': round(segundos, 1),
     })
     config = pl.make_model_config(FEATURE, SCALER, ARCH, classes, True, limiar,

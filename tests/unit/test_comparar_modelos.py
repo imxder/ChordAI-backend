@@ -1,4 +1,6 @@
 """Metricas e montagem dos testes da comparacao de modelos (scripts/comparar_modelos.py)."""
+import os
+
 import numpy as np
 import pytest
 
@@ -113,6 +115,44 @@ def test_metricas_de_saidas_funciona_com_probabilidades_prontas():
     assert m['teste_v3']['acuracia'] == 0.5 and m['teste_v3']['n_janelas'] == 2
     assert m['take02']['acuracia'] == 1.0 and m['take02']['acuracia_extras'] == 1.0
     assert m['sem_acorde']['gravado'] == 1.0 and m['sem_acorde']['sintetico'] == 0.0
+
+
+def _seno(cents, segundos=2.0):
+    t = np.arange(int(pl.SAMPLE_RATE * segundos)) / pl.SAMPLE_RATE
+    f = 440.0 * 2 ** (cents / 1200)
+    return (0.3 * sum(np.sin(2 * np.pi * h * f * t) / h for h in range(1, 5))).astype(np.float32)
+
+
+def test_copia_afinada_leva_a_nota_para_o_la_440_sem_mexer_no_original(tmp_path):
+    import soundfile as sf
+    original = tmp_path / 'A_violao_s1_take01_001.wav'
+    sf.write(original, _seno(-12), pl.SAMPLE_RATE)
+    antes = original.read_bytes()
+    assert cm.afinacao_do_take([str(original)]) == pytest.approx(-12, abs=3)
+    copia = cm.copia_afinada(str(original), 12.0, destino=str(tmp_path / 'afinados'))
+    assert original.read_bytes() == antes and copia != str(original)
+    assert cm.afinacao_do_take([copia]) == pytest.approx(0, abs=3)
+
+
+def test_corrigir_afinacao_so_mexe_nas_sessoes_novas(tmp_path, monkeypatch):
+    monkeypatch.setattr(cm, 'afinacao_do_take', lambda cs: -10.0)
+    monkeypatch.setattr(cm, 'copia_afinada', lambda c, cents: c.replace('dataset_proprio', f'afinado{cents:+.0f}'))
+    raiz = fontes.ROOT_DIR
+    linhas = [
+        {'caminho': 'dataset_proprio/C/C_violao_s1_take01_001.wav', 'acorde': 'C', 'fonte': 'proprio',
+         'sessao': 's1', 'take': 'C_violao_s1_take01'},
+        {'caminho': 'dataset_proprio/C/C_Alex_Acoustic_Mic.wav', 'acorde': 'C', 'fonte': 'proprio',
+         'sessao': 'antiga', 'take': 'C_Alex_Acoustic_Mic'},
+        {'caminho': 'dataset_kaggle/Training/C/C_x_1.wav', 'acorde': 'C', 'fonte': 'kaggle_v3',
+         'sessao': 'x', 'take': 'C_x_1'},
+    ]
+    pares = [(os.path.join(raiz, l['caminho']), 'C') for l in linhas]
+    partes, correcao = cm.corrigir_afinacao({'treino': pares, 'val': []}, linhas)
+    assert correcao == {'C_violao_s1_take01': 10.0}
+    caminhos = [c for c, _ in partes['treino']]
+    assert any('afinado+10' in c for c in caminhos)
+    assert any(c.endswith('C_Alex_Acoustic_Mic.wav') and 'dataset_proprio' in c for c in caminhos)
+    assert any('dataset_kaggle' in c for c in caminhos)
 
 
 def test_tipo_do_sem_acorde_gravado_vem_do_take():
