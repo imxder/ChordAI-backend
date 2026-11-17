@@ -1,5 +1,7 @@
 # ChordAI - Backend
 
+[![CI](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml)
+
 Este é o pipeline de IA do ChordAI: aqui eu preparo os dados, treino a rede que reconhece acordes e exporto os modelos em TFLite que rodam dentro do app, no próprio celular.
 
 App Flutter: [github.com/imxder/ChordAI](https://github.com/imxder/ChordAI)
@@ -178,7 +180,15 @@ Uso a API no modo "servidor" do app, que é uma opção avançada em Perfil → 
 python app.py
 ```
 
-**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000. No app, o endereço vai em Perfil → Reconhecimento: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
+**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000:
+
+```bash
+flask --app app run --host 0.0.0.0 --port 5001
+```
+
+No app, o endereço vai em Perfil → Reconhecimento: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
+
+O modo debug do Flask fica desligado. Pra ligar, rode com `FLASK_DEBUG=1`. Ele mostra o código e deixa rodar comandos pela página de erro, e a API fica aberta na rede, então só uso quando estou mexendo nela.
 
 ### `POST /predict_chord`
 
