@@ -7,7 +7,7 @@ inferencia de producao: a feature, o scaler, a classe "_none" e o limiar de
 confianca vem do model_config.json do modelo (pastas sem esse arquivo seguem o
 pipeline antigo: MFCC, sem _none e sem limiar).
 
-Uso:  python evaluate_realtime.py [--model-dir trained_model]
+Uso:  python -m experiments.evaluate_realtime [--model-dir trained_model]
 """
 import argparse
 import time
@@ -16,7 +16,7 @@ import numpy as np
 
 import pipeline
 import train_model
-from audio_capture import RECORD_DURATION
+from experiments.audio_capture import RECORD_DURATION
 from train_model import WINDOW_SECONDS, make_windowed_segments, split_dataset_files
 
 assert abs(RECORD_DURATION - WINDOW_SECONDS) < 1e-6, (
