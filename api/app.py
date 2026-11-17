@@ -19,7 +19,7 @@ with app.app_context():
         model_loaded, encoder_loaded, scaler_loaded = load_trained_model()
         if model_loaded is None:
             print("AVISO: Modelo de acordes não foi carregado. Verifique o dataset e o treinamento.")
-            print("Para treinar o modelo, execute: python model.py")
+            print("Para treinar o modelo, execute: python train_model.py")
         else:
             print("Modelo de acordes, encoder e scaler carregados com sucesso!")
     except Exception as e:
