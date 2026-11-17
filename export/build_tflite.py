@@ -27,6 +27,7 @@ validacao gravada no metrics.json de cada seed, o limiar e o calibrado no treino
 (model_config.json) e a avaliacao e no Test do v3 (dataset_kaggle/Test), porque esses
 modelos treinaram com o Training inteiro e o teste sorteado do dataset/ nao serve.
 """
+import hashlib
 import json
 import os
 import sys
@@ -409,6 +410,8 @@ def save_app_files(f32, i8, cfg, data, per_seed, probs_f32_clean):
         'confidence_threshold': cfg['confidence_threshold'],
         'silence_rms_threshold': pl.SILENCE_THRESHOLD,
         'files': {'float32': 'chord_model.tflite', 'int8_dynamic': 'chord_model_int8.tflite'},
+        # o app confere o .tflite contra esse hash (tool/conferir_modelos.py no ChordAI)
+        'sha256': {'float32': hashlib.sha256(f32).hexdigest(), 'int8_dynamic': hashlib.sha256(i8).hexdigest()},
         'feature_inside_model': {'type': cfg['feature'], **{k: (v if v != np.inf else 'inf')
                                                             for k, v in prm.items()}},
         'validation_metrics_at_threshold': per_seed['validacao'],

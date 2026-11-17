@@ -55,6 +55,15 @@ def test_model_info_is_consistent():
     assert info['silence_rms_threshold'] == pl.SILENCE_THRESHOLD
 
 
+def test_model_info_tem_o_hash_dos_tflite():
+    # o app confere o .tflite dos assets contra esse hash
+    import hashlib
+    info = _load('model_info.json')
+    for tipo, arquivo in info['files'].items():
+        with open(os.path.join(EXPORT, arquivo), 'rb') as f:
+            assert hashlib.sha256(f.read()).hexdigest() == info['sha256'][tipo]
+
+
 def test_only_builtin_ops_with_native_rfft():
     import tensorflow as tf
     report = _load('export_report.json')
