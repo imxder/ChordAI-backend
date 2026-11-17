@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 import threading
 import time
 import os
@@ -39,10 +39,6 @@ with app.app_context():
         print(f"ERRO CRÍTICO ao carregar o modelo de acordes na inicialização: {e}")
         print("Certifique-se de que o modelo de acordes foi treinado e os arquivos .joblib estão na pasta 'trained_model'.")
         model_loaded = None 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/list_audio_devices')
 def get_audio_devices():

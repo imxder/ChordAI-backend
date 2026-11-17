@@ -172,7 +172,7 @@ Os pesos (`.h5`) dos experimentos não ficam no Git. Ficam só os `metrics.json`
 
 Fontes: `trained_model/model_config.json` e `metrics.json`, e `experiments/results_duas_fontes/0/metrics.json`.
 
-Uso a API pra testar o reconhecimento pelo microfone do computador, na interface web da rota `/`, e no modo "servidor" do app, que é uma opção avançada em Perfil → Reconhecimento.
+Uso a API no modo "servidor" do app, que é uma opção avançada em Perfil → Reconhecimento. A página web que existia na rota `/` saiu: o app substituiu ela.
 
 ```bash
 python app.py
@@ -256,7 +256,6 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── tests/                      # pytest
 ├── candidates/                 # modelos antigos guardados
 ├── trained_model/              # o modelo da API Flask
-├── static/  e  templates/      # interface web da API
 │
 ├── dataset/                    # pasta antiga (não vai pro Git)
 ├── dataset_kaggle/             # Guitar Chords V3 (não vai pro Git)
