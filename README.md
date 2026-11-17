@@ -137,6 +137,8 @@ Como o app usa os arquivos exportados está em [export/README.md](export/README.
 python -m pytest
 ```
 
+O CI (`.github/workflows/ci.yml`) roda os mesmos testes em todo push e PR, com o Python 3.12.10 e o `requirements.lock.txt`, num passo pros testes e outro só pro export TFLite (`tests/unit/test_export_tflite.py`), que confere se o `.tflite` do `export/` dá as mesmas probabilidades do `example_expected.json`. Ele não tem os áudios, então pula os testes marcados com `dataset` (hoje nenhum precisa deles) e o do `afconvert`, que só existe no macOS.
+
 ## 5. Experimentos e histórico
 
 - **Os experimentos de 15/11, com as duas fontes:** [docs/experimentos.md](docs/experimentos.md) explica cada sigla de `experiments/results_duas_fontes/` (0, R, A, B8, B11, F, F9, V3…), a ordem em que testei e por que o F9 virou o v3_meu.
@@ -145,7 +147,7 @@ python -m pytest
 Como cheguei até aqui:
 
 1. **Baseline do TCC:** 40 MFCC + CNN 1D com Flatten, **88,00% ± 0,94** no teste sorteado (média das seeds 42, 43 e 44, `experiments/results/comparativo.md`).
-2. **Correção do split.** O modelo antigo (`candidates/candidate_91_81/`) dava **96,89%** no `evaluate_realtime.py`. Esse número não ficou salvo em arquivo, só no README antigo. Ele não valia: o split dependia da ordem do `os.listdir()` e colocava no treino arquivos que estavam no teste. Com o split por arquivo, na lista ordenada, e uma validação separada, o mesmo pipeline dá os **88%** do baseline. O `python -m experiments.split_hash --check` confere se o split continua o mesmo.
+2. **Correção do split.** O modelo antigo (`experiments/candidates/candidate_91_81/`) dava **96,89%** no `experiments/evaluate_realtime.py`. Esse número não ficou salvo em arquivo, só no README antigo. Ele não valia: o split dependia da ordem do `os.listdir()` e colocava no treino arquivos que estavam no teste. Com o split por arquivo, na lista ordenada, e uma validação separada, o mesmo pipeline dá os **88%** do baseline. O `python -m experiments.split_hash --check` confere se o split continua o mesmo.
 3. **Chroma no lugar de MFCC:** **+7,75 ± 0,78** pontos (`experiments/results/comparativo.md`, "Efeitos isolados"). Foi a mudança que mais fez diferença. O scaler por feature, o augmentation e a CNN 2D não tiveram efeito significativo.
 4. **CNN menor:** o GAP+BN custou uns 0,6 ponto e deixou a rede 5,5× menor (de 259 mil pra 47 mil parâmetros). Convertida sozinha pra TFLite, essa CNN tem 188 KB (coluna "TFLite (KB)" do mesmo comparativo).
 5. **Classe `_none` e limiar de confiança:** a rede aprende a dizer "nenhum acorde", e o limiar é calibrado na validação. Os números estão na seção "Parte 5" do comparativo.
@@ -177,13 +179,13 @@ Fontes: `trained_model/model_config.json` e `metrics.json`, e `experiments/resul
 Uso a API no modo "servidor" do app, que é uma opção avançada em Perfil → Reconhecimento. A página web que existia na rota `/` saiu: o app substituiu ela.
 
 ```bash
-python app.py
+python -m api.app
 ```
 
-**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000:
+**Porta:** por padrão, a API sobe na **5000** (o `api/app.py` usa o padrão do Flask, e o `api/serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000:
 
 ```bash
-flask --app app run --host 0.0.0.0 --port 5001
+flask --app api.app run --host 0.0.0.0 --port 5001
 ```
 
 No app, o endereço vai em Perfil → Reconhecimento: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
@@ -202,17 +204,17 @@ O `status` pode ser `ok`, `silence`, `too_short` ou `unknown`. Nos três último
 
 ### Deixar rodando no Windows
 
-O `serve.py` sobe a API com waitress, sem janela, e grava a saída em `server.log`:
+O `api/serve.py` sobe a API com waitress, sem janela, e grava a saída em `server.log`, na raiz:
 
 ```bash
-python serve.py
+python -m api.serve
 ```
 
 Pra iniciar sozinho ao fazer login, crie uma tarefa no Agendador de Tarefas (PowerShell):
 
 ```powershell
 $dir = "C:\caminho\para\ChordAI-backend"
-$action = New-ScheduledTaskAction -Execute "$dir\.venv\Scripts\pythonw.exe" -Argument "`"$dir\serve.py`"" -WorkingDirectory $dir
+$action = New-ScheduledTaskAction -Execute "$dir\.venv\Scripts\pythonw.exe" -Argument "-m api.serve" -WorkingDirectory $dir
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 Register-ScheduledTask -TaskName "VIOLAO_AI Server" -Action $action -Trigger $trigger -Settings $settings -Force
@@ -230,16 +232,14 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── pipeline.py                 # código comum: janelas, features, split, modelos, _none, limiar
 ├── train_model.py              # treina o modelo da API Flask (trained_model/)
 ├── baixar_dataset.py           # baixa o V3, o meu dataset e a pasta antiga
-├── app.py                      # API Flask (ferramenta de desenvolvimento)
-├── serve.py                    # sobe a API com waitress (Windows)
-├── audio_capture.py            # captura de áudio do microfone ou da interface
-├── evaluate_realtime.py        # acurácia e latência em janelas como as do app
-├── confusion_report.py         # matriz de confusão e relatório por acorde
-├── train_experiment_class_weight.py
-├── train_ensemble_experiment.py
 ├── requirements.txt
 ├── requirements.lock.txt       # versões exatas usadas nos resultados
+├── pytest.ini                  # o marcador "dataset" dos testes que precisam dos áudios
+├── .github/workflows/ci.yml    # roda o pytest e confere o export em todo push e PR
 │
+├── api/
+│   ├── app.py                  # API Flask: só o POST /predict_chord (ferramenta de desenvolvimento)
+│   └── serve.py                # sobe a API com waitress (Windows)
 ├── data/
 │   ├── sources.csv             # uma linha por arquivo de áudio das duas fontes
 │   └── sessoes.csv             # as sessões em que gravei o meu dataset
@@ -262,9 +262,13 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 │   └── ...                     # o último modelo exportado (hoje o v3_meu)
 ├── experiments/
 │   ├── results/                # experimentos com a pasta antiga (comparativo.md)
-│   └── results_duas_fontes/    # experimentos de 15/11 (comparativo.md)
+│   ├── results_duas_fontes/    # experimentos de 15/11 (comparativo.md)
+│   ├── candidates/             # modelos antigos que os testes e o equivalence_check usam
+│   ├── legado/                 # experimentos de treino de outubro (class weight e ensemble)
+│   ├── evaluate_realtime.py    # acurácia e latência em janelas como as do app
+│   ├── confusion_report.py     # matriz de confusão e relatório por acorde
+│   └── audio_capture.py        # captura de áudio do microfone (o tamanho da janela vem daqui)
 ├── tests/                      # pytest
-├── candidates/                 # modelos antigos guardados
 ├── trained_model/              # o modelo da API Flask
 │
 ├── dataset/                    # pasta antiga (não vai pro Git)
