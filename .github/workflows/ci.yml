@@ -11,10 +11,10 @@ jobs:
     # (versions-manifest.json do actions/python-versions).
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # A mesma versão do Python dos resultados (README, seção "Instalar").
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12.10"
           cache: pip
