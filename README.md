@@ -32,7 +32,7 @@ O código comum ao treino, aos experimentos e à exportação fica em `pipeline.
 
 ## 2. Os modelos do app
 
-O app traz dois modelos em `assets/models/`, e eu escolho qual usar nas Configurações. Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
+O app traz dois modelos em `assets/models/`, e eu escolho qual usar em **Perfil → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
 
 | | **v3** (padrão) | **v3_meu** |
 |---|---|---|
@@ -172,13 +172,13 @@ Os pesos (`.h5`) dos experimentos não ficam no Git. Ficam só os `metrics.json`
 
 Fontes: `trained_model/model_config.json` e `metrics.json`, e `experiments/results_duas_fontes/0/metrics.json`.
 
-Uso a API pra testar o reconhecimento pelo microfone do computador, na interface web da rota `/`, e no modo "servidor" do app, que é uma opção avançada nas Configurações.
+Uso a API pra testar o reconhecimento pelo microfone do computador, na interface web da rota `/`, e no modo "servidor" do app, que é uma opção avançada em Perfil → Reconhecimento.
 
 ```bash
 python app.py
 ```
 
-**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000. No app, o endereço vai em Configurações: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
+**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000. No app, o endereço vai em Perfil → Reconhecimento: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
 
 ### `POST /predict_chord`
 

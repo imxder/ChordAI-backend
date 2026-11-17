@@ -19,7 +19,7 @@ Os números são de `experiments/results_duas_fontes/0c/metrics.json` (v3) e `ex
 
 ## Decisão
 
-O app traz os dois modelos, e eu escolho qual usar em Configurações. **O padrão é o v3.**
+O app traz os dois modelos, e eu escolho qual usar em **Perfil → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). **O padrão é o v3.**
 
 - **Por que dois:** pra eu poder comparar os dois no uso real.
 - **Por que o v3 é o padrão:** ele teve a maior acurácia no teste independente, 87,4% na pasta Test do V3 contra 85,7% do v3_meu. Esse teste usa outras pessoas e outros violões, então é o que mais se parece com um usuário novo.
