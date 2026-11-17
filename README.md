@@ -1,251 +1,204 @@
-
 # ChordAI - Backend
 
-Este projeto treina um dataset de audios de acordes musicais com o metodo CNN 1D e disponibiliza uma API Flask para visualizar uma interface onde o usuário podera ver o reconhecimento do acorde tocado.
+Este é o pipeline de IA do ChordAI: aqui eu preparo os dados, treino a rede que reconhece acordes e exporto os modelos em TFLite que rodam dentro do app, no próprio celular.
 
 App Flutter: [github.com/imxder/ChordAI](https://github.com/imxder/ChordAI)
 
 ---
 
-## Requisitos
+## 1. Como funciona
 
-- Python 3.11 ou superior. Os resultados foram gerados com o Python 3.12.10.
-- Versões usadas nos experimentos e no modelo em produção (lista completa em `requirements.lock.txt`):
-  - **librosa 1.0.0**
-  - **TensorFlow 2.21.0** (Keras 3.15.1)
-  - NumPy 2.5.4, SciPy 1.18.1, scikit-learn 1.9.1
-- O `requirements.lock.txt` fixa essas versões. Ele importa porque a Parte 7b replica detalhes internos do librosa (a janela e o padding da STFT e o banco de filtros chroma), que mudam entre versões.
+```mermaid
+flowchart LR
+    V3["Guitar Chords V3<br/>(Kaggle)"] --> J
+    T["Meus takes longos<br/>(iPhone e Ableton)"] --> C["scripts/cortar_takes.py<br/>um corte de 2,5 s por batida"]
+    C --> J["Janelas de 1,5 s<br/>a 22 050 Hz"]
+    J --> F["chroma_stft<br/>n_fft 8192, 12 × 65"]
+    F --> N["CNN 1D<br/>BatchNorm + GAP"]
+    N --> S["8 ou 9 acordes<br/>+ _none + limiar"]
+    S --> E["export/build_tflite.py<br/>.tflite com a feature dentro"]
+    E --> A["App: assets/models/"]
+```
 
----
+- **Janela de 1,5 s**, o mesmo tamanho do trecho que o app grava.
+- **Chroma**: quanto de cada uma das 12 notas tem em cada pedacinho da janela. É o que a rede olha.
+- **CNN 1D** pequena, com BatchNorm e GlobalAveragePooling.
+- **Classe `_none`** ("nenhum acorde"), treinada com ruído, percussão e acorde em volume baixo gerados pelo `pipeline.py`. No `v3_meu`, ela também aprende com os meus áudios de sem acorde e com sons de afinação sintéticos.
+- **Limiar de confiança:** se a classe for `_none`, ou se a confiança ficar abaixo do limiar do modelo, o app mostra "desconhecido".
+- **Silêncio:** janelas com RMS abaixo de 0,003 nem passam pelo modelo.
+- **A feature vai dentro do `.tflite`.** O app manda o áudio bruto e recebe as probabilidades, sem calcular chroma em Dart. Por que a inferência saiu do servidor e foi pro aparelho está no [ADR 0001](docs/adr/0001-inferencia-no-aparelho.md).
 
-## 1. Instalação
+O código comum ao treino, aos experimentos e à exportação fica em `pipeline.py`.
 
-### Passo 1: Clone o repositório
+## 2. Os modelos do app
+
+O app traz dois modelos em `assets/models/`, e eu escolho qual usar nas Configurações. Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
+
+| | **v3** (padrão) | **v3_meu** |
+|---|---|---|
+| Experimento | C1, `aug2_chroma_stft8192_scalerfeat_gapbn_none`, seed 44 | F9, `F9_stft8192_aug2`, seed 43 |
+| Dados de treino | pasta antiga `dataset/`: Training do V3 + 42 gravações antigas minhas | Training do V3 + o meu dataset (s1 e g1, sem os `take02`) |
+| Acordes | Am, Bb, Bdim, C, Dm, Em, F e G | os 8 + A |
+| Limiar | 0,50 | 0,55 |
+| Release | [`model-v3`](https://github.com/imxder/ChordAI-backend/releases/tag/model-v3) | [`model-v3-meu`](https://github.com/imxder/ChordAI-backend/releases/tag/model-v3-meu) |
+
+Fontes: o `model_info.json` de cada release, que é o mesmo de `assets/models/<modelo>/` no app.
+
+- **Escolha da seed:** nos dois modelos, foi pela **validação**, nunca pelo teste. Treinei as seeds 42, 43 e 44 e fiquei com a de maior acurácia nos acordes da validação (`seed_selection` no `export_report.json` de cada release).
+- **Tamanho:** cada `.tflite` float32 tem uns 420 KB (`size_kb_float32` no `export_report.json`). A maior parte é a STFT e a matriz de chroma, que vão dentro do arquivo.
+
+### Resultados
+
+| Teste | O que é | Janelas | v3 | v3_meu |
+|---|---|---:|---:|---:|
+| Sorteado da pasta antiga | 20% dos arquivos de `dataset/`, sorteados | 1545 | 95,3% | não se aplica |
+| **Test do V3** | a pasta `dataset_kaggle/Test`: 10 pessoas e violões que não aparecem no treino | 1508 | **87,4%** | **85,7%** |
+| `take02` | o meu `take02` de cada acorde, da mesma sessão do treino | 256 | 98,0% | 100,0% |
+| Falso aceite, sem acorde gravado | meus takes de cordas abafadas e afinando | 48 | 81,2% | 22,9% |
+| Falso aceite, sem acorde sintético | ruído, percussão e acorde em volume baixo | 260 | 1,9% | 1,5% |
+
+Fontes:
+- **v3:** `experiments/results/aug2_chroma_stft8192_scalerfeat_gapbn_none_s44/metrics.json` (sorteado) e `experiments/results_duas_fontes/0c/metrics.json` (os outros testes).
+- **v3_meu:** `experiments/results_duas_fontes/F9_stft8192_aug2_s43/metrics.json`.
+- **Tamanho dos testes:** `experiments/results_duas_fontes/comparativo.md`.
+- As acurácias são sem limiar, só a classe de maior probabilidade, e contam só os 8 acordes do v3.
+
+**Por que os números são tão diferentes:**
+
+- **O teste sorteado tem as mesmas pessoas do treino.** Os arquivos de uma pessoa caem uns no treino e outros no teste, e o modelo já conhece o violão e o jeito dela tocar. Por isso o v3 dá 95,3% nele e 87,4% no Test do V3. O v3_meu treinou com o Training inteiro, então esse teste não serve pra ele.
+- **O Test do V3 é o teste independente.** As 10 pessoas e violões dele não aparecem no treino. É o que mais se parece com um usuário novo, e é onde o v3 ganha: 87,4% contra 85,7%.
+- **O `take02` é otimista.** Ele é da mesma sessão, dia, cômodo e microfone do treino. Serve pra comparar modelos, não pra prometer acerto. Não gravei a sessão `s3`, que seria o teste do meu violão em outras condições.
+- **O falso aceite com sem acorde gravado é onde o v3_meu ganha.** O v3 mostra acorde em 81,2% dessas janelas, e o v3_meu em 22,9%. Mas **esse teste é pequeno**: são só 48 janelas (24 de cordas abafadas e 24 de afinando), da mesma sessão do resto do meu dataset.
+
+## 3. Dados
+
+Uso duas fontes, em pastas separadas que nunca se misturam em disco:
+
+- **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da **Fabiana Vinci**, com licença **CC BY-SA 4.0**. Ela me autorizou por escrito, nos [comentários do dataset](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3/discussion), a usar o dataset pra treinar, avaliar e distribuir os pesos no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
+- **O meu dataset**, publicado no Kaggle como **[ChordAI Guitar Chords](https://www.kaggle.com/datasets/imxder/chordai-guitar-chords-v1)** (CC BY-SA 4.0). Fica em `dataset_proprio/<acorde>/`. Tem a sessão `s1` (violão no Gravador do iPhone 11), a `g1` (Tagima TW-61, estilo Jazzmaster, limpa pela GT-1; nos arquivos aparece como `jazzmaster`) e 42 gravações antigas. Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
+
+O `data/sources.csv` tem uma linha por arquivo das duas fontes: caminho, acorde, fonte, instrumento, sessão, take, microfone e uso. As sessões estão em `data/sessoes.csv`.
+
+A pasta antiga `dataset/` (o Training do V3 + as 42 gravações antigas) continua existindo porque o v3 e a API Flask foram treinados com ela.
+
+**Licenças:** o **código** deste repositório é MIT ([LICENSE](LICENSE)). A licença MIT **não vale pros áudios**: o Guitar Chords V3 e o meu dataset continuam sendo CC BY-SA 4.0.
+
+## 4. Como reproduzir
+
+### Instalar
+
+Python 3.11 ou superior. Os resultados foram gerados com o Python 3.12.10, librosa 1.0.0, TensorFlow 2.21.0 (Keras 3.15.1), NumPy 2.5.4, SciPy 1.18.1 e scikit-learn 1.9.1.
 
 ```bash
 git clone https://github.com/imxder/ChordAI-backend.git
 cd ChordAI-backend
-```
-
-### Passo 2: Crie e ative o ambiente virtual
-
-No Windows:
-
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
-```
-
-No Linux/macOS:
-
-```bash
 python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### Passo 3: Instale as dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-Para reproduzir os resultados com as mesmas versões exatas, instale o lock:
-
-```bash
+source .venv/bin/activate          # no Windows: .\.venv\Scripts\activate
 pip install -r requirements.lock.txt
 ```
 
-## 2. Baixe o dataset
+Uso o `requirements.lock.txt`, e não o `requirements.txt`, porque a exportação replica detalhes internos do librosa (a janela e o padding da STFT e o banco de filtros chroma), que mudam entre versões.
 
-Uso duas fontes, em pastas separadas que nunca se misturam em disco:
+### Baixar os dados
 
-- **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da Fabiana Vinci (CC BY-SA 4.0). Ela autorizou por escrito, nos comentários do dataset, o uso pra treinar, avaliar e distribuir o modelo no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
-- **Minhas gravações**, em `dataset_proprio/<acorde>/`. Publiquei no Kaggle como [ChordAI Guitar Chords](https://www.kaggle.com/datasets/imxder/chordai-guitar-chords-v1) (CC BY-SA 4.0). Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
-
-```bash
-python baixar_dataset.py              # V3 -> dataset_kaggle/ (o Kaggle entrega sem login)
-python baixar_dataset.py --proprio    # meu dataset -> dataset_proprio/ (também sem login)
-python -m scripts.montar_sources      # gera data/sources.csv com as duas fontes
-```
-
-O `data/sources.csv` tem uma linha por arquivo: caminho, acorde, fonte, instrumento, sessão, take, microfone e uso (treino ou teste). As sessões das minhas gravações estão em `data/sessoes.csv`.
-
-O modelo "Só v3" do app foi treinado com a pasta antiga `dataset/` (a Training do V3 mais 42 gravações minhas). Pra reproduzir ele, `python baixar_dataset.py --antigo` baixa esse zip do Google Drive. Deixei essa opção porque o app ainda deixa escolher esse modelo nas configurações.
-
-## 3. Modelo de reconhecimento
-
-### Pipeline em produção
-
-O modelo em `trained_model/` (o mesmo de `candidates/candidate_chroma_gapbn_none/`) usa:
-
-1. **Janela de 1,5 s** a 22 050 Hz, o mesmo tamanho do trecho que o app grava.
-2. **Chroma** (`librosa.feature.chroma_cqt`, 12 bins × 65 frames, `hop_length=512`) no lugar dos 40 MFCC do baseline.
-3. **StandardScaler por feature**: média e desvio de cada bin de chroma, calculados no treino.
-4. **CNN 1D com BatchNorm + GlobalAveragePooling**: 47 mil parâmetros e 188 KB em TFLite, contra 268 mil parâmetros do baseline.
-5. **Classe `_none`** ("nenhum acorde"), treinada com negativos sintéticos: áudio do dataset abafado em ruído, ruído branco, rosa, marrom ou de rede elétrica, e batidas percussivas.
-6. **Limiar de confiança 0,50.** Previsões `_none`, ou com confiança abaixo do limiar, viram `status: "unknown"`.
-   - O limiar foi calibrado **na validação** para este modelo (seed 42), com o critério da Parte 5: maior cobertura com falso aceite ≤ 5% e acurácia nos aceitos ≥ 98%.
-   - O 0,45 que aparece em `experiments/results/threshold/threshold.md` era a **média das 3 seeds** da Parte 5.
-   - O 0,50 é o limiar do modelo em produção. É também o valor que `train_model.py` calibra sozinho ao treinar com a seed 42.
-7. **Silêncio:** janelas com RMS < 0,003 continuam sendo devolvidas como `status: "silence"`, antes de passar pelo modelo.
-
-**`model_config.json`:**
-- Cada modelo salvo tem esse arquivo, com feature, scaler, arquitetura, classes, rótulo `_none`, limiar, taxa de amostragem, janela e hop.
-- `load_trained_model()` lê o arquivo, e a inferência extrai a feature e aplica o scaler exatamente como no treino.
-- Uma pasta **sem** `model_config.json` (por exemplo, `candidates/candidate_91_81/`) é tratada como o pipeline antigo: 40 MFCC + scaler por frame, sem `_none` e sem limiar.
-
-O código comum a produção e experimentos fica em `pipeline.py`: features, split, scalers, arquiteturas, negativos, limiar e `model_config.json`. `train_model.py` e `app.py` não dependem da pasta `experiments/`.
-
-O contrato da API não mudou (`{status, chord, confidence}`), e o app Flutter não precisa de alterações.
-
-### Resultados
-
-O teste tem 297 arquivos, cortados em 1545 janelas de 1,5 s.
-- O split é por arquivo: 20% de teste, `random_state=42`, sobre a lista de arquivos ordenada. Por isso é igual em qualquer sistema operacional.
-- A validação usa 15% dos arquivos de treino. O teste só entra na avaliação final.
-
-A tabela abaixo mostra médias ± desvio sobre as seeds 42, 43 e 44, sem limiar (argmax):
-
-| Configuração | Acurácia (%) | Macro-F1 (%) | Acurácia com ruído (%) | Parâmetros |
-|---|---:|---:|---:|---:|
-| Baseline: MFCC 40 + scaler por frame + CNN 1D (Flatten) | 88,00 ± 0,94 | 88,00 ± 0,93 | 76,12 ± 0,73 | 268 104 |
-| Chroma + scaler por frame + CNN 1D (Flatten) | 95,75 ± 0,54 | 95,73 ± 0,57 | 95,12 ± 0,42 | 259 144 |
-| Chroma + scaler por feature + CNN 1D (Flatten) | 96,03 ± 0,63 | 96,00 ± 0,65 | 94,80 ± 0,93 | 259 144 |
-| Chroma + scaler por feature + GAP+BN | 95,43 ± 0,36 | 95,40 ± 0,33 | 94,69 ± 0,51 | 46 920 |
-| **Chroma + scaler por feature + GAP+BN + `_none`** (produção) | 95,32 ± 0,26 | — | 93,14 ± 0,45 | 47 049 |
-
-- A coluna "Acurácia com ruído" usa o mesmo teste, com ruído rosa a 15 dB e passa-banda de 200 Hz a 5 kHz.
-- **O que cada mudança fez:**
-  - A troca de MFCC por chroma explica quase todo o ganho (+7,75 p.p.).
-  - O scaler por feature, o augmentation e a CNN 2D não tiveram efeito significativo.
-  - O GAP+BN custa ~0,6 p.p. e deixa o modelo 5,5× menor.
-- A tabela completa, com efeitos pareados, F1 por classe, pares mais confundidos e latência, está em [`experiments/results/comparativo.md`](experiments/results/comparativo.md).
-
-**Modelo em produção (seed 42, limiar 0,50).** Os números abaixo usam o mesmo caminho do app: `load_trained_model` + `recognize_chord` sobre o áudio bruto. O resultado completo está em [`experiments/results/parte6/equivalence.json`](experiments/results/parte6/equivalence.json).
-
-| Janelas de acorde do teste | Janelas | % do total |
-|---|---:|---:|
-| Acorde certo | 1444 | 93,46 |
-| Acorde errado | 26 | 1,68 |
-| `unknown` (`_none` ou confiança < 0,50) | 15 | 0,97 |
-| `silence` (RMS < 0,003, tratado à parte pelo app) | 60 | 3,88 |
-| **Total** | **1545** | 100 |
-
-- **A acurácia nos acordes, sem as janelas de silêncio, é 97,24%** (1444 de 1485).
-  - O total de 93,46% conta como erro as 60 janelas silenciosas.
-  - O app responde a essas janelas como `silence`, e não como um acorde.
-- **Acurácia nos aceitos** (`status: "ok"`): 98,23%. **Cobertura**: 98,99% das janelas não silenciosas.
-- **Negativos do teste** (223 janelas sem acorde): 98,21% viram `unknown`, ou seja, 1,79% de falso aceite.
-- **Latência no PC:** ~95 ms para extrair o chroma + ~105 ms de `model.predict` ≈ 200 ms por janela, dentro do orçamento de 1,5 s.
-
-**Modelo anterior** (`candidates/candidate_91_81/`, MFCC):
-- No `evaluate_realtime.py`, ele dá 96,89% neste mesmo teste.
-- Esse número não é comparável com os de cima. O modelo foi treinado com um split antigo, que dependia da ordem do `os.listdir()` e colocava no treino arquivos que hoje estão no teste.
-- Com o split corrigido e a validação separada, o mesmo pipeline dá 88%.
-
-### Treinar o modelo
-
-Ao clonar o repositório, o modelo já vem treinado. Para treinar de novo, apague o conteúdo da pasta `trained_model` (ou mude `MODEL_DIR`) e execute:
+Os três downloads funcionam sem login:
 
 ```bash
-python train_model.py
+python baixar_dataset.py              # Guitar Chords V3 -> dataset_kaggle/
+python baixar_dataset.py --proprio    # o meu dataset -> dataset_proprio/
+python baixar_dataset.py --antigo     # a pasta antiga -> dataset/ (do Google Drive)
+python -m scripts.montar_sources      # monta o data/sources.csv
 ```
 
-O que este script faz:
-
-- Carrega os áudios da pasta `dataset` e corta janelas de 1,5 s.
-- Separa treino, validação (15% dos arquivos de treino) e teste (20% dos arquivos).
-- Gera os negativos da classe `_none`.
-- Treina com EarlyStopping e ReduceLROnPlateau monitorando a **validação**.
-- Calibra o limiar de confiança na validação.
-- Salva `model.h5`, `encoder.joblib`, `scaler.joblib`, `model_config.json` e `metrics.json`.
-
-A configuração fica nas constantes do topo de `train_model.py`. Os valores padrão são os da produção:
-
-```python
-FEATURE_TYPE = "chroma"   # "mfcc", "chroma", "cqt" ou "mfcc_chroma"
-SCALER_TYPE = "feature"   # "feature" (por feature) ou "frame" (o do baseline)
-ARCH = "gap_bn"           # "gap_bn", "flatten" (o do baseline) ou "cnn2d"
-WITH_NONE = True          # classe "_none" + limiar de confiança
-SEED = 42
-```
-
-Com a seed 42, o treino é determinístico e reproduz o modelo de produção: 95,60% nos acordes sem limiar, 98,21% de recall `_none` e limiar 0,50.
-
-### Reproduzir o baseline
-
-Para treinar o pipeline original do TCC (40 MFCC + scaler por frame + CNN 1D com Flatten, sem `_none`) sem mexer em `trained_model/`:
+### Treinar e exportar o v3
 
 ```bash
-python -c "import train_model as t; t.train_model(out_dir='trained_model_baseline', feature='mfcc', scaler='frame', arch='flatten', with_none=False)"
-python evaluate_realtime.py --model-dir trained_model_baseline
+python -m experiments.run_seeds --only aug2_chroma_stft8192_scalerfeat_gapbn_none   # seeds 42, 43 e 44
+python -m experiments.threshold --feature aug2_chroma_stft8192                      # limiar na validação
+python export/build_tflite.py                                                      # escolhe a seed e exporta
 ```
 
-- **Resultado esperado:** 88,67% no teste com a seed 42. A média das 3 seeds é 88,00%.
-- **Alternativa:** trocar as constantes do topo de `train_model.py` para `"mfcc"`, `"frame"`, `"flatten"` e `False`.
-- **Pelos scripts de experimento:**
+### Treinar e exportar o v3_meu
 
 ```bash
-python -m experiments.exp_features --feature mfcc --seed 42        # uma seed
-python -m experiments.run_seeds --only feat_mfcc                   # seeds 42, 43 e 44
+python -m scripts.comparar_modelos --modelos F9 --feature chroma_stft8192 --aug 2   # seeds 42, 43 e 44
+python export/build_tflite.py --duas-fontes F9_stft8192_aug2                         # escolhe a seed e exporta
 ```
 
-### Avaliação e experimentos
+O `build_tflite.py` sempre grava em `export/`, então exportar um modelo apaga o outro de lá. Por isso cada modelo exportado fica guardado numa GitHub Release. O treino é determinístico por seed: rodar de novo dá os mesmos pesos e as mesmas métricas.
+
+Como o app usa os arquivos exportados está em [export/README.md](export/README.md).
+
+### Testes
 
 ```bash
-python evaluate_realtime.py [--model-dir trained_model]   # acurácia, taxa de unknown e latência por janela
-python confusion_report.py [--model-dir trained_model]    # matriz de confusão e relatório por acorde
-python -m experiments.equivalence_check                   # produção x experimento (a diferença deve ser 0)
-python -m experiments.split_hash --check                  # confere se o split de teste é o esperado
-python -m experiments.run_seeds                           # todos os experimentos, 3 seeds
-python -m experiments.threshold                           # curva do limiar (Parte 5)
-python -m experiments.compare                             # gera experiments/results/comparativo.md
-python -m pytest                                          # testes
+python -m pytest
 ```
 
-Os pesos (`.h5`) dos modelos de experimento não ficam no Git (`experiments/**/*.h5` está no `.gitignore`).
-- **O que fica versionado em `experiments/results/`:** `metrics.json`, matrizes de confusão, relatórios, `train.log`, `comparativo.md` e `equivalence.json`.
-- **Os modelos que importam** ficam em `trained_model/` e `candidates/`.
-- **Para regerar os modelos dos experimentos:** rode `python -m experiments.run_seeds`. O treino é determinístico por seed, então reproduz os mesmos pesos e métricas. Também dá para regerar só alguns grupos, com `--only feat_mfcc feat_chroma ...`.
-- Scripts que carregam o `model.h5` de um experimento precisam dessa regeneração antes: `bench_latency.py`, `threshold.py`, `equivalence_check.py`, `promote_candidate.py`, `eval_degraded.py`, `eval_saved_model.py` e `eval_realtime_exp.py`.
+## 5. Experimentos e histórico
 
-## 4. Rodar a API Flask
+- **Os experimentos de 15/11, com as duas fontes:** [docs/experimentos.md](docs/experimentos.md) explica cada sigla de `experiments/results_duas_fontes/` (0, R, A, B8, B11, F, F9, V3…), a ordem em que testei e por que o F9 virou o v3_meu.
+- **Os experimentos antigos, só com a pasta `dataset/`:** estão em [`experiments/results/comparativo.md`](experiments/results/comparativo.md).
 
-Este servidor é o backend do app de reconhecimento de acordes. O app grava trechos de áudio de ~1,5s e envia para a API, que retorna o acorde reconhecido.
+Como cheguei até aqui:
 
-Para iniciar a API:
+1. **Baseline do TCC:** 40 MFCC + CNN 1D com Flatten, **88,00% ± 0,94** no teste sorteado (média das seeds 42, 43 e 44, `experiments/results/comparativo.md`).
+2. **Correção do split.** O modelo antigo (`candidates/candidate_91_81/`) dava **96,89%** no `evaluate_realtime.py`. Esse número não ficou salvo em arquivo, só no README antigo. Ele não valia: o split dependia da ordem do `os.listdir()` e colocava no treino arquivos que estavam no teste. Com o split por arquivo, na lista ordenada, e uma validação separada, o mesmo pipeline dá os **88%** do baseline. O `python -m experiments.split_hash --check` confere se o split continua o mesmo.
+3. **Chroma no lugar de MFCC:** **+7,75 ± 0,78** pontos (`experiments/results/comparativo.md`, "Efeitos isolados"). Foi a mudança que mais fez diferença. O scaler por feature, o augmentation e a CNN 2D não tiveram efeito significativo.
+4. **CNN menor:** o GAP+BN custou uns 0,6 ponto e deixou a rede 5,5× menor (de 259 mil pra 47 mil parâmetros). Convertida sozinha pra TFLite, essa CNN tem 188 KB (coluna "TFLite (KB)" do mesmo comparativo).
+5. **Classe `_none` e limiar de confiança:** a rede aprende a dizer "nenhum acorde", e o limiar é calibrado na validação. Os números estão na seção "Parte 5" do comparativo.
+6. **Feature dentro do TFLite:** troquei a chroma_cqt pela chroma_stft com n_fft 8192 + augmentation (o C1), que custou uns 0,3 ponto (−0,28 ± 0,88 na seção "Parte 7a" do comparativo). O motivo está no [ADR 0001](docs/adr/0001-inferencia-no-aparelho.md). Esse é o v3 do app.
+7. **Escolha da seed pela validação:** entre as seeds 42, 43 e 44, a de maior acurácia nos acordes da validação. O teste não participa (`export/build_tflite.py`).
+8. **As duas fontes:** o v3_meu, em [docs/experimentos.md](docs/experimentos.md).
+
+Para reproduzir o baseline sem mexer em nada: `python -m experiments.run_seeds --only feat_mfcc`.
+
+Os pesos (`.h5`) dos experimentos não ficam no Git. Ficam só os `metrics.json`, as matrizes de confusão, os relatórios e os `comparativo.md`. Como o treino é determinístico por seed, `python -m experiments.run_seeds` gera os mesmos pesos de novo.
+
+## 6. API Flask (ferramenta de desenvolvimento)
+
+**A API Flask não usa nenhum dos modelos do app.** Ela carrega o `trained_model/`, um modelo mais antigo, com a chroma_cqt calculada no servidor:
+
+| | API Flask |
+|---|---|
+| Experimento | `feat_chroma_scalerfeat_gapbn_none`, seed 42 |
+| Dados de treino | a pasta antiga `dataset/` |
+| Acordes | os 8 do v3 + `_none` |
+| Limiar | 0,50 |
+| Arquivo | `trained_model/model.h5` |
+| Sorteado da pasta antiga | 95,6% |
+| Test do V3 | 90,7% |
+| Falso aceite, sem acorde gravado | 87,5% |
+
+Fontes: `trained_model/model_config.json` e `metrics.json`, e `experiments/results_duas_fontes/0/metrics.json`.
+
+Uso a API pra testar o reconhecimento pelo microfone do computador, na interface web da rota `/`, e no modo "servidor" do app, que é uma opção avançada nas Configurações.
 
 ```bash
 python app.py
 ```
 
-A API fica disponível em:
+**Porta:** por padrão, a API sobe na **5000** (o `app.py` usa o padrão do Flask, e o `serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000. No app, o endereço vai em Configurações: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
 
-```
-http://localhost:5000
-```
+### `POST /predict_chord`
 
-### Endpoint principal: `POST /predict_chord`
-
-Recebe um arquivo WAV no campo `audio` (multipart/form-data) e retorna:
+Recebe um WAV no campo `audio` (multipart/form-data) e devolve:
 
 ```json
 { "status": "ok", "chord": "C", "confidence": 0.98 }
 ```
 
-Valores possíveis de `status`: `ok`, `silence`, `too_short` e `unknown` (nos três últimos, `chord` vem `null`).
+O `status` pode ser `ok`, `silence`, `too_short` ou `unknown`. Nos três últimos, `chord` vem `null`.
 
-A rota `/` abre uma interface web simples, usada para testar o reconhecimento direto pelo microfone do computador.
+### Deixar rodando no Windows
 
-## 5. Deixar o servidor rodando (Windows)
-
-Para deixar a API sempre ligada, use o `serve.py`, que sobe o servidor com waitress, sem janela, e grava a saída em `server.log`:
+O `serve.py` sobe a API com waitress, sem janela, e grava a saída em `server.log`:
 
 ```bash
 python serve.py
 ```
 
-Para iniciar automaticamente ao fazer login no Windows, crie uma tarefa no Agendador de Tarefas (PowerShell):
+Pra iniciar sozinho ao fazer login, crie uma tarefa no Agendador de Tarefas (PowerShell):
 
 ```powershell
 $dir = "C:\caminho\para\ChordAI-backend"
@@ -256,68 +209,57 @@ Register-ScheduledTask -TaskName "VIOLAO_AI Server" -Action $action -Trigger $tr
 Start-ScheduledTask -TaskName "VIOLAO_AI Server"
 ```
 
-Para acessar de outro dispositivo (ex.: celular), use o IP da máquina na rede (ou do Tailscale) na porta 5000.
+Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `dataset/`, sorteia treino, validação e teste, calibra o limiar e grava em `trained_model/`. Com a seed 42, reproduz o mesmo modelo.
 
----
+## 7. Estrutura dos arquivos
 
-## Estrutura dos arquivos
 ```
 /
-├── app.py                     # API Flask (Aplicação Principal)
-├── serve.py                   # Sobe a API com waitress (servidor para deixar rodando no Windows)
-├── baixar_dataset.py          # Baixa o V3 e o meu dataset do Kaggle
-├── scripts/
-│   ├── cortar_takes.py        # Corta os takes longos em um arquivo por batida
-│   ├── montar_sources.py      # Monta o data/sources.csv com as duas fontes
-│   └── fontes.py              # Lista de acordes, pastas e formato do sources.csv
-├── data/
-│   ├── sessoes.csv            # Data, cômodo, microfone e uso de cada sessão de gravação
-│   └── sources.csv            # Uma linha por arquivo de áudio das duas fontes
-├── docs/
-│   └── roteiro-gravacao.md    # Como gravei o meu dataset
-├── pipeline.py                # Código comum a produção e experimentos (features, split, modelos, model_config)
-├── train_model.py             # Treino e inferência (recognize_chord / predict_note)
-├── audio_capture.py           # Script para captura de áudio do usuário (Microfone ou Interface)
-|
-├── evaluate_realtime.py       # Mede acurácia e latência em janelas de captura ao vivo
-├── confusion_report.py        # Matriz de confusão e relatório por acorde
-├── train_experiment_class_weight.py  # Experimento de treino com pesos por classe
-├── train_ensemble_experiment.py      # Experimento de ensemble com vários modelos
-|
-├── requirements.txt           # Dependências do projeto
-|
-├── static/                    # Arquivos estáticos (CSS, JS)
-│   ├── css/
-│   │   └── style.css          # Arquivo CSS para estilização
-│   └── js/
-│       └── main.js            # Arquivo javascript
+├── README.md
+├── LICENSE                     # MIT, só para o código
+├── pipeline.py                 # código comum: janelas, features, split, modelos, _none, limiar
+├── train_model.py              # treina o modelo da API Flask (trained_model/)
+├── baixar_dataset.py           # baixa o V3, o meu dataset e a pasta antiga
+├── app.py                      # API Flask (ferramenta de desenvolvimento)
+├── serve.py                    # sobe a API com waitress (Windows)
+├── audio_capture.py            # captura de áudio do microfone ou da interface
+├── evaluate_realtime.py        # acurácia e latência em janelas como as do app
+├── confusion_report.py         # matriz de confusão e relatório por acorde
+├── train_experiment_class_weight.py
+├── train_ensemble_experiment.py
+├── requirements.txt
+├── requirements.lock.txt       # versões exatas usadas nos resultados
 │
-├── templates/                 # Templates HTML do Flask
-│   └── index.html             # Página principal da aplicação
-|
-├── tests/                     # Testes (pytest)
-│   ├── conftest.py            # Configuração compartilhada dos testes
-│   ├── unit/
-│   │   ├── test_app_logic.py      # Testes da lógica de estabilização do acorde
-│   │   ├── test_unknown_chord.py  # Classe _none e limiar de confiança -> "unknown"
-│   │   ├── test_model_config.py   # model_config.json e compatibilidade com o pipeline antigo
-│   │   └── test_cortar_takes.py   # Script de corte do meu dataset (takes sintéticos)
-│   └── integration/
-│       └── test_api.py        # Testes dos endpoints da API
-|
-├── experiments/               # Experimentos do TCC (cada um salva em experiments/results/<nome>/)
-│   └── results/comparativo.md # Tabela comparativa de todos os experimentos
-|
-├── candidates/                # Modelos candidatos
-│   ├── candidate_90_61/
-│   ├── candidate_90_67/
-│   ├── candidate_91_81/       # Modelo antigo (MFCC, pipeline legado, sem model_config.json)
-│   └── candidate_chroma_gapbn_none/  # Modelo atual (o mesmo de trained_model/)
-|
-└── trained_model/             # Modelo em uso pela API
-    ├── model.h5
-    ├── encoder.joblib
-    ├── scaler.joblib
-    ├── model_config.json      # Feature, scaler, arquitetura, classes, _none e limiar
-    └── metrics.json
+├── data/
+│   ├── sources.csv             # uma linha por arquivo de áudio das duas fontes
+│   └── sessoes.csv             # as sessões em que gravei o meu dataset
+├── docs/
+│   ├── experimentos.md         # as siglas e as rodadas de 15/11
+│   ├── roteiro-gravacao.md     # como gravei o meu dataset
+│   └── adr/
+│       ├── 0001-inferencia-no-aparelho.md
+│       └── 0002-dois-modelos-no-app.md
+├── scripts/
+│   ├── cortar_takes.py         # corta os takes longos em um arquivo por batida
+│   ├── exportar_ableton.py     # exporta os takes de um projeto do Ableton
+│   ├── montar_sources.py       # monta o data/sources.csv
+│   ├── dividir_treino.py       # treino, validação e testes a partir do sources.csv
+│   ├── comparar_modelos.py     # treina e compara os modelos com as duas fontes
+│   └── fontes.py               # lista de acordes, pastas e formato do sources.csv
+├── export/
+│   ├── build_tflite.py         # exporta para TFLite com a feature dentro
+│   ├── README.md               # como o app usa os arquivos exportados
+│   └── ...                     # o último modelo exportado (hoje o v3_meu)
+├── experiments/
+│   ├── results/                # experimentos com a pasta antiga (comparativo.md)
+│   └── results_duas_fontes/    # experimentos de 15/11 (comparativo.md)
+├── tests/                      # pytest
+├── candidates/                 # modelos antigos guardados
+├── trained_model/              # o modelo da API Flask
+├── static/  e  templates/      # interface web da API
+│
+├── dataset/                    # pasta antiga (não vai pro Git)
+├── dataset_kaggle/             # Guitar Chords V3 (não vai pro Git)
+├── dataset_proprio/            # o meu dataset (não vai pro Git)
+└── gravacoes/                  # os takes longos antes de cortar (não vai pro Git)
 ```
