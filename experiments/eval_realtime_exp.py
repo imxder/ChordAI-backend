@@ -11,7 +11,7 @@ import sys
 
 import joblib
 
-import evaluate_realtime
+from experiments import evaluate_realtime
 import pipeline as pl
 from experiments import common
 from experiments.eval_degraded import feature_of

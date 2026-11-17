@@ -1,7 +1,7 @@
 """Matriz de confusao e relatorio por classe do modelo salvo, no split de teste.
 Usa o mesmo caminho de inferencia de producao (model_config.json do modelo).
 
-Uso:  python confusion_report.py [--model-dir trained_model]
+Uso:  python -m experiments.confusion_report [--model-dir trained_model]
 """
 import argparse
 
@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 import pipeline
 import train_model
-from audio_capture import RECORD_DURATION
+from experiments.audio_capture import RECORD_DURATION
 from train_model import WINDOW_SECONDS, make_windowed_segments, split_dataset_files
 
 assert abs(RECORD_DURATION - WINDOW_SECONDS) < 1e-6

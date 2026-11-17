@@ -1,10 +1,10 @@
-"""Avalia um modelo JA treinado (ex.: candidates/candidate_91_81) com o mesmo
-split e a mesma funcao evaluate(), so leitura -- nada em candidates/ e alterado.
+"""Avalia um modelo JA treinado (ex.: experiments/candidates/candidate_91_81) com o mesmo
+split e a mesma funcao evaluate(), so leitura -- nada em experiments/candidates/ e alterado.
 
 Obs.: o candidate_91_81 foi treinado com outro split (deu 97,24% aqui, contra
 ~91,8% documentado), entao NAO e comparavel com os experimentos.
 
-Uso:  python -m experiments.eval_saved_model candidates/candidate_91_81 [--name ref_candidate_91_81]
+Uso:  python -m experiments.eval_saved_model experiments/candidates/candidate_91_81 [--name ref_candidate_91_81]
 """
 import argparse
 import os

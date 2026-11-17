@@ -10,7 +10,7 @@ Para reproduzir o baseline do TCC (~88% com validacao separada):
 
 Todo modelo salvo tem um model_config.json; a inferencia (_predict_raw) le esse
 arquivo para extrair a feature e aplicar o scaler exatamente como no treino.
-Pastas sem model_config.json (ex.: candidates/candidate_91_81) sao tratadas
+Pastas sem model_config.json (ex.: experiments/candidates/candidate_91_81) sao tratadas
 como o pipeline antigo: 40 MFCC + scaler por frame, sem _none e sem limiar.
 """
 import os
