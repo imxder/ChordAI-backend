@@ -3,6 +3,7 @@
 - **Status:** aceita
 - **Data:** 15/11/2026
 - **Repositórios:** [ChordAI-backend](https://github.com/imxder/ChordAI-backend) e [ChordAI](https://github.com/imxder/ChordAI)
+- **Caminhos de arquivo:** os que começam com `lib/` ou `assets/` são do app. Os outros são do backend.
 
 ## Contexto
 
