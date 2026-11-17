@@ -358,7 +358,7 @@ def main():
         '<sub>Split: `list_dataset_files()` agora ordena os arquivos (`sorted(os.listdir())`), então o '
         'teste é o mesmo em qualquer sistema operacional (SHA-256 da lista em `split_hash.txt`; '
         'conferir com `python -m experiments.split_hash --check`). O modelo '
-        '`candidates/candidate_91_81` (o que ficava em `trained_model/` antes da Parte 6) não aparece na tabela: foi '
+        '`experiments/candidates/candidate_91_81` (o que ficava em `trained_model/` antes da Parte 6) não aparece na tabela: foi '
         'treinado com um split antigo, dependente da ordem do `os.listdir()`, e não é comparável. '
         'Rodadas anteriores: `experiments/results_v1_val_no_teste/` (teste usado como validação) e '
         '`experiments/results_v2_split_nao_ordenado/` (validação separada, mas split com a ordem '

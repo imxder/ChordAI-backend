@@ -6,7 +6,7 @@ confianca calibrado na VALIDACAO para esse mesmo modelo, com o criterio da Parte
 (pipeline.choose_threshold), exatamente como train_model.py faz ao treinar.
 O limiar da Parte 5 (0,45) era a media das 3 seeds; fica registrado no metrics.json.
 
-Gera candidates/candidate_chroma_gapbn_none/ com model.h5, encoder.joblib,
+Gera experiments/candidates/candidate_chroma_gapbn_none/ com model.h5, encoder.joblib,
 scaler.joblib, model_config.json e metrics.json.
 
 Uso:  python -m experiments.promote_candidate
@@ -24,7 +24,7 @@ from experiments import common
 from experiments.threshold import load_eval_set
 
 SOURCE_RUN = 'feat_chroma_scalerfeat_gapbn_none_s42'
-OUT_DIR = os.path.join(common.ROOT_DIR, 'candidates', 'candidate_chroma_gapbn_none')
+OUT_DIR = os.path.join(common.ROOT_DIR, 'experiments', 'candidates', 'candidate_chroma_gapbn_none')
 
 
 def calibrate_on_validation(src, scaler_kind):

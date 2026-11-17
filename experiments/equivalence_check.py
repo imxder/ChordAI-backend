@@ -25,7 +25,7 @@ import train_model
 from experiments import common
 from experiments.threshold import load_eval_set
 
-CANDIDATE = os.path.join(common.ROOT_DIR, 'candidates', 'candidate_chroma_gapbn_none')
+CANDIDATE = os.path.join(common.ROOT_DIR, 'experiments', 'candidates', 'candidate_chroma_gapbn_none')
 SOURCE_RUN = 'feat_chroma_scalerfeat_gapbn_none_s42'
 TOL_PP = 0.1
 

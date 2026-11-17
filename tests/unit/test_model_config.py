@@ -9,8 +9,8 @@ import pytest
 import pipeline
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-LEGACY_DIR = os.path.join(ROOT, 'candidates', 'candidate_91_81')
-NEW_DIR = os.path.join(ROOT, 'candidates', 'candidate_chroma_gapbn_none')
+LEGACY_DIR = os.path.join(ROOT, 'experiments', 'candidates', 'candidate_91_81')
+NEW_DIR = os.path.join(ROOT, 'experiments', 'candidates', 'candidate_chroma_gapbn_none')
 
 
 def test_folder_without_config_is_legacy_pipeline(tmp_path):
