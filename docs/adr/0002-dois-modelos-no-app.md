@@ -26,7 +26,7 @@ O app traz os dois modelos, e eu escolho qual usar em **Perfil → Reconheciment
 - **Por que o v3 é o padrão:** ele teve a maior acurácia no teste independente, 87,4% na pasta Test do V3 contra 85,7% do v3_meu. Esse teste usa outras pessoas e outros violões, então é o que mais se parece com um usuário novo.
 - **Por que o v3_meu fica como opção:** ele reconhece o Lá maior e erra bem menos com barulho gravado (22,9% de falso aceite contra 81,2%), mas foi treinado e testado por menos tempo.
 
-Os dois modelos usam o Guitar Chords V3, que a autora me autorizou por escrito a usar pra treinar e distribuir no app, com crédito e link. Isso vale pros dois e não é o motivo da escolha.
+Os dois modelos usam o Guitar Chords V3, que a autora me autorizou por escrito, [num comentário do dataset](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3/discussion/757671#3552939), a usar pra treinar e distribuir no app, com crédito e link. Isso vale pros dois e não é o motivo da escolha.
 
 ## Limitações
 

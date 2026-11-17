@@ -76,7 +76,7 @@ Fontes:
 
 Uso duas fontes, em pastas separadas que nunca se misturam em disco:
 
-- **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da **Fabiana Vinci**, com licença **CC BY-SA 4.0**. Ela me autorizou por escrito, nos [comentários do dataset](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3/discussion), a usar o dataset pra treinar, avaliar e distribuir os pesos no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
+- **[Guitar Chords V3](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3)**, da **Fabiana Vinci**, com licença **CC BY-SA 4.0**. Ela me autorizou por escrito, [num comentário do dataset](https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3/discussion/757671#3552939), a usar o dataset pra treinar, avaliar e distribuir os pesos no app gratuito, com crédito e link. Fica em `dataset_kaggle/Training` e `dataset_kaggle/Test`.
 - **O meu dataset**, publicado no Kaggle como **[ChordAI Guitar Chords](https://www.kaggle.com/datasets/imxder/chordai-guitar-chords-v1)** (CC BY-SA 4.0). Fica em `dataset_proprio/<acorde>/`. Tem a sessão `s1` (violão no Gravador do iPhone 11), a `g1` (Tagima TW-61, estilo Jazzmaster, limpa pela GT-1; nos arquivos aparece como `jazzmaster`) e 42 gravações antigas. Como gravei está em [docs/roteiro-gravacao.md](docs/roteiro-gravacao.md).
 
 O `data/sources.csv` tem uma linha por arquivo das duas fontes: caminho, acorde, fonte, instrumento, sessão, take, microfone e uso. As sessões estão em `data/sessoes.csv`.

@@ -8,6 +8,7 @@ Uso:
 O Guitar Chords V3 e publico: o Kaggle entrega o zip sem login nem token.
 Ele e da Fabiana Vinci (CC BY-SA 4.0), que autorizou o uso no ChordAI com
 credito e link: https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3
+A autorizacao esta neste comentario: https://www.kaggle.com/datasets/fabianavinci/guitar-chords-v3/discussion/757671#3552939
 
 O --antigo existe para reproduzir o modelo "So v3" do app, que foi treinado
 com a pasta dataset/ (Training do V3 + 42 gravacoes minhas). Fica enquanto o
