@@ -178,4 +178,7 @@ if __name__ == '__main__':
     os.makedirs('trained_model', exist_ok=True)
     os.makedirs('dataset', exist_ok=True) 
     
-    app.run(debug=True, threaded=True, host='0.0.0.0')
+    # debug so liga com FLASK_DEBUG=1: o modo debug mostra o codigo e deixa rodar
+    # comandos pela pagina de erro, e a API fica aberta na rede (host 0.0.0.0)
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug, threaded=True, host='0.0.0.0')
