@@ -8,7 +8,7 @@
 
 No começo, o app gravava 1,5 s de áudio e mandava para a API Flask do backend (`POST /predict_chord`), que devolvia o acorde. Isso tinha quatro problemas:
 
-- **Latência.** Cada janela ia e voltava pela rede, e no servidor a extração do chroma mais o `model.predict` levavam uns 200 ms no meu PC (README do backend, seção da API Flask).
+- **Latência.** Cada janela ia e voltava pela rede. No servidor, só o `model.predict` da CNN levava uns 109 ms por janela no meu PC, sem contar a extração do chroma nem a rede ([`experiments/results/comparativo.md`](https://github.com/imxder/ChordAI-backend/blob/main/experiments/results/comparativo.md), coluna "ms predict" do `feat_chroma_scalerfeat_gapbn`).
 - **Precisava de rede e de um computador ligado.** Sem o meu PC na mesma Wi-Fi do celular, o reconhecimento não funcionava.
 - **Privacidade.** O áudio do microfone saía do celular.
 - **A regra do Playbook.** O projeto tem que estar disponível "sem depender de notebook pessoal ou ambiente local" e "não apenas rodando em *localhost*" ([`Portfolio.md`](https://github.com/CatolicaSC-Portfolio/The-Portfolio-Playbook/blob/main/Portfolio.md), linhas 21 e 43). Hospedar a API na nuvem resolveria isso, mas com custo mensal.
