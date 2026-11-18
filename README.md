@@ -135,7 +135,10 @@ Como o app usa os arquivos exportados está em [export/README.md](export/README.
 
 ```bash
 python -m pytest
+python -m pytest -m "not dataset" --cov=. --cov-report=term-missing   # com a cobertura por arquivo
 ```
+
+Cobertura do código de produção (`api/app.py`, `pipeline.py`, `train_model.py`): **94%** (581 de 615 linhas, em 18/11/2026). Os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
 
 O CI (`.github/workflows/ci.yml`) roda os mesmos testes em todo push e PR, com o Python 3.12.10 e o `requirements.lock.txt`, num passo pros testes e outro só pro export TFLite (`tests/unit/test_export_tflite.py`), que confere se o `.tflite` do `export/` dá as mesmas probabilidades do `example_expected.json`. Ele não tem os áudios, então pula os testes marcados com `dataset` (hoje nenhum precisa deles) e o do `afconvert`, que só existe no macOS.
 
@@ -246,6 +249,7 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── docs/
 │   ├── experimentos.md         # as siglas e as rodadas de 15/11
 │   ├── roteiro-gravacao.md     # como gravei o meu dataset
+│   ├── testes.md               # cobertura dos testes e como gerar o relatório
 │   └── adr/
 │       ├── 0001-inferencia-no-aparelho.md
 │       └── 0002-dois-modelos-no-app.md
@@ -268,7 +272,7 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 │   ├── evaluate_realtime.py    # acurácia e latência em janelas como as do app
 │   ├── confusion_report.py     # matriz de confusão e relatório por acorde
 │   └── audio_capture.py        # captura de áudio do microfone (o tamanho da janela vem daqui)
-├── tests/                      # pytest
+├── tests/                      # pytest (sintetico.py gera os acordes de teste)
 ├── trained_model/              # o modelo da API Flask
 │
 ├── dataset/                    # pasta antiga (não vai pro Git)
