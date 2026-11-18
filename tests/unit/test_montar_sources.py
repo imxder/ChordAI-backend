@@ -42,3 +42,30 @@ def test_copia_antigas_lista_kaggle_e_mantem_os_takes(tmp_path):
     assert linhas['G_AcusticPlug26_1.wav']['fonte'] == 'kaggle_v3'
     assert linhas['G_AcousticGuitar_RodrigoMercador_3.wav']['sessao'] == 'AcousticGuitar_RodrigoMercador'
     assert 'Am_violao_s1_take01_001.wav' in linhas
+
+
+def test_nome_que_nao_e_gravacao_antiga_para():
+    import pytest
+    with pytest.raises(fontes.ErroDeNome, match='gravacao antiga'):
+        montar_sources.ler_nome_antigo('C_AcousticGuitar_RodrigoMercador_1.wav')
+    assert montar_sources.ler_nome_antigo('Am_Alex_Acoustic_Mic_2.wav') == ('Am', 'violao', 'microfone')
+
+
+def test_main_conta_o_que_montou(monkeypatch, capsys):
+    monkeypatch.setattr(montar_sources, 'montar', lambda: (42, 0, 250))
+    assert montar_sources.main() == 0
+    texto = capsys.readouterr().out
+    assert '42 gravacoes antigas' in texto
+    assert 'rode python baixar_dataset.py' in texto  # sem nada do kaggle
+    assert '250 linhas de takes cortados mantidas' in texto
+    monkeypatch.setattr(montar_sources, 'montar', lambda: (42, 1400, 250))
+    montar_sources.main()
+    assert '1400 arquivos do Guitar Chords V3' in capsys.readouterr().out
+
+
+def test_le_o_sessoes_csv(tmp_path):
+    caminho = tmp_path / 'sessoes.csv'
+    caminho.write_text('sessao,data,comodo,microfone,uso,observacao\ns1,2026-11-14,quarto,iphone11,treino,violao\n',
+                       encoding='utf-8')
+    sessoes = fontes.ler_sessoes(str(caminho))
+    assert sessoes['s1']['microfone'] == 'iphone11' and sessoes['s1']['uso'] == 'treino'

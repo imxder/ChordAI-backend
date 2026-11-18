@@ -19,3 +19,4 @@ experiments/**/*.h5
 # Cobertura dos testes (gerada no CI pro SonarCloud)
 .coverage
 coverage.xml
+htmlcov/

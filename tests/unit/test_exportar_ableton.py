@@ -105,3 +105,73 @@ def test_nao_grava_por_cima_sem_refazer(projeto):
         exportar_ableton.exportar(als, saida)
     exportar_ableton.exportar(als, saida, refazer=True)
     assert exportar_ableton.exportar(als, saida, conferir=True)[0]['duracao'] == pytest.approx(4.0)
+
+
+def test_clipe_desligado_fica_de_fora(projeto):
+    montar, saida = projeto
+    desligado = clipe('G_jazzmaster_g1_take01', 'gravado.wav').replace(
+        '<Disabled Value="false"/>', '<Disabled Value="true"/>')
+    als = montar(clipe('C_jazzmaster_g1_take01', 'gravado.wav'), desligado)
+    assert [r['take'] for r in exportar_ableton.exportar(als, saida)] == ['C_jazzmaster_g1_take01']
+
+
+def test_projeto_sem_bpm_para(projeto, tmp_path):
+    caminho = tmp_path / 'sem_tempo.als'
+    with gzip.open(caminho, 'wt') as f:
+        f.write('<Ableton><LiveSet></LiveSet></Ableton>')
+    with pytest.raises(exportar_ableton.ErroDoProjeto, match='BPM'):
+        exportar_ableton.exportar(str(caminho))
+
+
+def test_arquivo_pelo_caminho_absoluto_quando_o_relativo_nao_existe(projeto, tmp_path):
+    montar, saida = projeto
+    absoluto = str(tmp_path / 'proj' / 'Samples' / 'gravado.wav')
+    c = clipe('C_jazzmaster_g1_take01', 'nao_existe.wav').replace('<Path Value=""/>', f'<Path Value="{absoluto}"/>')
+    assert len(exportar_ableton.exportar(montar(c), saida)) == 1
+
+
+def test_arquivo_que_sumiu_para(projeto):
+    montar, saida = projeto
+    with pytest.raises(exportar_ableton.ErroDoProjeto, match='nao achei o arquivo'):
+        exportar_ableton.exportar(montar(clipe('C_jazzmaster_g1_take01', 'sumiu.wav')), saida)
+
+
+def test_buraco_entre_dois_pedacos_do_mesmo_take_para(projeto):
+    montar, saida = projeto
+    als = montar(clipe('C_jazzmaster_g1_take01', 'gravado.wav', inicio=0.0, fim=1.0),
+                 clipe('C_jazzmaster_g1_take01', 'gravado.wav', inicio=3.0, fim=4.0))
+    with pytest.raises(exportar_ableton.ErroDoProjeto, match='buraco'):
+        exportar_ableton.exportar(als, saida)
+
+
+def test_ganho_que_passa_de_0_db_para(projeto):
+    montar, saida = projeto
+    # nos 4 primeiros segundos o arquivo chega a 0,4; com ganho 3 o pico passa de 1
+    with pytest.raises(exportar_ableton.ErroDoProjeto, match='0 dB'):
+        exportar_ableton.exportar(montar(clipe('C_jazzmaster_g1_take01', 'gravado.wav', ganho=3.0)), saida)
+
+
+def test_pedacos_com_taxas_diferentes_param(tmp_path):
+    a, b = tmp_path / 'a.wav', tmp_path / 'b.wav'
+    sf.write(str(a), np.zeros(48000), 48000)
+    sf.write(str(b), np.zeros(44100), 44100)
+    trechos = [{'arquivo': str(a), 'inicio': 0, 'fim': 1, 'ganho': 1.0},
+               {'arquivo': str(b), 'inicio': 0, 'fim': 1, 'ganho': 1.0}]
+    with pytest.raises(exportar_ableton.ErroDoProjeto, match='taxas'):
+        exportar_ableton.montar_audio(trechos)
+
+
+def test_main_conferir_lista_e_nao_grava(projeto, capsys):
+    montar, saida = projeto
+    als = montar(clipe('C_jazzmaster_g1_take01', 'gravado.wav', inicio=1.0, fim=2.0),
+                 clipe('C_jazzmaster_g1_take01', 'gravado.wav', inicio=2.0, fim=3.0, posicao=2.0))
+    assert exportar_ableton.main([als, '--saida', saida, '--conferir']) == 0
+    texto = capsys.readouterr().out
+    assert 'C_jazzmaster_g1_take01: 2.00 s' in texto and '2 pedacos emendados' in texto
+    assert 'nada foi gravado' in texto and not os.path.exists(saida)
+
+
+def test_main_com_erro_devolve_1(projeto, capsys):
+    montar, saida = projeto
+    assert exportar_ableton.main([montar(clipe('C_jazzmaster_g1_take01', 'sumiu.wav')), '--saida', saida]) == 1
+    assert 'parei:' in capsys.readouterr().out
