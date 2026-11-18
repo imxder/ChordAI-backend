@@ -53,12 +53,12 @@ def test_escolhe_maior_cobertura_dentro_das_regras():
         _linha(0.5, 0.90, 0.985, 0.04),  # passa: maior cobertura entre os que passam
         _linha(0.7, 0.80, 0.99, 0.01),  # passa, mas cobre menos
     ]
-    assert pipeline.choose_threshold(linhas) == 0.5
+    assert pipeline.choose_threshold(linhas) == pytest.approx(0.5)
 
 
 def test_sem_nenhum_valido_escolhe_menor_falso_aceite():
     linhas = [_linha(0.3, 0.99, 0.90, 0.20), _linha(0.5, 0.90, 0.92, 0.10), _linha(0.7, 0.80, 0.95, 0.08)]
-    assert pipeline.choose_threshold(linhas) == 0.7
+    assert pipeline.choose_threshold(linhas) == pytest.approx(0.7)
 
 
 @pytest.mark.parametrize('arch', ['flatten', 'gap_bn', 'cnn2d', 'baseline'])
@@ -105,7 +105,7 @@ def test_salvar_e_carregar_da_as_mesmas_previsoes(pacote):
 
     x = np.random.default_rng(1).standard_normal((3, pipeline.MAX_PAD_LEN, 12)).astype(np.float32)
     np.testing.assert_allclose(carregado.predict(x, verbose=0), modelo.predict(x, verbose=0), rtol=1e-5)
-    assert config['confidence_threshold'] == 0.5 and list(encoder.classes_) == CLASSES
+    assert config['confidence_threshold'] == pytest.approx(0.5) and list(encoder.classes_) == CLASSES
 
 
 def test_classes_do_config_diferentes_do_encoder_da_erro(pacote):
