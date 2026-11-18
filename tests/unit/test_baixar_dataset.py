@@ -17,3 +17,27 @@ def test_v3_com_training_e_test_na_raiz_nao_muda(tmp_path):
         (tmp_path / pasta / 'C').mkdir(parents=True)
     baixar_dataset.tirar_pasta_de_cima(str(tmp_path))
     assert sorted(p.name for p in tmp_path.iterdir()) == ['Test', 'Training']
+
+
+def test_pasta_que_ja_tem_arquivo_nao_baixa_de_novo(tmp_path, monkeypatch):
+    (tmp_path / 'C').mkdir()
+    chamadas = []
+    monkeypatch.setattr(baixar_dataset, 'baixar_zip', lambda *args: chamadas.append(args))
+    assert baixar_dataset.baixar_do_kaggle('dono/dataset', str(tmp_path)) is None
+    assert chamadas == []
+
+
+def test_main_escolhe_o_dataset_pela_opcao(monkeypatch):
+    chamadas = []
+    monkeypatch.setattr(baixar_dataset, 'baixar_do_kaggle',
+                        lambda slug, destino: chamadas.append((slug, destino.rsplit('/', 1)[-1])))
+    monkeypatch.setattr(baixar_dataset, 'baixar_antigo', lambda: chamadas.append('antigo'))
+
+    assert baixar_dataset.main([]) == 0
+    assert baixar_dataset.main(['--proprio']) == 0
+    assert baixar_dataset.main(['--antigo']) == 0
+    assert chamadas == [
+        (baixar_dataset.GUITAR_CHORDS_V3, 'dataset_kaggle'),
+        (baixar_dataset.DATASET_PROPRIO, 'dataset_proprio'),
+        'antigo',
+    ]
