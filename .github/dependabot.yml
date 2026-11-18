@@ -20,6 +20,9 @@ updates:
       - dependency-name: tensorflow
       - dependency-name: keras
       - dependency-name: librosa
+      # o tensorflow trava a versão do h5py (é por ele que o model.h5 é lido);
+      # o h5py só sobe junto com o tensorflow
+      - dependency-name: h5py
       - dependency-name: numpy
         update-types: [version-update:semver-major, version-update:semver-minor]
 
