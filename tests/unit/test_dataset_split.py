@@ -91,3 +91,8 @@ def test_audio_curto_ganha_zeros_no_fim(tmp_path):
     assert len(janelas[0]) == JANELA
     assert np.all(janelas[0][SR // 2 + 10:] == 0)  # o que passou de 0,5 s é zero
     assert np.allclose(janelas[0][:SR // 2 - 10], 0.5, atol=1e-3)
+
+
+def test_load_split_e_o_mesmo_split_do_treino(tmp_path):
+    gravar_dataset(str(tmp_path), por_acorde=10)
+    assert pipeline.load_split(str(tmp_path)) == pipeline.split_dataset_files(str(tmp_path))

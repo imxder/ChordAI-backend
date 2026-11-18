@@ -110,3 +110,46 @@ def test_features_for_model_audio_curto_devolve_none():
     identidade = StandardScaler(with_mean=False, with_std=False).fit(np.zeros((2, 12)))
     config = pipeline.make_model_config('chroma', 'feature', 'gap_bn', ['C'], False)
     assert pipeline.features_for_model(acorde('C', segundos=0.01), identidade, config) is None
+
+
+def test_build_features_com_versoes_aumentadas(tmp_path):
+    """n_versions versões de cada janela, cada uma passando pela transformação
+    (no treino é o augmentation); k diz qual versão, fidx de qual arquivo veio."""
+    from tests.sintetico import gravar_dataset
+    gravar_dataset(str(tmp_path), acordes=('C', 'G'), por_acorde=1, segundos=1.5)
+    pares = [(str(tmp_path / 'C' / 'C_00.wav'), 'C'), (str(tmp_path / 'G' / 'G_00.wav'), 'G')]
+    chamadas = []
+
+    def mais_baixo(segmento, seed, file_idx, win_idx, k):
+        chamadas.append((file_idx, win_idx, k))
+        return segmento * 0.5
+
+    X, y, k, fidx, rms = pipeline.build_features(pares, 'chroma_stft8192', mais_baixo, n_versions=2, n_jobs=1)
+
+    assert X.shape == (4, 12, FRAMES)  # 2 arquivos x 1 janela x 2 versões
+    assert list(y) == ['C', 'C', 'G', 'G'] and list(k) == [0, 1, 0, 1] and list(fidx) == [0, 0, 1, 1]
+    assert chamadas == [(0, 0, 0), (0, 0, 1), (1, 0, 0), (1, 0, 1)]
+    original = pipeline.rms(pipeline.make_windowed_segments(pares[0][0])[0])
+    assert rms[0] == pytest.approx(original / 2, rel=1e-3)  # o rms é do áudio já transformado
+
+
+def test_dataset_no_formato_antigo_so_mfcc(tmp_path):
+    from tests.sintetico import gravar_dataset
+    gravar_dataset(str(tmp_path), acordes=('C',), por_acorde=2, segundos=1.5)
+    pares = [(str(tmp_path / 'C' / f'C_0{i}.wav'), 'C') for i in range(2)]
+    X, y = pipeline.build_windowed_dataset(pares)
+    assert X.shape == (2, pipeline.N_MFCC, FRAMES) and list(y) == ['C', 'C']
+
+
+def test_parametros_da_chroma_stft_que_o_tflite_reimplementa():
+    prm = pipeline.chroma_stft_params('chroma_stft8192')
+    assert (prm['n_fft'], prm['win_length'], prm['hop_length']) == (8192, 8192, 512)
+    assert prm['tuning'] == pytest.approx(0.0) and prm['n_frames'] == FRAMES
+    janela = pipeline.chroma_stft_window('chroma_stft8192')
+    assert janela.shape == (8192,) and janela.dtype == np.float32
+    # hann periódica: começa em 0 e o pico (1) fica exatamente no meio
+    assert janela[0] == pytest.approx(0.0) and janela[4096] == pytest.approx(1.0)
+
+
+def test_mfcc_de_audio_longo_e_cortado_em_65_frames():
+    assert pipeline.extract_features(acorde('C', segundos=4.0), is_file=False).shape == (pipeline.N_MFCC, FRAMES)

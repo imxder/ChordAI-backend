@@ -60,3 +60,31 @@ def test_arquivo_que_nao_e_audio_devolve_400(client):
     data = response.get_json()
     assert data['status'] == 'error'
     assert 'decodificar' in data['message']
+
+
+def _recarregar_api(monkeypatch, carregar):
+    """Sobe o app.py de novo com outro load_trained_model, como se o Flask
+    estivesse iniciando."""
+    import importlib
+    import api.app
+    import train_model
+    monkeypatch.setattr(train_model, 'load_trained_model', carregar)
+    return importlib.reload(api.app)
+
+
+def test_inicia_sem_modelo_e_avisa(monkeypatch, capsys):
+    import importlib
+    import api.app
+    try:
+        modulo = _recarregar_api(monkeypatch, lambda: (None, None, None))
+        assert modulo.model_loaded is None
+        assert 'python train_model.py' in capsys.readouterr().out
+        modulo = _recarregar_api(monkeypatch, lambda: (_ for _ in ()).throw(OSError('model.h5 estragado')))
+        assert modulo.model_loaded is None
+        assert 'ERRO CRÍTICO' in capsys.readouterr().out
+        # e a rota responde 503 em vez de quebrar
+        response = modulo.app.test_client().post('/predict_chord')
+        assert response.status_code == 503
+    finally:
+        monkeypatch.undo()
+        importlib.reload(api.app)
