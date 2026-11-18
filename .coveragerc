@@ -10,6 +10,11 @@ omit =
     # verdade no CI. A rota /predict_chord, que é o que importa, está em api/app.py
     # e tem teste em tests/integration/test_api.py.
     api/serve.py
+    # experiments/ são os scripts de pesquisa que rodei na minha máquina pra
+    # comparar features e modelos (os resultados estão em experiments/results*).
+    # Não fazem parte do app, da API nem do treino que gera os modelos, e
+    # dependem do dataset inteiro em disco. O que eles usam do pipeline.py tem teste.
+    experiments/*
 
 [report]
 # Os blocos "if __name__ == '__main__':" só rodam quando chamo o arquivo pela linha
