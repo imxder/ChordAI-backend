@@ -1,0 +1,34 @@
+# Dependabot: toda segunda confere se tem versão nova das dependências e abre PR.
+# Os avisos de segurança (Dependabot alerts) chegam à parte, assim que aparecem;
+# esses precisam estar ligados em Settings > Code security.
+version: 2
+updates:
+  # pacotes do Python (requirements.txt e requirements.lock.txt)
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores:
+        update-types: [minor, patch]
+    ignore:
+      # Essas mudam a feature ou os pesos: o chroma_stft e o modelo exportado
+      # dependem da versão exata (o teste do export compara as probabilidades).
+      # Os modelos estão congelados, então só troco na mão, retreinando.
+      - dependency-name: tensorflow
+      - dependency-name: keras
+      - dependency-name: librosa
+      - dependency-name: numpy
+        update-types: [version-update:semver-major, version-update:semver-minor]
+
+  # as Actions do CI (.github/workflows)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
