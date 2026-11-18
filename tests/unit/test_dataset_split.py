@@ -42,7 +42,9 @@ def test_split_por_arquivo_sem_vazamento_e_estratificado(tmp_path):
 
 def test_split_e_sempre_igual(tmp_path):
     gravar_dataset(str(tmp_path), por_acorde=10)
-    assert pipeline.split_dataset_files(str(tmp_path)) == pipeline.split_dataset_files(str(tmp_path))
+    primeira = pipeline.split_dataset_files(str(tmp_path))
+    segunda = pipeline.split_dataset_files(str(tmp_path))
+    assert primeira == segunda  # mesma divisão em toda rodada (random_state fixo)
 
 
 def test_validacao_sai_do_treino_sem_repetir(tmp_path):
