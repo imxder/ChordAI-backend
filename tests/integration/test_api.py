@@ -42,3 +42,21 @@ def test_sem_o_campo_audio_devolve_400(client):
     response = client.post('/predict_chord')
     assert response.status_code == 400
     assert response.get_json()['status'] == 'error'
+
+
+def test_modelo_nao_carregado_devolve_503(client, monkeypatch):
+    """Sem modelo (ex.: trained_model/ estragado), a API responde 503 em vez de quebrar."""
+    import api.app
+    monkeypatch.setattr(api.app, 'model_loaded', None)
+    with open(EXAMPLE, 'rb') as f:
+        response = _post(client, f.read())
+    assert response.status_code == 503
+    assert response.get_json()['status'] == 'error'
+
+
+def test_arquivo_que_nao_e_audio_devolve_400(client):
+    response = _post(client, b'isso e um texto, nao um wav')
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data['status'] == 'error'
+    assert 'decodificar' in data['message']
