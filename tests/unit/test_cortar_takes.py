@@ -285,3 +285,97 @@ def test_jazzmaster_usa_limite_de_subida_menor_que_o_violao(ambiente):
     _, guitarra = cortar(ambiente, gravar(ambiente, 'C_jazzmaster_s1_take01.wav', y), conferir=True)
     assert [c['status'] for c in violao] == ['ok']
     assert [c['status'] for c in guitarra] == ['ok', 'ok', 'ok']
+
+
+def test_silencio_nao_tem_batida():
+    assert cortar_takes.detectar_batidas(np.zeros(SR * 2, dtype=np.float32), SR) == []
+
+
+def test_sem_afconvert_avisa(tmp_path, monkeypatch):
+    monkeypatch.setattr(cortar_takes.shutil, 'which', lambda nome: None)
+    with pytest.raises(cortar_takes.ErroDeConversao, match='afconvert'):
+        cortar_takes.converter_para_wav('C_violao_s1_take01.m4a', str(tmp_path / 'saida.wav'))
+
+
+class _Resultado:
+    def __init__(self, returncode, stderr=''):
+        self.returncode, self.stderr = returncode, stderr
+
+
+def test_afconvert_que_falha_nao_deixa_arquivo_pela_metade(tmp_path, monkeypatch):
+    destino = str(tmp_path / 'wav' / 'C_violao_s1_take01.wav')
+
+    def falha(cmd, **kw):
+        open(cmd[-1], 'w').close()  # o afconvert chegou a criar o temporário
+        return _Resultado(1, 'arquivo corrompido')
+
+    monkeypatch.setattr(cortar_takes.shutil, 'which', lambda nome: '/usr/bin/afconvert')
+    monkeypatch.setattr(cortar_takes.subprocess, 'run', falha)
+    with pytest.raises(cortar_takes.ErroDeConversao, match='arquivo corrompido'):
+        cortar_takes.converter_para_wav('C_violao_s1_take01.m4a', destino)
+    assert os.listdir(tmp_path / 'wav') == []
+
+
+def test_afconvert_que_funciona_troca_o_temporario_pelo_wav(tmp_path, monkeypatch):
+    destino = str(tmp_path / 'C_violao_s1_take01.wav')
+    comandos = []
+
+    def ok(cmd, **kw):
+        comandos.append(cmd)
+        open(cmd[-1], 'w').close()
+        return _Resultado(0)
+
+    monkeypatch.setattr(cortar_takes.shutil, 'which', lambda nome: '/usr/bin/afconvert')
+    monkeypatch.setattr(cortar_takes.subprocess, 'run', ok)
+    assert cortar_takes.converter_para_wav('take.m4a', destino) == destino
+    assert os.listdir(tmp_path) == ['C_violao_s1_take01.wav']
+    assert comandos[0][:5] == ['afconvert', '-f', 'WAVE', '-d', 'LEI24']  # WAV PCM 24 bits
+
+
+def test_m4a_ja_convertido_so_converte_de_novo_com_refazer(tmp_path, monkeypatch):
+    convertidos = []
+    monkeypatch.setattr(cortar_takes, 'converter_para_wav', lambda c, d: convertidos.append(d) or d)
+    (tmp_path / 'C_violao_s1_take01.wav').write_bytes(b'x')
+    m4a = str(tmp_path / 'entrada' / 'C_violao_s1_take01.m4a')
+
+    with pytest.raises(FileExistsError, match='--refazer'):
+        cortar_takes.preparar_take(m4a, pasta_wav=str(tmp_path))
+    cortar_takes.preparar_take(m4a, refazer=True, pasta_wav=str(tmp_path))
+    cortar_takes.preparar_take(m4a, conferir=True, pasta_temporaria=str(tmp_path / 'tmp'))
+
+    assert convertidos == [str(tmp_path / 'C_violao_s1_take01.wav'),
+                           str(tmp_path / 'tmp' / 'C_violao_s1_take01.wav')]
+
+
+def test_uso_da_sessao_fora_da_lista_para(ambiente):
+    ambiente['sessoes']['s9'] = {'sessao': 's9', 'microfone': 'celular', 'uso': 'validacao'}
+    caminho = gravar(ambiente, 'C_violao_s9_take01.wav', montar_take([0.5], 4))
+    with pytest.raises(fontes.ErroDeNome, match='treino ou teste'):
+        cortar(ambiente, caminho)
+
+
+def test_main_conferir_mostra_o_relatorio_e_salva_o_csv(ambiente, capsys):
+    caminho = gravar(ambiente, 'C_violao_s1_take01.wav', montar_take([0.5, 3.5, 6.5], 9.5))
+    csv_saida = str(ambiente['pasta'] / 'relatorio.csv')
+
+    assert cortar_takes.main([caminho, '--conferir', '--relatorio', csv_saida]) == 0
+
+    texto = capsys.readouterr().out
+    assert 'C_violao_s1_take01.wav: 3 cortes' in texto and 'nada foi gravado' in texto
+    with open(csv_saida, encoding='utf-8') as f:
+        linhas = f.read().splitlines()
+    assert linhas[0] == 'take,n,inicio_s,fim_s,duracao_s,rms,status'
+    assert len(linhas) == 4 and all(l.endswith(',ok') for l in linhas[1:])
+
+
+def test_main_sem_take_ou_com_take_repetido_devolve_1(tmp_path, capsys):
+    vazia = tmp_path / 'vazia'
+    vazia.mkdir()
+    assert cortar_takes.main([str(vazia)]) == 1
+    assert 'nenhum .wav' in capsys.readouterr().out
+
+    for pasta in ('a', 'b'):
+        (tmp_path / pasta).mkdir()
+        sf.write(str(tmp_path / pasta / 'C_violao_s1_take01.wav'), np.zeros(SR, dtype=np.float32), SR)
+    assert cortar_takes.main([str(tmp_path / 'a'), str(tmp_path / 'b'), '--conferir']) == 1
+    assert 'apareceu duas vezes' in capsys.readouterr().out

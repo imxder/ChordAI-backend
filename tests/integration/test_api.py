@@ -42,3 +42,49 @@ def test_sem_o_campo_audio_devolve_400(client):
     response = client.post('/predict_chord')
     assert response.status_code == 400
     assert response.get_json()['status'] == 'error'
+
+
+def test_modelo_nao_carregado_devolve_503(client, monkeypatch):
+    """Sem modelo (ex.: trained_model/ estragado), a API responde 503 em vez de quebrar."""
+    import api.app
+    monkeypatch.setattr(api.app, 'model_loaded', None)
+    with open(EXAMPLE, 'rb') as f:
+        response = _post(client, f.read())
+    assert response.status_code == 503
+    assert response.get_json()['status'] == 'error'
+
+
+def test_arquivo_que_nao_e_audio_devolve_400(client):
+    response = _post(client, b'isso e um texto, nao um wav')
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data['status'] == 'error'
+    assert 'decodificar' in data['message']
+
+
+def _recarregar_api(monkeypatch, carregar):
+    """Sobe o app.py de novo com outro load_trained_model, como se o Flask
+    estivesse iniciando."""
+    import importlib
+    import api.app
+    import train_model
+    monkeypatch.setattr(train_model, 'load_trained_model', carregar)
+    return importlib.reload(api.app)
+
+
+def test_inicia_sem_modelo_e_avisa(monkeypatch, capsys):
+    import importlib
+    import api.app
+    try:
+        modulo = _recarregar_api(monkeypatch, lambda: (None, None, None))
+        assert modulo.model_loaded is None
+        assert 'python train_model.py' in capsys.readouterr().out
+        modulo = _recarregar_api(monkeypatch, lambda: (_ for _ in ()).throw(OSError('model.h5 estragado')))
+        assert modulo.model_loaded is None
+        assert 'ERRO CRÍTICO' in capsys.readouterr().out
+        # e a rota responde 503 em vez de quebrar
+        response = modulo.app.test_client().post('/predict_chord')
+        assert response.status_code == 503
+    finally:
+        monkeypatch.undo()
+        importlib.reload(api.app)

@@ -41,3 +41,56 @@ def test_main_escolhe_o_dataset_pela_opcao(monkeypatch):
         (baixar_dataset.DATASET_PROPRIO, 'dataset_proprio'),
         'antigo',
     ]
+
+
+def _zip(caminho, arquivos):
+    import zipfile
+    with zipfile.ZipFile(caminho, 'w') as z:
+        for nome, conteudo in arquivos.items():
+            z.writestr(nome, conteudo)
+
+
+def test_baixa_o_zip_e_grava_no_destino(tmp_path):
+    origem = tmp_path / 'origem.zip'
+    origem.write_bytes(b'conteudo do zip')
+    destino = tmp_path / 'baixado.zip'
+    baixar_dataset.baixar_zip(origem.as_uri(), str(destino))  # file:// em vez da rede
+    assert destino.read_bytes() == b'conteudo do zip'
+
+
+def test_extrair_ignora_a_pasta_do_mac(tmp_path, capsys):
+    zip_path = tmp_path / 'd.zip'
+    _zip(zip_path, {'C/c1.wav': b'1', 'C/c2.wav': b'2', '__MACOSX/C/._c1.wav': b'lixo'})
+    baixar_dataset.extrair(str(zip_path), str(tmp_path / 'saida'))
+    assert sorted(p.name for p in (tmp_path / 'saida').iterdir()) == ['C']
+    assert '2 arquivos .wav' in capsys.readouterr().out
+
+
+def test_baixar_do_kaggle_baixa_extrai_e_arruma(tmp_path, monkeypatch):
+    urls = []
+
+    def baixar(url, destino_zip):
+        urls.append(url)
+        _zip(destino_zip, {'chordai_dataset_kaggle/C/c1.wav': b'1'})
+
+    monkeypatch.setattr(baixar_dataset, 'baixar_zip', baixar)
+    destino = tmp_path / 'dataset_proprio'
+    baixar_dataset.baixar_do_kaggle(baixar_dataset.DATASET_PROPRIO, str(destino))
+    assert urls == ['https://www.kaggle.com/api/v1/datasets/download/imxder/chordai-guitar-chords-v1']
+    assert (destino / 'C' / 'c1.wav').exists()  # a pasta de cima sumiu
+
+
+def test_baixar_antigo_usa_o_gdown(tmp_path, monkeypatch):
+    import sys
+    import types
+    baixados = []
+
+    def download(url, destino, quiet=False):
+        baixados.append(url)
+        _zip(destino, {'dataset/C/c1.wav': b'1'})
+
+    monkeypatch.setitem(sys.modules, 'gdown', types.SimpleNamespace(download=download))
+    monkeypatch.setattr(baixar_dataset, 'ROOT_DIR', str(tmp_path))
+    baixar_dataset.baixar_antigo()
+    assert baixados == [f'https://drive.google.com/uc?id={baixar_dataset.DRIVE_ANTIGO}']
+    assert (tmp_path / 'dataset' / 'C' / 'c1.wav').exists()

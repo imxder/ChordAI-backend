@@ -5,3 +5,21 @@ source = .
 omit =
     tests/*
     .venv/*
+    # api/serve.py só joga a saída num arquivo de log e sobe o waitress na porta 5000.
+    # Não tem regra nenhuma minha pra conferir: testar seria subir um servidor de
+    # verdade no CI. A rota /predict_chord, que é o que importa, está em api/app.py
+    # e tem teste em tests/integration/test_api.py.
+    api/serve.py
+    # experiments/ são os scripts de pesquisa que rodei na minha máquina pra
+    # comparar features e modelos (os resultados estão em experiments/results*).
+    # Não fazem parte do app, da API nem do treino que gera os modelos, e
+    # dependem do dataset inteiro em disco. O que eles usam do pipeline.py tem teste.
+    experiments/*
+
+[report]
+# Os blocos "if __name__ == '__main__':" só rodam quando chamo o arquivo pela linha
+# de comando (python train_model.py, python api/app.py); não fazem parte do que a
+# API e o treino fazem quando são importados. exclude_also soma com o padrão do
+# coverage.py (que já ignora "# pragma: no cover").
+exclude_also =
+    if __name__ == .__main__.:

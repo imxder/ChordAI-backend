@@ -94,3 +94,24 @@ def test_sem_acorde_gravado_tem_takes_so_de_teste():
 def test_so_fontes_pedidas():
     p = dividir_treino.dividir(montar(), {'proprio'}, ['C', 'G'], raiz='/r')
     assert not p['teste_v3'] and not any('Plug' in n for n in nomes(p['treino']))
+
+
+def test_sem_acorde_do_kaggle_e_ignorado_e_fonte_desconhecida_para():
+    import pytest
+    linhas = [linha('dataset_kaggle/Training/_none/x.wav', '_none', 'kaggle_v3', 'p', 'x')]
+    partes = dividir_treino.dividir(linhas, {'kaggle_v3'}, fontes.ACORDES)
+    assert partes['none_treino'] == partes['none_val'] == partes['none_teste'] == []
+    with pytest.raises(ValueError, match='fonte desconhecida'):
+        dividir_treino.dividir([linha('x/C/c.wav', 'C', 'youtube', 's', 'c')], {'youtube'}, fontes.ACORDES)
+
+
+def test_resumo_e_main_mostram_a_divisao(monkeypatch, capsys):
+    monkeypatch.setattr(fontes, 'ler_sources', lambda caminho=None: montar())
+    assert dividir_treino.main(['--extras']) == 0
+    texto = capsys.readouterr().out
+    assert texto.startswith('treino: ')
+    assert 'D=' in texto  # com --extras o D entra
+    assert 'none_teste: 8 arquivos' in texto  # o take04 do sem acorde é teste
+    assert 'pessoas do v3 na validacao:' in texto
+    dividir_treino.main([])
+    assert 'D=' not in capsys.readouterr().out
