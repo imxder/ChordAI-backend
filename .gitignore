@@ -15,3 +15,7 @@ experiments/cache/
 
 # modelos dos experimentos (regerar com python -m experiments.run_seeds)
 experiments/**/*.h5
+
+# Cobertura dos testes (gerada no CI pro SonarCloud)
+.coverage
+coverage.xml

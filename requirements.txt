@@ -12,5 +12,6 @@ matplotlib
 gdown
 pytest
 pytest-mock
+pytest-cov
 gunicorn
 waitress

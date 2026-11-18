@@ -9,6 +9,7 @@ click==8.5.1
 cloudpickle==3.1.2
 colorama==0.4.6
 contourpy==1.4.0
+coverage==7.17.3
 cycler==0.12.1
 decorator==5.3.1
 filelock==4.2.9
@@ -56,8 +57,9 @@ pydub==0.25.1
 Pygments==2.21.0
 pyparsing==3.3.3
 PySocks==1.7.1
-pytest==9.2.0
+pytest-cov==7.1.0
 pytest-mock==3.17.0
+pytest==9.2.0
 python-dateutil==4.0.0
 requests==2.34.2
 rich==15.0.0

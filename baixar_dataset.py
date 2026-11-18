@@ -59,13 +59,12 @@ def tirar_pasta_de_cima(destino):
 def baixar_do_kaggle(slug, destino):
     if os.path.isdir(destino) and os.listdir(destino):
         print(f'{destino} ja existe e nao esta vazia: apague a pasta para baixar de novo')
-        return 0
+        return
     with tempfile.TemporaryDirectory() as tmp:
         zip_path = os.path.join(tmp, 'dataset.zip')
         baixar_zip(KAGGLE_DOWNLOAD.format(slug=slug), zip_path)
         extrair(zip_path, destino)
     tirar_pasta_de_cima(destino)
-    return 0
 
 
 def baixar_antigo():
@@ -74,7 +73,6 @@ def baixar_antigo():
         zip_path = os.path.join(tmp, 'dataset.zip')
         gdown.download(f'https://drive.google.com/uc?id={DRIVE_ANTIGO}', zip_path, quiet=False)
         extrair(zip_path, ROOT_DIR)
-    return 0
 
 
 def main(argv=None):
@@ -85,10 +83,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     if args.antigo:
-        return baixar_antigo()
-    if args.proprio:
-        return baixar_do_kaggle(DATASET_PROPRIO, os.path.join(ROOT_DIR, 'dataset_proprio'))
-    return baixar_do_kaggle(GUITAR_CHORDS_V3, os.path.join(ROOT_DIR, 'dataset_kaggle'))
+        baixar_antigo()
+    elif args.proprio:
+        baixar_do_kaggle(DATASET_PROPRIO, os.path.join(ROOT_DIR, 'dataset_proprio'))
+    else:
+        baixar_do_kaggle(GUITAR_CHORDS_V3, os.path.join(ROOT_DIR, 'dataset_kaggle'))
+    return 0
 
 
 if __name__ == '__main__':

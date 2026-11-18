@@ -1,0 +1,7 @@
+# Cobertura dos testes, que vai pro SonarCloud (coverage.xml).
+# Mede só o meu código: os testes e o venv ficam de fora.
+[run]
+source = .
+omit =
+    tests/*
+    .venv/*
