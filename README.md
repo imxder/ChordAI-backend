@@ -1,6 +1,6 @@
 # ChordAI - Backend
 
-[![CI](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml)
+[![CI](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/imxder/ChordAI-backend/actions/workflows/ci.yml) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=imxder_ChordAI-backend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=imxder_ChordAI-backend)
 
 Este é o pipeline de IA do ChordAI: aqui eu preparo os dados, treino a rede que reconhece acordes e exporto os modelos em TFLite que rodam dentro do app, no próprio celular.
 
