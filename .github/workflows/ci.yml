@@ -42,6 +42,6 @@ jobs:
       # Manda o código e o coverage.xml (das duas rodadas de teste) pro SonarCloud.
       # A configuração está no sonar-project.properties.
       - name: SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v8
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
