@@ -11,7 +11,11 @@ jobs:
     # (versions-manifest.json do actions/python-versions).
     runs-on: ubuntu-24.04
     steps:
+      # fetch-depth 0 traz o histórico todo, que o SonarCloud usa pra saber o que é
+      # código novo e quem mexeu em cada linha.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       # A mesma versão do Python dos resultados (README, seção "Instalar").
       - uses: actions/setup-python@v7
@@ -26,11 +30,18 @@ jobs:
       # Os testes marcados com "dataset" precisam dos áudios em disco, que não
       # vão pro Git. O export TFLite tem um passo só dele, logo abaixo.
       - name: Testes
-        run: python -m pytest -m "not dataset" -rs --ignore=tests/unit/test_export_tflite.py
+        run: python -m pytest -m "not dataset" -rs --ignore=tests/unit/test_export_tflite.py --cov=. --cov-report=
 
       # Confere se o .tflite do export/ ainda dá as mesmas probabilidades do
       # example_expected.json, só usa operações nativas e bate com o model_info.json.
       - name: Export TFLite
         run: |
           test -f export/chord_model.tflite
-          python -m pytest -rs tests/unit/test_export_tflite.py
+          python -m pytest -rs tests/unit/test_export_tflite.py --cov=. --cov-append --cov-report=xml
+
+      # Manda o código e o coverage.xml (das duas rodadas de teste) pro SonarCloud.
+      # A configuração está no sonar-project.properties.
+      - name: SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
