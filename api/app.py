@@ -55,6 +55,8 @@ if __name__ == '__main__':
     os.makedirs('dataset', exist_ok=True) 
     
     # debug so liga com FLASK_DEBUG=1: o modo debug mostra o codigo e deixa rodar
-    # comandos pela pagina de erro, e a API fica aberta na rede (host 0.0.0.0)
+    # comandos pela pagina de erro.
+    # host 127.0.0.1: a API so atende o proprio computador. O app nao usa mais
+    # a API, entao ela nao precisa ficar aberta pra rede.
     debug = os.environ.get('FLASK_DEBUG', '0') == '1'
-    app.run(debug=debug, threaded=True, host='0.0.0.0')
+    app.run(debug=debug, threaded=True, host='127.0.0.1')
