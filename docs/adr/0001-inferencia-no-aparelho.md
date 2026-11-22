@@ -1,6 +1,6 @@
 # ADR 0001: o reconhecimento de acordes roda no aparelho
 
-- **Status:** aceita
+- **Status:** aceita. Atualização em 22/11/2026: o modo servidor saiu do app de vez, ver o [ADR 0003 do app](https://github.com/imxder/ChordAI/blob/master/docs/adr/0003-sem-modo-servidor.md).
 - **Data:** 08/11/2026 (exportação do modelo para TFLite) e 10/11/2026 (o app passa a usar o aparelho por padrão)
 - **Repositórios:** [ChordAI-backend](https://github.com/imxder/ChordAI-backend) e [ChordAI](https://github.com/imxder/ChordAI)
 - **Caminhos de arquivo:** os que começam com `lib/` ou `assets/` são do app. Os outros são do backend.

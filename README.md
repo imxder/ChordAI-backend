@@ -162,7 +162,7 @@ Para reproduzir o baseline sem mexer em nada: `python -m experiments.run_seeds -
 
 Os pesos (`.h5`) dos experimentos não ficam no Git. Ficam só os `metrics.json`, as matrizes de confusão, os relatórios e os `comparativo.md`. Como o treino é determinístico por seed, `python -m experiments.run_seeds` gera os mesmos pesos de novo.
 
-## 6. API Flask (ferramenta de desenvolvimento)
+## 6. API Flask (ferramenta de experimento)
 
 **A API Flask não usa nenhum dos modelos do app.** Ela carrega o `trained_model/`, um modelo mais antigo, com a chroma_cqt calculada no servidor:
 
@@ -179,7 +179,7 @@ Os pesos (`.h5`) dos experimentos não ficam no Git. Ficam só os `metrics.json`
 
 Fontes: `trained_model/model_config.json` e `metrics.json`, e `experiments/results_duas_fontes/0/metrics.json`.
 
-Uso a API no modo "servidor" do app, que é uma opção avançada em Perfil → Reconhecimento. A página web que existia na rota `/` saiu: o app substituiu ela.
+**O app não usa a API.** O reconhecimento é só no aparelho, e o modo "servidor", que mandava o áudio do celular pra cá, saiu do app. O motivo está no [ADR 0003 do app](https://github.com/imxder/ChordAI/blob/master/docs/adr/0003-sem-modo-servidor.md). A API ficou como ferramenta pra eu testar um modelo pelo computador, mandando um WAV e vendo o que ele responde.
 
 ```bash
 python -m api.app
@@ -188,10 +188,14 @@ python -m api.app
 **Porta:** por padrão, a API sobe na **5000** (o `api/app.py` usa o padrão do Flask, e o `api/serve.py` sobe o waitress na 5000). No Mac, eu rodo na **5001**, porque o AirPlay do macOS ocupa a 5000:
 
 ```bash
-flask --app api.app run --host 0.0.0.0 --port 5001
+flask --app api.app run --port 5001
 ```
 
-No app, o endereço vai em Perfil → Reconhecimento: o IP do computador e a porta, ou o nome dele na rede, como `meu-mac.local:5001`.
+Pra testar, mando um WAV do próprio computador:
+
+```bash
+curl -F "audio=@meu_acorde.wav" http://localhost:5001/predict_chord
+```
 
 O modo debug do Flask fica desligado. Pra ligar, rode com `FLASK_DEBUG=1`. Ele mostra o código e deixa rodar comandos pela página de erro, e a API fica aberta na rede, então só uso quando estou mexendo nela.
 
@@ -205,23 +209,12 @@ Recebe um WAV no campo `audio` (multipart/form-data) e devolve:
 
 O `status` pode ser `ok`, `silence`, `too_short` ou `unknown`. Nos três últimos, `chord` vem `null`.
 
-### Deixar rodando no Windows
+### Com waitress
 
-O `api/serve.py` sobe a API com waitress, sem janela, e grava a saída em `server.log`, na raiz:
+O `api/serve.py` sobe a mesma API com waitress, sem janela, e grava a saída em `server.log`, na raiz. Era o que eu deixava rodando no Windows enquanto o app ainda tinha o modo servidor:
 
 ```bash
 python -m api.serve
-```
-
-Pra iniciar sozinho ao fazer login, crie uma tarefa no Agendador de Tarefas (PowerShell):
-
-```powershell
-$dir = "C:\caminho\para\ChordAI-backend"
-$action = New-ScheduledTaskAction -Execute "$dir\.venv\Scripts\pythonw.exe" -Argument "-m api.serve" -WorkingDirectory $dir
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-Register-ScheduledTask -TaskName "VIOLAO_AI Server" -Action $action -Trigger $trigger -Settings $settings -Force
-Start-ScheduledTask -TaskName "VIOLAO_AI Server"
 ```
 
 Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `dataset/`, sorteia treino, validação e teste, calibra o limiar e grava em `trained_model/`. Com a seed 42, reproduz o mesmo modelo.
