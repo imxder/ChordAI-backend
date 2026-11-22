@@ -197,7 +197,9 @@ Pra testar, mando um WAV do próprio computador:
 curl -F "audio=@meu_acorde.wav" http://localhost:5001/predict_chord
 ```
 
-O modo debug do Flask fica desligado. Pra ligar, rode com `FLASK_DEBUG=1`. Ele mostra o código e deixa rodar comandos pela página de erro, e a API fica aberta na rede, então só uso quando estou mexendo nela.
+O modo debug do Flask fica desligado. Pra ligar, rode com `FLASK_DEBUG=1`. Ele mostra o código e deixa rodar comandos pela página de erro, então só uso quando estou mexendo nela.
+
+A API só atende o próprio computador (`127.0.0.1`), tanto no `api/app.py` quanto no `api/serve.py`. Como o app não usa mais ela, não tem por que deixar aberta pra rede.
 
 ### `POST /predict_chord`
 

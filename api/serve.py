@@ -15,4 +15,5 @@ from api.app import app
 
 if __name__ == '__main__':
     print("Servidor iniciado na porta 5000")
-    serve(app, host='0.0.0.0', port=5000, threads=8)
+    # so o proprio computador acessa (o app nao usa mais a API)
+    serve(app, host='127.0.0.1', port=5000, threads=8)
