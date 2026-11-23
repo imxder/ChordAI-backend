@@ -26,7 +26,7 @@ flowchart LR
 - **Chroma**: quanto de cada uma das 12 notas tem em cada pedacinho da janela. É o que a rede olha.
 - **CNN 1D** pequena, com BatchNorm e GlobalAveragePooling.
 - **Classe `_none`** ("nenhum acorde"), treinada com ruído, percussão e acorde em volume baixo gerados pelo `pipeline.py`. No `v3_meu`, ela também aprende com os meus áudios de sem acorde e com sons de afinação sintéticos.
-- **Limiar de confiança:** se a classe for `_none`, ou se a confiança ficar abaixo do limiar do modelo, o app mostra "desconhecido".
+- **Limiar de confiança:** se a classe for `_none`, ou se a confiança ficar abaixo do limiar do modelo, o app mostra "Não reconheci o acorde" (e a API devolve `unknown`).
 - **Silêncio:** janelas com RMS abaixo de 0,003 nem passam pelo modelo.
 - **A feature vai dentro do `.tflite`.** O app manda o áudio bruto e recebe as probabilidades, sem calcular chroma em Dart. Por que a inferência saiu do servidor e foi pro aparelho está no [ADR 0001](docs/adr/0001-inferencia-no-aparelho.md).
 
@@ -139,32 +139,18 @@ python -m pytest tests/unit/test_chroma_stft.py                        # um arqu
 python -m pytest -m "not dataset" --cov=. --cov-report=term-missing   # com a cobertura por arquivo
 ```
 
-São **224 testes**, e os 224 passam (`python -m pytest`, 23/11/2026, num Mac). Cada arquivo de `tests/` garante uma parte:
+São **224 testes em 18 arquivos**, e os 224 passam (`python -m pytest`, 23/11/2026, num Mac).
 
-| Arquivo | O que garante | Testes |
-|---|---|---:|
-| `integration/test_api.py` | a API devolve `ok`, `silence`, 400 e 503 certos, com o modelo do `trained_model/` | 6 |
-| `unit/test_baixar_dataset.py` | o download arruma as pastas e não baixa de novo (sem rede) | 8 |
-| `unit/test_build_tflite.py` | o grafo da exportação tem a mesma chroma do librosa, só usa operações nativas e o int8 não quantiza a janela nem a matriz | 12 |
-| `unit/test_chroma_stft.py` | a cadeia explícita da chroma é igual à do librosa; se uma versão nova do librosa mudar, quebra aqui | 8 |
-| `unit/test_comparar_modelos.py` | as métricas do comparativo seguem a regra do app (silêncio, `_none` e limiar) | 19 |
-| `unit/test_comparar_modelos_fluxo.py` | o `comparar_modelos.py` de ponta a ponta, com cache de features, ensemble e `comparativo.md` | 14 |
-| `unit/test_cortar_takes.py` | o corte do take em um arquivo por batida, e o que ele descarta | 29 |
-| `unit/test_dataset_split.py` | o split é por arquivo, sem vazamento, sempre igual, e as janelas têm 1,5 s | 8 |
-| `unit/test_dividir_treino.py` | a divisão das duas fontes: o `take02` e o Test do V3 ficam fora do treino | 9 |
-| `unit/test_export_tflite.py` | o `.tflite` de `export/` dá as probabilidades do `example_expected.json` e o `model_info.json` tem o hash certo | 5 |
-| `unit/test_exportar_ableton.py` | a exportação dos takes de um projeto do Ableton | 16 |
-| `unit/test_features_scaler.py` | os extratores de feature, o scaler e o one-hot dos rótulos | 35 |
-| `unit/test_limiar_e_modelo.py` | o limiar nunca aumenta cobertura e falso aceite juntos, as CNNs e o salvar e carregar do modelo | 14 |
-| `unit/test_model_config.py` | o `model_config.json` e a leitura de pastas antigas, sem ele | 6 |
-| `unit/test_montar_sources.py` | o `sources.csv` junta as gravações antigas e o V3 sem estragar as linhas | 4 |
-| `unit/test_negativos.py` | os áudios da classe `_none` são sempre os mesmos e passam do limiar de silêncio | 13 |
-| `unit/test_train_model.py` | o treino ponta a ponta num dataset sintético, e os casos de erro | 9 |
-| `unit/test_unknown_chord.py` | `_none` e confiança baixa viram "desconhecido" | 9 |
+| Área | Testes |
+|---|---:|
+| Dados e divisão | 74 |
+| Features, treino e limiar | 94 |
+| Exportação para TFLite | 17 |
+| Comparação de modelos | 33 |
+| API Flask | 6 |
+| **Total** | **224** |
 
-Fonte da contagem: `python -m pytest --collect-only -q`. Um teste com vários casos conta uma vez por caso.
-
-Cobertura (18/11/2026): **99%** no código de produção (`api/app.py`, `pipeline.py`, `train_model.py`) e **94%** no repositório inteiro, tirando o `experiments/`. Os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
+Cobertura (23/11/2026, `pytest-cov`): **99%** no código de produção (`api/app.py`, `pipeline.py`, `train_model.py`: 611 de 615 linhas) e **94%** no repositório inteiro (1839 de 1949), tirando o `experiments/`. A lista de cada arquivo, os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
 
 O CI (`.github/workflows/ci.yml`) roda os mesmos testes em todo push e PR, com o Python 3.12.10 e o `requirements.lock.txt`, num passo pros testes e outro só pro export TFLite (`tests/unit/test_export_tflite.py`), que confere se o `.tflite` do `export/` dá as mesmas probabilidades do `example_expected.json`. Ele não tem os áudios, então pula os testes marcados com `dataset` (hoje nenhum precisa deles) e o do `afconvert`, que só existe no macOS.
 
