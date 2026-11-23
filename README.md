@@ -30,11 +30,11 @@ flowchart LR
 - **Silêncio:** janelas com RMS abaixo de 0,003 nem passam pelo modelo.
 - **A feature vai dentro do `.tflite`.** O app manda o áudio bruto e recebe as probabilidades, sem calcular chroma em Dart. Por que a inferência saiu do servidor e foi pro aparelho está no [ADR 0001](docs/adr/0001-inferencia-no-aparelho.md).
 
-O código comum ao treino, aos experimentos e à exportação fica em `pipeline.py`.
+O código comum ao treino, aos experimentos e à exportação fica em `pipeline.py`. O passo a passo, com o arquivo de cada etapa, está em [docs/como-funciona.md](docs/como-funciona.md).
 
 ## 2. Os modelos do app
 
-O app traz dois modelos em `assets/models/`, e eu escolho qual usar em **Perfil → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
+O app traz dois modelos em `assets/models/`, e eu escolho qual usar em **Ajustes → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). No Android e no Windows, o nome da tela é **Configurações**. Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
 
 | | **v3** (padrão) | **v3_meu** |
 |---|---|---|
@@ -134,9 +134,35 @@ Como o app usa os arquivos exportados está em [export/README.md](export/README.
 ### Testes
 
 ```bash
-python -m pytest
+python -m pytest                                                       # todos
+python -m pytest tests/unit/test_chroma_stft.py                        # um arquivo só
 python -m pytest -m "not dataset" --cov=. --cov-report=term-missing   # com a cobertura por arquivo
 ```
+
+São **224 testes**, e os 224 passam (`python -m pytest`, 23/11/2026, num Mac). Cada arquivo de `tests/` garante uma parte:
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `integration/test_api.py` | a API devolve `ok`, `silence`, 400 e 503 certos, com o modelo do `trained_model/` | 6 |
+| `unit/test_baixar_dataset.py` | o download arruma as pastas e não baixa de novo (sem rede) | 8 |
+| `unit/test_build_tflite.py` | o grafo da exportação tem a mesma chroma do librosa, só usa operações nativas e o int8 não quantiza a janela nem a matriz | 12 |
+| `unit/test_chroma_stft.py` | a cadeia explícita da chroma é igual à do librosa; se uma versão nova do librosa mudar, quebra aqui | 8 |
+| `unit/test_comparar_modelos.py` | as métricas do comparativo seguem a regra do app (silêncio, `_none` e limiar) | 19 |
+| `unit/test_comparar_modelos_fluxo.py` | o `comparar_modelos.py` de ponta a ponta, com cache de features, ensemble e `comparativo.md` | 14 |
+| `unit/test_cortar_takes.py` | o corte do take em um arquivo por batida, e o que ele descarta | 29 |
+| `unit/test_dataset_split.py` | o split é por arquivo, sem vazamento, sempre igual, e as janelas têm 1,5 s | 8 |
+| `unit/test_dividir_treino.py` | a divisão das duas fontes: o `take02` e o Test do V3 ficam fora do treino | 9 |
+| `unit/test_export_tflite.py` | o `.tflite` de `export/` dá as probabilidades do `example_expected.json` e o `model_info.json` tem o hash certo | 5 |
+| `unit/test_exportar_ableton.py` | a exportação dos takes de um projeto do Ableton | 16 |
+| `unit/test_features_scaler.py` | os extratores de feature, o scaler e o one-hot dos rótulos | 35 |
+| `unit/test_limiar_e_modelo.py` | o limiar nunca aumenta cobertura e falso aceite juntos, as CNNs e o salvar e carregar do modelo | 14 |
+| `unit/test_model_config.py` | o `model_config.json` e a leitura de pastas antigas, sem ele | 6 |
+| `unit/test_montar_sources.py` | o `sources.csv` junta as gravações antigas e o V3 sem estragar as linhas | 4 |
+| `unit/test_negativos.py` | os áudios da classe `_none` são sempre os mesmos e passam do limiar de silêncio | 13 |
+| `unit/test_train_model.py` | o treino ponta a ponta num dataset sintético, e os casos de erro | 9 |
+| `unit/test_unknown_chord.py` | `_none` e confiança baixa viram "desconhecido" | 9 |
+
+Fonte da contagem: `python -m pytest --collect-only -q`. Um teste com vários casos conta uma vez por caso.
 
 Cobertura (18/11/2026): **99%** no código de produção (`api/app.py`, `pipeline.py`, `train_model.py`) e **94%** no repositório inteiro, tirando o `experiments/`. Os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
 
@@ -233,6 +259,8 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── requirements.txt
 ├── requirements.lock.txt       # versões exatas usadas nos resultados
 ├── pytest.ini                  # o marcador "dataset" dos testes que precisam dos áudios
+├── .coveragerc                 # o que fica fora da conta da cobertura
+├── sonar-project.properties    # configuração do SonarCloud
 ├── .github/workflows/ci.yml    # roda o pytest e confere o export em todo push e PR
 │
 ├── api/
@@ -242,6 +270,7 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 │   ├── sources.csv             # uma linha por arquivo de áudio das duas fontes
 │   └── sessoes.csv             # as sessões em que gravei o meu dataset
 ├── docs/
+│   ├── como-funciona.md        # o pipeline, do dado ao app, e pasta → papel
 │   ├── experimentos.md         # as siglas e as rodadas de 15/11
 │   ├── roteiro-gravacao.md     # como gravei o meu dataset
 │   ├── testes.md               # cobertura dos testes e como gerar o relatório
@@ -262,6 +291,8 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── experiments/
 │   ├── results/                # experimentos com a pasta antiga (comparativo.md)
 │   ├── results_duas_fontes/    # experimentos de 15/11 (comparativo.md)
+│   ├── results_v1_val_no_teste/  # rodada antiga, em que a validação ainda era o teste
+│   ├── results_v2_split_nao_ordenado/  # rodada antiga, antes de ordenar o split
 │   ├── candidates/             # modelos antigos que os testes e o equivalence_check usam
 │   ├── legado/                 # experimentos de treino de outubro (class weight e ensemble)
 │   ├── evaluate_realtime.py    # acurácia e latência em janelas como as do app
