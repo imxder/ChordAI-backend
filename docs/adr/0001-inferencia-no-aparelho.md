@@ -16,7 +16,7 @@ No começo, o app gravava 1,5 s de áudio e mandava para a API Flask do backend 
 
 ## Decisão
 
-O modelo roda no próprio celular, em TFLite (`OnDeviceChordService` no app), e é o modo padrão. O modo servidor continua como opção avançada, em Perfil → Reconhecimento. Os dois implementam a mesma interface, `ChordRecognizer`.
+O modelo roda no próprio celular, em TFLite (`OnDeviceChordService` no app), e é o modo padrão. O modo servidor continuou como opção avançada na tela de Reconhecimento até sair do app ([ADR 0003](https://github.com/imxder/ChordAI/blob/master/docs/adr/0003-sem-modo-servidor.md)). Os dois implementam a mesma interface, `ChordRecognizer`.
 
 A extração da feature fica **dentro** do `.tflite`: o app manda o áudio bruto (33 075 amostras, 1,5 s a 22 050 Hz) e recebe as probabilidades. Pra isso troquei a chroma_cqt da API pela chroma_stft com n_fft 8192. O STFT vira a operação `RFFT2D`, que está na lista de operações do modelo (`export/export_report.json`, `ops_float32`), e o CQT não tem equivalente pronto no TensorFlow. Assim o app não precisa calcular chroma em Dart. Essa troca custou uns 0,3 ponto no teste sorteado da pasta antiga (o C1 contra a produção na Parte 7a de [`experiments/results/comparativo.md`](https://github.com/imxder/ChordAI-backend/blob/main/experiments/results/comparativo.md): −0,28 ± 0,88 p.p.).
 
