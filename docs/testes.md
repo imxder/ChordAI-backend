@@ -2,9 +2,13 @@
 
 O Playbook pede **75% de cobertura** no backend próprio de um projeto Mobile. Aqui o backend que roda de verdade é o pipeline de treino (`pipeline.py`, `train_model.py`) e a API (`api/app.py`).
 
-## Números (18/11/2026)
+## Números (23/11/2026)
 
-Medido com `pytest-cov` e só o que o CI roda (sem o dataset em disco):
+Medido em 23/11/2026, num Mac, com `python -m pytest -m "not dataset" --cov=. --cov-report=term-missing` e só o que o CI roda (sem o dataset em disco). Os números saíram iguais aos de 18/11: de lá pra cá só mudou documentação.
+
+São **224 testes em 18 arquivos**, e os 224 passam. A contagem vem de `python -m pytest --collect-only -q`, e um teste com vários casos conta uma vez por caso.
+
+Cobertura:
 
 | Arquivo | Linhas | Cobertas | Cobertura |
 |---|---|---|---|
@@ -52,18 +56,57 @@ O teste de treino (`tests/unit/test_train_model.py`) monta um dataset sintético
 
 ## Onde está cada teste
 
-| Arquivo | O que confere |
-|---|---|
-| `tests/unit/test_dataset_split.py` | listagem do dataset, split por arquivo sem vazamento, validação, janelas de 1,5 s |
-| `tests/unit/test_features_scaler.py` | formato de cada extrator, chroma das notas certas, scaler, one-hot, reamostragem |
-| `tests/unit/test_negativos.py` | negativos `_none`: reproduzíveis, acima do silêncio, divisão dos ids, `load_dataset` com `_none` |
-| `tests/unit/test_limiar_e_modelo.py` | curva e escolha do limiar, as 3 CNNs, salvar e carregar o modelo |
-| `tests/unit/test_train_model.py` | treino de ponta a ponta, modelo corrompido, áudio curto |
-| `tests/unit/test_unknown_chord.py` | `_none` e confiança abaixo do limiar viram desconhecido |
-| `tests/unit/test_model_config.py` | `model_config.json` e o pipeline antigo |
-| `tests/unit/test_chroma_stft.py` | a chroma_stft montada à mão bate com a do librosa |
-| `tests/unit/test_export_tflite.py` | o `.tflite` dá as mesmas probabilidades do modelo em Python |
-| `tests/unit/test_build_tflite.py` | o export: grafo = librosa, ops nativas, int8, arquivos do app e hash |
-| `tests/unit/test_comparar_modelos_fluxo.py` | o fluxo da comparação de modelos: cache, treino, ensemble, .tflite, comparativo.md |
-| `tests/integration/test_api.py` | `/predict_chord`: acorde, silêncio, 400 e 503, e a API subindo sem modelo |
-| os outros `tests/unit/test_*.py` | os scripts de `scripts/` (cortar takes, fontes, comparar modelos...) |
+### Dados e divisão: 74
+
+Cobre baixar, montar o `sources.csv`, cortar os takes e dividir treino, validação e teste.
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `tests/unit/test_baixar_dataset.py` | o download arruma as pastas e não baixa de novo (sem rede) | 8 |
+| `tests/unit/test_montar_sources.py` | o `sources.csv` junta as gravações antigas e o V3 sem estragar as linhas | 4 |
+| `tests/unit/test_dataset_split.py` | o split é por arquivo, sem vazamento, sempre igual, e as janelas têm 1,5 s | 8 |
+| `tests/unit/test_dividir_treino.py` | a divisão das duas fontes: o `take02` e o Test do V3 ficam fora do treino | 9 |
+| `tests/unit/test_cortar_takes.py` | o corte do take em um arquivo por batida, e o que ele descarta | 29 |
+| `tests/unit/test_exportar_ableton.py` | a exportação dos takes de um projeto do Ableton | 16 |
+
+### Features, treino e limiar: 94
+
+Cobre a chroma, o scaler, a classe `_none`, as CNNs, o limiar e o treino de ponta a ponta.
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `tests/unit/test_features_scaler.py` | os extratores de feature, o scaler e o one-hot dos rótulos | 35 |
+| `tests/unit/test_chroma_stft.py` | a cadeia explícita da chroma é igual à do librosa; se uma versão nova do librosa mudar, quebra aqui | 8 |
+| `tests/unit/test_negativos.py` | os áudios da classe `_none` são sempre os mesmos e passam do limiar de silêncio | 13 |
+| `tests/unit/test_limiar_e_modelo.py` | o limiar nunca aumenta cobertura e falso aceite juntos, as CNNs e o salvar e carregar do modelo | 14 |
+| `tests/unit/test_model_config.py` | o `model_config.json` e a leitura de pastas antigas, sem ele | 6 |
+| `tests/unit/test_unknown_chord.py` | `_none` e confiança baixa viram "desconhecido" | 9 |
+| `tests/unit/test_train_model.py` | o treino ponta a ponta num dataset sintético, e os casos de erro | 9 |
+
+### Exportação para TFLite: 17
+
+Cobre o grafo com a chroma dentro, a equivalência com o librosa e o `.tflite` do app.
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `tests/unit/test_build_tflite.py` | o grafo da exportação tem a mesma chroma do librosa, só usa operações nativas e o int8 não quantiza a janela nem a matriz | 12 |
+| `tests/unit/test_export_tflite.py` | o `.tflite` de `export/` dá as probabilidades do `example_expected.json` e o `model_info.json` tem o hash certo | 5 |
+
+### Comparação de modelos: 33
+
+Cobre as métricas dos experimentos e o fluxo do `comparar_modelos.py`.
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `tests/unit/test_comparar_modelos.py` | as métricas do comparativo seguem a regra do app (silêncio, `_none` e limiar) | 19 |
+| `tests/unit/test_comparar_modelos_fluxo.py` | o `comparar_modelos.py` de ponta a ponta, com cache de features, ensemble e `comparativo.md` | 14 |
+
+### API Flask: 6
+
+Cobre o `POST /predict_chord`.
+
+| Arquivo | O que garante | Testes |
+|---|---|---:|
+| `tests/integration/test_api.py` | a API devolve `ok`, `silence`, 400 e 503 certos, com o modelo do `trained_model/` | 6 |
+
+| **Total** | | **224** |

@@ -26,15 +26,15 @@ flowchart LR
 - **Chroma**: quanto de cada uma das 12 notas tem em cada pedacinho da janela. É o que a rede olha.
 - **CNN 1D** pequena, com BatchNorm e GlobalAveragePooling.
 - **Classe `_none`** ("nenhum acorde"), treinada com ruído, percussão e acorde em volume baixo gerados pelo `pipeline.py`. No `v3_meu`, ela também aprende com os meus áudios de sem acorde e com sons de afinação sintéticos.
-- **Limiar de confiança:** se a classe for `_none`, ou se a confiança ficar abaixo do limiar do modelo, o app mostra "desconhecido".
+- **Limiar de confiança:** se a classe for `_none`, ou se a confiança ficar abaixo do limiar do modelo, o app mostra "Não reconheci o acorde" (e a API devolve `unknown`).
 - **Silêncio:** janelas com RMS abaixo de 0,003 nem passam pelo modelo.
 - **A feature vai dentro do `.tflite`.** O app manda o áudio bruto e recebe as probabilidades, sem calcular chroma em Dart. Por que a inferência saiu do servidor e foi pro aparelho está no [ADR 0001](docs/adr/0001-inferencia-no-aparelho.md).
 
-O código comum ao treino, aos experimentos e à exportação fica em `pipeline.py`.
+O código comum ao treino, aos experimentos e à exportação fica em `pipeline.py`. O passo a passo, com o arquivo de cada etapa, está em [docs/como-funciona.md](docs/como-funciona.md).
 
 ## 2. Os modelos do app
 
-O app traz dois modelos em `assets/models/`, e eu escolho qual usar em **Perfil → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
+O app traz dois modelos em `assets/models/`, e eu escolho qual usar em **Ajustes → Reconhecimento → Modelo no aparelho** ("Só v3" ou "v3 + meu dataset"). No Android e no Windows, o nome da tela é **Configurações**. Por que são dois, e por que o padrão é o v3, está no [ADR 0002](docs/adr/0002-dois-modelos-no-app.md).
 
 | | **v3** (padrão) | **v3_meu** |
 |---|---|---|
@@ -134,11 +134,23 @@ Como o app usa os arquivos exportados está em [export/README.md](export/README.
 ### Testes
 
 ```bash
-python -m pytest
+python -m pytest                                                       # todos
+python -m pytest tests/unit/test_chroma_stft.py                        # um arquivo só
 python -m pytest -m "not dataset" --cov=. --cov-report=term-missing   # com a cobertura por arquivo
 ```
 
-Cobertura (18/11/2026): **99%** no código de produção (`api/app.py`, `pipeline.py`, `train_model.py`) e **94%** no repositório inteiro, tirando o `experiments/`. Os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
+São **224 testes em 18 arquivos**, e os 224 passam (`python -m pytest`, 23/11/2026, num Mac).
+
+| Área | Testes |
+|---|---:|
+| Dados e divisão | 74 |
+| Features, treino e limiar | 94 |
+| Exportação para TFLite | 17 |
+| Comparação de modelos | 33 |
+| API Flask | 6 |
+| **Total** | **224** |
+
+Cobertura (23/11/2026, `pytest-cov`): **99%** no código de produção (`api/app.py`, `pipeline.py`, `train_model.py`: 611 de 615 linhas) e **94%** no repositório inteiro (1839 de 1949), tirando o `experiments/`. A lista de cada arquivo, os números por arquivo, o que ficou de fora da conta e por quê estão em [docs/testes.md](docs/testes.md).
 
 O CI (`.github/workflows/ci.yml`) roda os mesmos testes em todo push e PR, com o Python 3.12.10 e o `requirements.lock.txt`, num passo pros testes e outro só pro export TFLite (`tests/unit/test_export_tflite.py`), que confere se o `.tflite` do `export/` dá as mesmas probabilidades do `example_expected.json`. Ele não tem os áudios, então pula os testes marcados com `dataset` (hoje nenhum precisa deles) e o do `afconvert`, que só existe no macOS.
 
@@ -233,6 +245,8 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── requirements.txt
 ├── requirements.lock.txt       # versões exatas usadas nos resultados
 ├── pytest.ini                  # o marcador "dataset" dos testes que precisam dos áudios
+├── .coveragerc                 # o que fica fora da conta da cobertura
+├── sonar-project.properties    # configuração do SonarCloud
 ├── .github/workflows/ci.yml    # roda o pytest e confere o export em todo push e PR
 │
 ├── api/
@@ -242,6 +256,7 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 │   ├── sources.csv             # uma linha por arquivo de áudio das duas fontes
 │   └── sessoes.csv             # as sessões em que gravei o meu dataset
 ├── docs/
+│   ├── como-funciona.md        # o pipeline, do dado ao app, e pasta → papel
 │   ├── experimentos.md         # as siglas e as rodadas de 15/11
 │   ├── roteiro-gravacao.md     # como gravei o meu dataset
 │   ├── testes.md               # cobertura dos testes e como gerar o relatório
@@ -262,6 +277,8 @@ Pra treinar de novo o modelo da API: `python train_model.py`. Ele lê a pasta `d
 ├── experiments/
 │   ├── results/                # experimentos com a pasta antiga (comparativo.md)
 │   ├── results_duas_fontes/    # experimentos de 15/11 (comparativo.md)
+│   ├── results_v1_val_no_teste/  # rodada antiga, em que a validação ainda era o teste
+│   ├── results_v2_split_nao_ordenado/  # rodada antiga, antes de ordenar o split
 │   ├── candidates/             # modelos antigos que os testes e o equivalence_check usam
 │   ├── legado/                 # experimentos de treino de outubro (class weight e ensemble)
 │   ├── evaluate_realtime.py    # acurácia e latência em janelas como as do app
