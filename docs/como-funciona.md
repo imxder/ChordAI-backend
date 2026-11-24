@@ -90,5 +90,5 @@ O `build_tflite.py` sempre grava em `export/`, então exportar um modelo apaga o
 
 - **Não tenho um teste do meu violão em outras condições.** Não gravei a sessão `s3`. Os `take02` são da mesma sessão do treino, então o número deles sai otimista (ADR 0002).
 - **O teste de sem acorde gravado é pequeno:** 48 janelas, da mesma sessão do resto do meu dataset (ADR 0002).
-- **O teste de latência é no computador.** Os 8,78 ms do `export_report.json` (`latency_ms_tflite_1thread`, float32) são do meu PC com 1 thread. O número no celular está em outro lugar: [CONFERIR] ainda não medi.
+- **O teste de latência é no computador.** Os 8,78 ms do `export_report.json` (`latency_ms_tflite_1thread`, float32) são do meu PC com 1 thread. No celular ainda não medi.
 - **Os modelos estão congelados.** Não retreinei nem recalibrei depois da exportação.
