@@ -1,12 +1,12 @@
 # Testes e cobertura
 
-O Playbook pede **75% de cobertura** no backend próprio de um projeto Mobile. Aqui o backend que roda de verdade é o pipeline de treino (`pipeline.py`, `train_model.py`) e a API (`api/app.py`).
+O Playbook pede 75% de cobertura no backend próprio de um projeto Mobile. Aqui o backend que roda de verdade é o pipeline de treino (`pipeline.py`, `train_model.py`) e a API (`api/app.py`).
 
 ## Números (23/11/2026)
 
-Medido em 23/11/2026, num Mac, com `python -m pytest -m "not dataset" --cov=. --cov-report=term-missing` e só o que o CI roda (sem o dataset em disco). Os números saíram iguais aos de 18/11: de lá pra cá só mudou documentação.
+Medido em 23/11/2026, num Mac, com `python -m pytest -m "not dataset" --cov=. --cov-report=term-missing` e só o que o CI roda (sem o dataset em disco). Os números saíram iguais aos de 18/11: de lá para cá só mudou documentação.
 
-São **224 testes em 18 arquivos**, e os 224 passam. A contagem vem de `python -m pytest --collect-only -q`, e um teste com vários casos conta uma vez por caso.
+São 224 testes em 18 arquivos, e os 224 passam. A contagem vem de `python -m pytest --collect-only -q`, e um teste com vários casos conta uma vez por caso.
 
 Cobertura:
 
@@ -15,17 +15,17 @@ Cobertura:
 | `api/app.py` | 35 | 35 | 100% |
 | `pipeline.py` | 459 | 455 | 99% |
 | `train_model.py` | 121 | 121 | 100% |
-| **Produção (os três acima)** | **615** | **611** | **99%** |
+| Produção (os três acima) | 615 | 611 | 99% |
 | `export/build_tflite.py` | 305 | 249 | 82% |
 | `scripts/comparar_modelos.py` | 447 | 401 | 90% |
 | `scripts/cortar_takes.py` | 205 | 203 | 99% |
 | `scripts/exportar_ableton.py` | 135 | 133 | 99% |
 | `scripts/dividir_treino.py`, `fontes.py`, `montar_sources.py`, `baixar_dataset.py` | 242 | 242 | 100% |
-| **Total do repositório** | **1949** | **1839** | **94%** |
+| Total do repositório | 1949 | 1839 | 94% |
 
-Antes desta rodada de testes (17/11) o código de produção estava em 312 de 634 linhas, **49,2%**.
+Antes desta rodada de testes (17/11) o código de produção estava em 312 de 634 linhas, 49,2%.
 
-O CI manda o `coverage.xml` pro SonarCloud em todo push; o badge do README e o histórico ficam lá: [sonarcloud.io/component_measures?id=imxder_ChordAI-backend&metric=coverage](https://sonarcloud.io/component_measures?id=imxder_ChordAI-backend&metric=coverage). O SonarCloud conta por linha e o coverage.py por comando, então o número dele pode sair um pouco diferente.
+O CI manda o `coverage.xml` para o SonarCloud em todo push; o badge do README e o histórico ficam lá: [sonarcloud.io/component_measures?id=imxder_ChordAI-backend&metric=coverage](https://sonarcloud.io/component_measures?id=imxder_ChordAI-backend&metric=coverage). O SonarCloud conta por linha e o coverage.py por comando, então o número dele pode sair um pouco diferente.
 
 ## Como gerar o relatório
 
@@ -40,19 +40,19 @@ O primeiro roda os testes e mede; o segundo mostra só os três arquivos de prod
 
 Está tudo escrito no [`.coveragerc`](../.coveragerc) e no `sonar-project.properties`:
 
-- **`api/serve.py`**: só joga a saída num arquivo de log e sobe o waitress na porta 5000. Testar seria subir um servidor de verdade no CI. A rota `/predict_chord`, que é o que importa, está em `api/app.py` e tem teste.
-- **`experiments/`**: os scripts de pesquisa que rodei na minha máquina pra comparar features e modelos (os resultados estão em `experiments/results*`). Não fazem parte do app, da API nem do treino que gera os modelos, e dependem do dataset inteiro em disco. O que eles usam do `pipeline.py` tem teste.
-- **Os blocos `if __name__ == '__main__':`**: só rodam quando chamo o arquivo pela linha de comando (`python train_model.py`).
+- `api/serve.py`: só joga a saída num arquivo de log e sobe o waitress na porta 5000. Testar seria subir um servidor de verdade no CI. A rota `/predict_chord`, que é o que importa, está em `api/app.py` e tem teste.
+- `experiments/`: os scripts de pesquisa rodados na máquina de desenvolvimento para comparar features e modelos (os resultados estão em `experiments/results*`). Não fazem parte do app, da API nem do treino que gera os modelos, e dependem do dataset inteiro em disco. O que eles usam do `pipeline.py` tem teste.
+- Os blocos `if __name__ == '__main__':`: só rodam quando o arquivo é chamado pela linha de comando (`python train_model.py`).
 
-O que continua sem teste: no `export/build_tflite.py`, a escolha da seed e o carregamento do modelo C1, que leem os `model.h5` de `experiments/results/` (eles não vão pro Git); no `comparar_modelos.py`, a montagem dos dados de cada variante (R, V3, B8v...), que precisa do `data/sources.csv` com os áudios em disco; e no `pipeline.py`, quatro linhas de casos raros.
+O que continua sem teste: no `export/build_tflite.py`, a escolha da seed e o carregamento do modelo C1, que leem os `model.h5` de `experiments/results/` (eles não vão para o Git); no `comparar_modelos.py`, a montagem dos dados de cada variante (R, V3, B8v...), que precisa do `data/sources.csv` com os áudios em disco; e no `pipeline.py`, quatro linhas de casos raros.
 
 ## Como os testes funcionam sem o dataset
 
-Os áudios do dataset não vão pro Git, então os testes usam **acordes sintéticos** (`tests/sintetico.py`): cada nota é uma senoide com dois harmônicos e um decaimento leve, como uma corda. Como a gente sabe quais notas estão no sinal, dá pra conferir que o chroma de um C destaca C, E e G.
+Os áudios do dataset não vão para o Git, então os testes usam acordes sintéticos (`tests/sintetico.py`): cada nota é uma senoide com dois harmônicos e um decaimento leve, como uma corda. Como se sabe quais notas estão no sinal, dá para conferir que o chroma de um C destaca C, E e G.
 
 O export (`tests/unit/test_build_tflite.py`) monta o grafo com a chroma_stft dentro, com uma CNN pequena de pesos aleatórios, e confere que a feature dele bate com a do librosa (erro menor que 0,0001), que a conversão só usa ops nativas do TFLite e que o int8 não quantiza a janela nem a matriz de chroma.
 
-O teste de treino (`tests/unit/test_train_model.py`) monta um dataset sintético com 4 acordes x 10 arquivos numa pasta temporária e treina o modelo de ponta a ponta, com 20 negativos sintéticos de cada tipo em vez de 370 (só pra rodar em segundos). O código de produção não muda pro teste.
+O teste de treino (`tests/unit/test_train_model.py`) monta um dataset sintético com 4 acordes x 10 arquivos numa pasta temporária e treina o modelo de ponta a ponta, com 20 negativos sintéticos de cada tipo em vez de 370 (só para rodar em segundos). O código de produção não muda para o teste.
 
 ## Onde está cada teste
 
@@ -109,4 +109,4 @@ Cobre o `POST /predict_chord`.
 |---|---|---:|
 | `tests/integration/test_api.py` | a API devolve `ok`, `silence`, 400 e 503 certos, com o modelo do `trained_model/` | 6 |
 
-| **Total** | | **224** |
+| Total | | 224 |
